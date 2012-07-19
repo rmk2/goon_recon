@@ -245,9 +245,5 @@
 	(print "One argument has been given")
 	(print "Two arguments have been given"))))
 
-(testy 'asd 'asd)
 
-; format
 
-(let ((arg 0))
-  (format "~d ~d" arg (+ 2 arg)))
