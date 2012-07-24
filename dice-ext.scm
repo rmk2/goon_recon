@@ -10,8 +10,7 @@
   (let ((input (cdr arg)))
     (cond
      ((null? input)
-      (begin
-	(printerr "Usage: dice <type> [<amount>] [<modifier>]")))
+	(printerr "Usage: dice <type> [<amount>] [<modifier>]"))
      ((null? (cdr input))
       (let ((n (string->number (car input))))
 	(if (and (number? n) (positive? n))
