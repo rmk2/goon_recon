@@ -6,10 +6,10 @@
 (random-source-randomize! rsrc)
 (define random (random-source-make-integers rsrc))
 
-(define-macro (vref n) `(string->number (vector-ref input ,n)))
+(define-macro (vref n) `(string->number (list-ref input ,n)))
 
 (define (main arg)
-  (let ((input (list->vector (argv))))
+  (let ((input (argv)))
     (case (argc)
       ((1) (let ((n (vref 0)))
 	     (if (and (number? n) (positive? n))
