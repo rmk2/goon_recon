@@ -64,9 +64,10 @@
 ; Exercise 1.3
 
 (define (square-grt-2 x y z)
+  (define (sum-of-squares a b) (+ (* a a) (* b b)))
   (cond
-   ((or (< x y) (< x z)) (sum-of-squares y z))
-   ((or (< y x) (< y z)) (sum-of-squares x z))
+   ((and (<= x y) (<= x z)) (sum-of-squares y z))
+   ((and (<= y x) (<= y z)) (sum-of-squares x z))
    (else (sum-of-squares x y))))
 
 ; Exercise 1.4
@@ -81,15 +82,84 @@
 
 ; Exercise 1.5
 
-(define (p) (p))
+;; (define (p) (p))
 
-(define (test x y)
-  (if (= x 0)
-      0
-      y))
+;; (define (test x y)
+;;   (if (= x 0)
+;;       0
+;;       y))
 
-(test 0 (p))
+;; (test 0 (p))
 
 ; The function enters an infinite loop since y has the value (p) which is
 ; defined as (p), thus never terminating the loop /if/ applicative-order
 ; evaluation is used!
+
+*** Example: Square Roots by Newton's Method
+
+(define (square x)
+  (* x x))
+
+(define (good-enough? guess x)
+  (< (abs (- (improve guess x) guess))
+     (* guess 0.001)))
+
+(define (average x y)
+  (/ (+ x y) 2))
+
+(define (improve guess x)
+  (average guess (/ x guess)))
+
+(define (sqrt-iter guess x)
+  (if (good-enough? guess x)
+      guess
+      (sqrt-iter (improve guess x)
+		 x)))
+(define (sqrt x)
+  (sqrt-iter 1.0 x))
+
+*** Cube roots
+
+(define (cube x) (* x x x))
+
+(define (cb-rt-iter guess x)
+  (if (good-enough? guess x)
+      guess
+      (cb-rt-iter (improve guess x) x)))
+
+(define (good-enough? guess x)
+  (< (abs (- (cube guess) x)) 0.001))
+
+(define (improve guess x)
+  (/ (+ (/ x (square guess)) (* 2 guess)) 3))
+
+(define (cube-root x)
+  (cb-rt-iter 1.0 x))
+
+(define (sqrt x)
+  (define (square n) (* n n))
+  (define (good-enough? guess)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess)
+    (if (good-enough? guess)
+	guess
+	(sqrt-iter (improve guess))))
+  (sqrt-iter 1.0))
+
+*** Linear Recursion and Iteration
+
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* n (factorial (- n 1)))))
+
+(define (factorial2 n)
+  (define (iter product counter)
+    (if (> counter n)
+	product
+	(iter (* product counter)
+	      (+ counter 1))))
+  (iter 1 1))
+
