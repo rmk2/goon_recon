@@ -1,0 +1,27 @@
+#!/usr/bin/env stklos-script
+
+(define-syntax hash-ref
+  (syntax-rules ()
+    ((hash-ref hash key) (hash-table-ref hash key))))
+
+(define-syntax hash-set! 
+  (syntax-rules ()
+    ((hash-set! hash key value) (hash-table-set! hash key value))))
+
+(define-macro (href ht string x) `(hash-ref ht (string-ref ,string ,x)))
+
+(define (main string)
+  (if (or (zero? (length (cdr string))) (> (length (cdr string)) 1))
+      (format #t "Usage: ~a <number> ~&" (car string))
+      (let ((ht (make-hash-table)))
+	(hash-set! ht #\M 1000)
+	(hash-set! ht #\D 500)
+	(hash-set! ht #\C 100)
+	(hash-set! ht #\L 50)
+	(hash-set! ht #\X 10)
+	(hash-set! ht #\V 5)
+	(hash-set! ht #\I 1)
+	(let loop ((string (list-ref string 1)) (ht ht) (n 0) (x 0))
+	  (if (not (= (- (string-length string) 1) x))
+	      (loop string ht ((if (< (href ht string x) (href ht string (+ x 1))) - +) n (href ht string x)) (+ x 1))
+	      (format #t "(Roman) ~a = (Arabic) ~a ~&" string (+ n (href ht string x))))))))
