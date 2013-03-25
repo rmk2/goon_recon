@@ -1,14 +1,20 @@
 #!/usr/bin/env stklos-script
 
+;; (hash-ref) and (hash-set!) aliases the guile functions of the same name to
+;; the appropriate stklos-functions (hash-table-ref) and (hash-table-set!),
+;; respectively.
+
 (define-syntax hash-ref
   (syntax-rules ()
-    ((hash-ref hash key) (hash-table-ref hash key))))
+    ((_ hash key) (hash-table-ref hash key))))
 
 (define-syntax hash-set! 
   (syntax-rules ()
-    ((hash-set! hash key value) (hash-table-set! hash key value))))
+    ((_ hash key value) (hash-table-set! hash key value))))
 
-(define-macro (href ht string x) `(hash-ref ht (string-ref ,string ,x)))
+(define-syntax href
+  (syntax-rules ()
+    ((_ hashtable string x) (hash-ref hashtable (string-ref string x)))))
 
 (define (main string)
   (if (or (zero? (length (cdr string))) (> (length (cdr string)) 1))
@@ -21,7 +27,7 @@
 	(hash-set! ht #\X 10)
 	(hash-set! ht #\V 5)
 	(hash-set! ht #\I 1)
-	(let loop ((string (list-ref string 1)) (ht ht) (n 0) (x 0))
+	(let loop ((string (string-upcase (list-ref string 1))) (n 0) (x 0))
 	  (if (not (= (- (string-length string) 1) x))
-	      (loop string ht ((if (< (href ht string x) (href ht string (+ x 1))) - +) n (href ht string x)) (+ x 1))
+	      (loop string ((if (< (href ht string x) (href ht string (+ x 1))) - +) n (href ht string x)) (+ x 1))
 	      (format #t "(Roman) ~a = (Arabic) ~a ~&" string (+ n (href ht string x))))))))
