@@ -4,6 +4,7 @@
 (require json)
 (require 2htdp/batch-io)
 (require racket/string)
+(require srfi/19)
 
 (define query-supers (make-parameter #f))
 (define query-titans (make-parameter #f))
@@ -74,15 +75,17 @@
 			   [(query-titans) (convert-typeids :titans (hash-ref x 'shipTypeID))]
 			   [(query-supers) (convert-typeids :supers (hash-ref x 'shipTypeID))])
 ;;			   [else (return "Use --titans (-t), --supers (-s), --all (-a) or --raw (-r) to filter and display ships")])
-		 (printf "~a,~a,~a,~a,~a~%"
+		 (printf "~a,~a,~a,~a,~a,~a~%"
 			 (if (or (query-titans) (query-supers))
 			     (convert-typeids :print (hash-ref x 'shipTypeID))
 			     (hash-ref x 'shipTypeID))
 			 (hash-ref x 'characterName)
 			 (hash-ref x 'corporationName)
 			 (hash-ref x 'allianceName)
-			 (solar-parse (number->string location)))))
+			 (solar-parse (number->string location))
+			 (date->string (current-date) "~1"))))
 	     (hash-ref km-list 'attackers))))
 	zkill)))))
 
 (zkill-parse)
+
