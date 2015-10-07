@@ -5,6 +5,7 @@
 (require 2htdp/batch-io)
 (require racket/string)
 (require srfi/19)
+(require net/url)
 
 (define query-supers (make-parameter #f))
 (define query-titans (make-parameter #f))
@@ -24,6 +25,31 @@
    [("-i" "--interactive") "Read from stdin" (query-interactive #t)]
    #:once-any
    [("-a" "--all") "Include both titans and supercarriers in output" (begin (query-titans #t) (query-supers #t))]))
+
+;; FILE HANDLING
+
+(define api-supers
+  (let ((url-supers (string-append
+		     "https://zkillboard.com/api/kills/groupID/659/no-items/startTime/"
+		     (date->string (current-date) "~Y~m~d")
+		     "0000")))
+    (call/input-url (string->url url-supers)
+		    get-pure-port
+		    read-json)))
+
+(define api-titans
+  (let ((url-titans (string-append
+		     "https://zkillboard.com/api/kills/groupID/30/no-items/startTime/"
+		     (date->string (current-date) "~Y~m~d")
+		     "0000")))
+    (call/input-url (string->url url-titans)
+		    get-pure-port
+		    read-json)))
+
+(define api
+  (append api-supers api-titans))
+
+;; PARSING
 
 (define solar-list
   (make-hash (read-csv-file "/home/ryko/eve-solarsystemids")))
@@ -63,7 +89,7 @@
 (define (zkill-parse)
   (let ([zkill (if (query-interactive)
 		   (read-json)
-		   (read-json (open-input-file "/dev/shm/all-involved.txt")))])
+		   api)])
     (call/cc
      (lambda (return)
        (for-each
@@ -74,8 +100,8 @@
 	       (when (cond [(and (query-titans) (query-supers)) (convert-typeids :check (hash-ref x 'shipTypeID))]
 			   [(query-titans) (convert-typeids :titans (hash-ref x 'shipTypeID))]
 			   [(query-supers) (convert-typeids :supers (hash-ref x 'shipTypeID))])
-;;			   [else (return "Use --titans (-t), --supers (-s), --all (-a) or --raw (-r) to filter and display ships")])
-		 (printf "~a,~a,~a,~a,~a,~a~%"
+		 ;;			   [else (return "Use --titans (-t), --supers (-s), --all (-a) or --raw (-r) to filter and display ships")])
+		 (printf "~a,~a,~a,~a,~a~a~%"
 			 (if (or (query-titans) (query-supers))
 			     (convert-typeids :print (hash-ref x 'shipTypeID))
 			     (hash-ref x 'shipTypeID))
@@ -83,7 +109,7 @@
 			 (hash-ref x 'corporationName)
 			 (hash-ref x 'allianceName)
 			 (solar-parse (number->string location))
-			 (date->string (current-date) "~1"))))
+			 (if (query-interactive) "" (string-append "," (date->string (current-date) "~1"))))))
 	     (hash-ref km-list 'attackers))))
 	zkill)))))
 
