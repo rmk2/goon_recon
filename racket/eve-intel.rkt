@@ -28,26 +28,25 @@
 
 ;; FILE HANDLING
 
-(define api-supers
-  (let ((url-supers (string-append
-		     "https://zkillboard.com/api/kills/groupID/659/no-items/startTime/"
-		     (date->string (current-date) "~Y~m~d")
-		     "0000")))
-    (call/input-url (string->url url-supers)
-		    get-pure-port
-		    read-json)))
-
-(define api-titans
-  (let ((url-titans (string-append
-		     "https://zkillboard.com/api/kills/groupID/30/no-items/startTime/"
-		     (date->string (current-date) "~Y~m~d")
-		     "0000")))
-    (call/input-url (string->url url-titans)
-		    get-pure-port
-		    read-json)))
+(define (pull-url groupid)
+  (when (number? groupid)
+    (let ([built-url
+	   (string-append "https://zkillboard.com/api/kills/groupID/"
+			  (number->string groupid)
+			  "/no-items/startTime/"
+			  (date->string (current-date) "~Y~m~d")
+			  "0000")])
+      (call/input-url (string->url built-url)
+		      get-pure-port
+		      read-json))))
 
 (define api
-  (append api-supers api-titans))
+  (if (query-interactive)
+      #f
+      (let loop ([groups '(30 659)] [i 0] [result '()])
+	(if (< i (length groups))
+	    (loop groups (+ i 1) (append (pull-url (list-ref groups i)) result))
+	    result))))
 
 ;; PARSING
 
