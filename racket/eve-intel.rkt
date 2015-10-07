@@ -40,13 +40,11 @@
 		      get-pure-port
 		      read-json))))
 
-(define api
-  (if (query-interactive)
-      #f
-      (let loop ([groups '(30 659)] [i 0] [result '()])
-	(if (< i (length groups))
-	    (loop groups (+ i 1) (append (pull-url (list-ref groups i)) result))
-	    result))))
+(define (api)
+  (let loop ([groups '(30 659)] [i 0] [result '()])
+    (if (< i (length groups))
+	(loop groups (+ i 1) (append (pull-url (list-ref groups i)) result))
+	result)))
 
 ;; PARSING
 
@@ -88,7 +86,7 @@
 (define (zkill-parse)
   (let ([zkill (if (query-interactive)
 		   (read-json)
-		   api)])
+		   (api))])
     (call/cc
      (lambda (return)
        (for-each
@@ -100,7 +98,7 @@
 			   [(query-titans) (convert-typeids :titans (hash-ref x 'shipTypeID))]
 			   [(query-supers) (convert-typeids :supers (hash-ref x 'shipTypeID))])
 		 ;;			   [else (return "Use --titans (-t), --supers (-s), --all (-a) or --raw (-r) to filter and display ships")])
-		 (printf "~a,~a,~a,~a,~a~a~%"
+		 (printf "~a,~a,~a,~a,~a,~a~%"
 			 (if (or (query-titans) (query-supers))
 			     (convert-typeids :print (hash-ref x 'shipTypeID))
 			     (hash-ref x 'shipTypeID))
@@ -108,7 +106,7 @@
 			 (hash-ref x 'corporationName)
 			 (hash-ref x 'allianceName)
 			 (solar-parse (number->string location))
-			 (if (query-interactive) "" (string-append "," (date->string (current-date) "~1"))))))
+			 (date->string (current-date) "~1"))))
 	     (hash-ref km-list 'attackers))))
 	zkill)))))
 
