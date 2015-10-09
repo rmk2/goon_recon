@@ -13,6 +13,7 @@
 (define query-system (make-parameter #f))
 (define query-region (make-parameter #f))
 (define query-interactive (make-parameter #f))
+(define query-timestamps (make-parameter #t))
 
 (define parse-args
   (command-line
@@ -23,6 +24,7 @@
    [("-S" "--system") "Include system in output" (query-system #t)]
    [("-R" "--region") "Include region in output" (query-region #t)]
    [("-i" "--interactive") "Read from stdin" (query-interactive #t)]
+   [("-T" "--no-timestamps") "Disable timestamps" (query-timestamps #f)]
    #:once-any
    [("-a" "--all") "Include both titans and supercarriers in output" (begin (query-titans #t) (query-supers #t))]))
 
@@ -98,7 +100,7 @@
 			   [(query-titans) (convert-typeids :titans (hash-ref x 'shipTypeID))]
 			   [(query-supers) (convert-typeids :supers (hash-ref x 'shipTypeID))])
 		 ;;			   [else (return "Use --titans (-t), --supers (-s), --all (-a) or --raw (-r) to filter and display ships")])
-		 (printf "~a,~a,~a,~a,~a,~a~%"
+		 (printf "~a,~a,~a,~a,~a~a~%"
 			 (if (or (query-titans) (query-supers))
 			     (convert-typeids :print (hash-ref x 'shipTypeID))
 			     (hash-ref x 'shipTypeID))
@@ -106,7 +108,7 @@
 			 (hash-ref x 'corporationName)
 			 (hash-ref x 'allianceName)
 			 (solar-parse (number->string location))
-			 (date->string (current-date) "~1"))))
+			 (if (query-timestamps) (string-append "," (date->string (current-date) "~1")) ""))))
 	     (hash-ref km-list 'attackers))))
 	zkill)))))
 
