@@ -48,7 +48,11 @@
        list))
 
 (define (hash-data)
-  (map (lambda (l) (make-hash l)) (cons-data (remove-duplicates (create-input)))))
+  (map (lambda (l) (make-hash l)) (cons-data
+				   (reverse
+				    (remove-duplicates (reverse (create-input))
+						       #:key (lambda (x) (car x))
+						       string=?)))))
 
 ;; Create an assoc-ready list of pairs for coalition data: (alliance . coalition)
 
@@ -99,8 +103,8 @@
 				  (hash-data)))
     ((_ :hash-tag filter) (filter-map (lambda (x)
 					(if (regexp-match filter (hash-ref x 'tag))
-					x
-					#f))
+					    x
+					    #f))
 				      (hash-data)))))
 
 ;; Exec
