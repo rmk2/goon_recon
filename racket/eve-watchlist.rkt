@@ -111,8 +111,17 @@
 					    #f))
 				      (hash-data)))))
 
+;; Curtail list to a maximum of 1000 unique entries
+
+(define-syntax curtail-list
+  (syntax-rules (:length)
+    ((_ :length n list) (if (> (length list) n)
+			    (list-tail list (- (length list) n 1))
+			    list))
+    ((_ list) (curtail-list :length 1000 list))))
+
 ;; Exec
 
 ;; (write-json (filter-results :hash "PL|DUMP|DRF|PROVI|STAIN|RUS|NC|Other"))
 
-(write-json (filter-results :hash-tag "^(?!IMP).+"))
+(write-json (curtail-list (filter-results :hash-tag "^(?!IMP).+")))
