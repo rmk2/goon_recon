@@ -9,10 +9,14 @@
 ;; Data fetching
 
 (define (unify-data)
-  (let ([collected "http://eve.rmk2.org/eve-intel_retroactive.txt"]
-	[regions "http://eve.rmk2.org/eve-intel_regions.txt"])
-    (append (call/input-url (string->url collected) get-pure-port port->lines)
-	    (call/input-url (string->url regions) get-pure-port port->lines))))
+  (let ([collected-file "/var/www/servers/eve.rmk2.org/pages/eve-intel_retroactive.txt"]
+	[regions-file "/var/www/servers/eve.rmk2.org/pages/eve-intel_regions.txt"])
+    (if (and (file-exists? collected-file) (file-exists? regions-file))
+	(append (file->lines collected-file) (file->lines regions-file))
+	(let ([collected "http://eve.rmk2.org/eve-intel_retroactive.txt"]
+	      [regions "http://eve.rmk2.org/eve-intel_regions.txt"])
+	  (append (call/input-url (string->url collected) get-pure-port port->lines)
+		  (call/input-url (string->url regions) get-pure-port port->lines))))))
 
 (define (create-input)
   (map (lambda (l) (list (list-ref l 1)
@@ -21,7 +25,7 @@
        (input-map-split (unify-data))))
 
 (define coalitions
-  (let [(file "/dev/shm/coalitions.txt")]
+  (let [(file "/var/www/servers/eve.rmk2.org/pages/coalitions.txt")]
     (if (file-exists? file)
 	(file->lines file)
 	(call/input-url (string->url "http://eve.rmk2.org/coalitions.txt")
