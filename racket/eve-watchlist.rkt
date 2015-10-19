@@ -8,9 +8,17 @@
 
 ;; Data fetching
 
-(define data
-  (let [(file "/dev/shm/watchlist.output")]
-    (port->lines (open-input-file file))))
+(define (unify-data)
+  (let ([collected "http://eve.rmk2.org/eve-intel_retroactive.txt"]
+	[regions "http://eve.rmk2.org/eve-intel_regions.txt"])
+    (append (call/input-url (string->url collected) get-pure-port port->lines)
+	    (call/input-url (string->url regions) get-pure-port port->lines))))
+
+(define (create-input)
+  (map (lambda (l) (list (list-ref l 1)
+			 (list-ref l 0)
+			 (list-ref l 3)))
+       (input-map-split (unify-data))))
 
 (define coalitions
   (let [(file "/dev/shm/coalitions.txt")]
@@ -40,7 +48,7 @@
        list))
 
 (define (hash-data)
-  (map (lambda (l) (make-hash l)) (remove-duplicates (cons-data (input-map-split data)))))
+  (map (lambda (l) (make-hash l)) (cons-data (remove-duplicates (create-input)))))
 
 ;; Create an assoc-ready list of pairs for coalition data: (alliance . coalition)
 
@@ -74,10 +82,10 @@
 		     (cdr (assoc str (pair-coalitions))))
 		 str))))
 
-;; Allow us to filter (and [kind of] pretty-print) the data via regexp
+;; Allow us to filter (and [kind of] pretty-print) watchlist data via regexp
 
 (define-syntax filter-results
-  (syntax-rules (:tags :alliance :hash)
+  (syntax-rules (:tags :alliance :hash :hash-tag)
     ((_ :tags filter) (begin (coalition-tags #t) (filter-results filter)))
     ((_ :alliance filter) (begin (coalition-tags #f) (filter-results filter)))
     ((_ filter) (for-each (lambda (hash)
@@ -88,8 +96,15 @@
 				    (if (memf (lambda (x) (regexp-match filter x)) (hash-values hash))
 					hash
 					#f))
-				  (hash-data)))))
+				  (hash-data)))
+    ((_ :hash-tag filter) (filter-map (lambda (x)
+					(if (regexp-match filter (hash-ref x 'tag))
+					x
+					#f))
+				      (hash-data)))))
 
 ;; Exec
 
-(write-json (filter-results :hash ".*"))
+;; (write-json (filter-results :hash "PL|DUMP|DRF|PROVI|STAIN|RUS|NC|Other"))
+
+(write-json (filter-results :hash-tag "^(?!IMP).+"))
