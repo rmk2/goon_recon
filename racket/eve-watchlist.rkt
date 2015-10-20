@@ -77,6 +77,12 @@
 		   [("Stain Wagon") "STAIN"]
 		   [("Red Menace") "RUS"]
 		   [("Northern Coalition.") "NC"]
+		   [("The-Culture") "TC"]
+		   [("Dead Terrorists"
+		     "Snuffed Out"
+		     "Shadow Cartel"
+		     "Psychotic Tendencies."
+		     "Cynosural Field Theory.") "Lowsec"]
 		   [else "Other"])
 		 str))))
 
