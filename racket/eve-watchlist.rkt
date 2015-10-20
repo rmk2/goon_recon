@@ -55,7 +55,7 @@
   (map (lambda (l) (make-hash l)) (cons-data
 				   (reverse
 				    (remove-duplicates (reverse (create-input))
-						       #:key (lambda (x) (car x))
+						       #:key (lambda (x) (string-downcase (car x)))
 						       string=?)))))
 
 ;; Create an assoc-ready list of pairs for coalition data: (alliance . coalition)
