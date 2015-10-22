@@ -82,7 +82,9 @@
 		     "Snuffed Out"
 		     "Shadow Cartel"
 		     "Psychotic Tendencies."
-		     "Cynosural Field Theory.") "Lowsec"]
+		     "Cynosural Field Theory."
+		     "LowSechnaya Sholupen"
+		     "Project.Mayhem.") "Lowsec"]
 		   [else "Other"])
 		 str))))
 
