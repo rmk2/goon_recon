@@ -93,9 +93,9 @@
 (define-syntax find-coalition
   (syntax-rules ()
     ((_ str) (if (coalition-tags)
-		 (if (not (assoc str (pair-coalitions)))
-		     str
-		     (cdr (assoc str (pair-coalitions))))
+		 (if (assoc str (pair-coalitions))
+		     (cdr (assoc str (pair-coalitions)))
+		     str)
 		 str))))
 
 ;; Allow us to filter (and [kind of] pretty-print) watchlist data via regexp
@@ -119,7 +119,7 @@
 					    #f))
 				      (hash-data)))))
 
-;; Curtail list to a maximum of 1000 unique entries
+;; Curtail list to a maximum of n unique entries (default: n = 1000)
 
 (define-syntax curtail-list
   (syntax-rules (:length)
