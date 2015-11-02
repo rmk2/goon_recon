@@ -6,6 +6,27 @@
 
 (define coalition-tags (make-parameter #t))
 
+;; Command-line argument handlung
+
+(define cl-filter (make-parameter "^(?!IMP).+")) ;; Default: show hostile only
+(define cl-length (make-parameter 1000)) ;; Default list length: 1000
+
+(define (check-input input)
+  (when (string? input)
+    (cl-filter (pregexp (string-append "^(?i:" (string-replace input " " "|") ").*")))))
+
+(define parse-args
+  (command-line
+   #:once-each
+   [("-T" "--no-tags") "Apply filter to whole data, not just coalition tags" (coalition-tags #f)]
+   [("-l" "-n" "--length") n "Watchlist length" (if (< (string->number n) 1024)
+						    (cl-length (string->number n))
+						    (println "List length cannot be greater than 1024"))]
+   #:once-any
+   [("-B" "--blue" "--friendly") "Only output friendly entities" (cl-filter "^(?=IMP).+")]
+   [("-R" "--red" "--hostile") "Only output hostile entities" (cl-filter)]
+   [("-c" "--custom" "-e" "--regexp") str "Create a custom filter" (check-input str)]))
+
 ;; Data fetching
 
 (define (unify-data)
@@ -119,17 +140,21 @@
 					    #f))
 				      (hash-data)))))
 
-;; Curtail list to a maximum of n unique entries (default: n = 1000)
+;; Curtail list to a maximum of n unique entries (default: n = (cl-length) = 1000)
 
 (define-syntax curtail-list
   (syntax-rules (:length)
     ((_ :length n list) (if (> (length list) n)
 			    (list-tail list (- (length list) n))
 			    list))
-    ((_ list) (curtail-list :length 1000 list))))
+    ((_ list) (curtail-list :length (cl-length) list))))
 
 ;; Exec
 
 ;; (write-json (filter-results :hash "PL|DUMP|DRF|PROVI|STAIN|RUS|NC|Other"))
 
-(write-json (curtail-list (filter-results :hash-tag "^(?!IMP).+")))
+;; (write-json (curtail-list (filter-results :hash-tag (cl-filter))))
+
+(write-json (curtail-list (if (coalition-tags)
+			      (filter-results :hash-tag (cl-filter))
+			      (filter-results :hash (cl-filter)))))
