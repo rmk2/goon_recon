@@ -124,7 +124,7 @@
 (define-syntax curtail-list
   (syntax-rules (:length)
     ((_ :length n list) (if (> (length list) n)
-			    (list-tail list (- (length list) n 1))
+			    (list-tail list (- (length list) n))
 			    list))
     ((_ list) (curtail-list :length 1000 list))))
 
