@@ -21,7 +21,7 @@
    [("-T" "--no-tags") "Apply filter to whole data, not just coalition tags" (coalition-tags #f)]
    [("-l" "-n" "--length") n "Watchlist length" (if (< (string->number n) 1024)
 						    (cl-length (string->number n))
-						    (println "List length cannot be greater than 1024"))]
+						    (exit (println "List length cannot be greater than 1024")))]
    #:once-any
    [("-B" "--blue" "--friendly") "Only output friendly entities" (cl-filter "^(?=IMP).+")]
    [("-R" "--red" "--hostile") "Only output hostile entities" (cl-filter)]
