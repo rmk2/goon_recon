@@ -18,7 +18,8 @@
 
 (define-syntax json-filter
   (syntax-rules (:name :defender-raw :defender :defender-name :attackers :system
-		       :system-name :constellation :time :score :type-raw :type)
+		       :system-name :constellation :time :score :type-raw :type
+		       :constellation-id :href :region)
     ((_ :name f) (hash-ref f 'name))
     ((_ :defender-raw hash) (hash-ref hash 'defender))
     ((_ :defender hash) (hash-ref (json-filter :defender-raw hash) 'defender))
@@ -27,13 +28,16 @@
     ((_ :system hash) (hash-ref hash 'sourceSolarsystem))
     ((_ :system-name hash) (json-filter :name (json-filter :system hash)))
     ((_ :constellation hash) (hash-ref hash 'constellation))
+    ((_ :constellation-id hash) (hash-ref (json-filter :constellation hash) 'id_str))
     ((_ :time hash) (hash-ref hash 'startTime))
     ((_ :type-raw hash) (hash-ref hash 'eventType))
     ((_ :type hash) (case (hash-ref hash 'eventType)
 		      [(1) "TCU"]
 		      [(2) "IHUB"]
 		      [(3) "Station"]
-		      [(4) "Freeport"]))))
+		      [(4) "Freeport"]))
+    ((_ :href hash) (hash-ref hash 'href))
+    ((_ :region hash) (hash-ref hash 'region))))
 
 (define-syntax freeport?
   (syntax-rules ()
@@ -50,13 +54,31 @@
     ((_ :tab list) (for-each (lambda (x) (displayln x)) (map (lambda (y) (string-join y "\t")) list)))
     ((_ list) (result-print :filter ".*" list))))
 
+;; Handle region data
+
+(define regions-output-file (string-append (path->string (current-directory-for-user)) "region_data.list"))
+
+(define regions-input
+  (let ([file regions-output-file])
+    (when (file-exists? file)
+      (read (open-input-file file)))))
+
+(define-syntax find-region
+  (syntax-rules (:check-output)
+    ((_ query input) (car (filter-map (lambda (x)
+					(if (member query (flatten x))
+					    (car x)
+					    #f))
+				      input)))))
+
 (define (crest-query)
   (let ([query-data (hash-ref api 'items)])
     (map (lambda (x) (list
 		      (if (freeport? x) "*free-for-all" (json-filter :name (json-filter :defender x)))
+		      (json-filter :type x)
 		      (json-filter :name (json-filter :system x))
 		      (json-filter :name (json-filter :constellation x))
-		      (json-filter :type x)
+		      (find-region (json-filter :constellation-id x) regions-input)
 		      (json-filter :time x)))
 	 query-data)))
 
