@@ -26,11 +26,11 @@
      (script 'type: "text/javascript" 'src: "https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
      (script 'type: "text/javascript" 'src: "./jquery.tablesorter.min.js")
      ;; (script 'type: "text/javascript" 'src: "https://raw.githubusercontent.com/christianbach/tablesorter/master/jquery.tablesorter.min.js")
-     (script (literal "$(document).ready(function() { $(\"#supers\").tablesorter( { sortList: [[7,0],[1,0]] } ); });")))
+     (script (literal "$(document).ready(function() { $(\"#timers\").tablesorter( { sortList: [[6,0],[1,0]] } ); });")))
     (body
      (h1 "Fuzzysov Timer Board")
      (p 'style: "padding-left:.2em" "Hint: hold down SHIFT to select multiple columns for sorting") 
-     (table 'id: "supers" 'class: "tablesorter"
+     (table 'id: "timers" 'class: "tablesorter"
 	    (thead (tr (th "Alliance")
 		       (th "Structure")
 		       (th "System")
