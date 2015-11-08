@@ -61,8 +61,10 @@
   (let ([file regions-output-file])
     (if (file-exists? file)
 	(read (open-input-file file))
-	#f)))
-
+	(call/input-url (string->url "https://eve.rmk2.org/.rkt/region_data.list")
+			get-pure-port
+			read))))
+			
 (define-syntax find-region
   (syntax-rules ()
     ((_ query input) (car (filter-map (lambda (x)
@@ -89,3 +91,4 @@
 ;; (result-print :filter ".*" (crest-query))
 
 (result-print :csv (crest-query))
+
