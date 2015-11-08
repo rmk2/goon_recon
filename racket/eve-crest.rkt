@@ -5,8 +5,6 @@
 (require racket/date)
 (require net/url)
 
-;; (define api (read-json (open-input-file "/dev/shm/crest-campaigns.json")))
-
 (define api
   (let [(file "/dev/shm/crest-campaigns.json")]
     (if (and (file-exists? file)
@@ -19,7 +17,7 @@
 (define-syntax json-filter
   (syntax-rules (:name :defender-raw :defender :defender-name :attackers :system
 		       :system-name :constellation :time :score :type-raw :type
-		       :constellation-id :href :region)
+		       :constellation-id :href :region :items)
     ((_ :name f) (hash-ref f 'name))
     ((_ :defender-raw hash) (hash-ref hash 'defender))
     ((_ :defender hash) (hash-ref (json-filter :defender-raw hash) 'defender))
@@ -37,7 +35,8 @@
 		      [(3) "Station"]
 		      [(4) "Freeport"]))
     ((_ :href hash) (hash-ref hash 'href))
-    ((_ :region hash) (hash-ref hash 'region))))
+    ((_ :region hash) (hash-ref hash 'region))
+    ((_ :items hash) (hash-ref hash 'items))))
 
 (define-syntax freeport?
   (syntax-rules ()
@@ -56,20 +55,23 @@
 
 ;; Handle region data
 
-(define regions-output-file (string-append (path->string (current-directory-for-user)) "region_data.list"))
+(define regions-output-file "./region_data.list")
 
 (define regions-input
   (let ([file regions-output-file])
-    (when (file-exists? file)
-      (read (open-input-file file)))))
+    (if (file-exists? file)
+	(read (open-input-file file))
+	#f)))
 
 (define-syntax find-region
-  (syntax-rules (:check-output)
+  (syntax-rules ()
     ((_ query input) (car (filter-map (lambda (x)
 					(if (member query (flatten x))
 					    (car x)
 					    #f))
 				      input)))))
+
+;; Query API data
 
 (define (crest-query)
   (let ([query-data (hash-ref api 'items)])
