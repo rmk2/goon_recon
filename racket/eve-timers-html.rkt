@@ -15,6 +15,12 @@
   (syntax-rules ()
     ((_ input) (map (lambda (x) (string-split x ",")) input))))
 
+(define-syntax clean-date
+  (syntax-rules ()
+    ((_ str) (if (regexp-match #px"^[0-9]{4}" str)
+		 (string-join (string-split str "T"))
+		 str))))
+
 (define (html-output . param)
   (output-xml (doctype 'html))
   (output-xml
@@ -26,7 +32,7 @@
      (script 'type: "text/javascript" 'src: "https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
      (script 'type: "text/javascript" 'src: "./jquery.tablesorter.min.js")
      ;; (script 'type: "text/javascript" 'src: "https://raw.githubusercontent.com/christianbach/tablesorter/master/jquery.tablesorter.min.js")
-     (script (literal "$(document).ready(function() { $(\"#timers\").tablesorter( { sortList: [[6,0],[1,0]] } ); });")))
+     (script (literal "$(document).ready(function() { $(\"#timers\").tablesorter( {dateFormat: 'pt'} ); });")))
     (body
      (h1 "Fuzzysov Timer Board")
      (p 'style: "padding-left:.2em" "Hint: hold down SHIFT to select multiple columns for sorting") 
@@ -38,6 +44,7 @@
 		       (th "Region")
 		       (th "Date")))
 	    (tbody
-	     (map (lambda (data) (tr (map (lambda (str) (td str)) data))) (input-map-split api))))))))
+	     (map (lambda (data) (tr (map (lambda (str) (td (clean-date str))) data))) (input-map-split api))))))))
 
 (html-output)
+
