@@ -3,6 +3,7 @@
 
 (require net/url)
 (require scribble/html)
+(require srfi/19)
 
 (define api
   (let ([file "/var/www/servers/eve.rmk2.org/pages/sov_timers.txt"])
@@ -44,7 +45,8 @@
 		       (th "Region")
 		       (th "Date")))
 	    (tbody
-	     (map (lambda (data) (tr (map (lambda (str) (td (clean-date str))) data))) (input-map-split api))))))))
+	     (map (lambda (data) (tr (map (lambda (str) (td (clean-date str))) data))) (input-map-split api))))
+     (p 'style: "padding-left:.2em" (string-append "Last updated: " (date->string (current-date) "~4")))))))
 
 (html-output)
 
