@@ -1,0 +1,531 @@
+// javascript:(function(){document.body.appendChild(document.createElement('script')).src='https://eve.rmk2.org/@filename';})()
+
+"use strict";
+
+var outputList;
+function hidePage() {
+  var e = document.getElementById("labelActionsPopup");
+  if (!e) return;
+  var p = e.parentNode;
+  var d = document.createElement("div");
+  d.id = "eveGateWlImporterDiv";
+
+  p.style.display = "none";
+  p.parentNode.insertBefore(d, p);
+
+  d.style.backgroundColor = "rgb(47, 47, 47)";
+  d.style.width = "966px";
+  d.style.padding = "1em 0";
+  d.style.margin = "1em 0";
+
+  e = document.createElement("h1");
+  e.appendChild(document.createTextNode("Watchlist Importer"));
+  d.appendChild(e);
+
+  outputList = document.createElement("ul")
+  d.appendChild(outputList);
+  outputList.style.padding = "1em 300px";
+  outputList.style.textAlign = "left";
+
+  e = document.createElement("a");
+  e.style.display = "inline-block";
+  e.style.background = "linear-gradient(to bottom, #7b7b7b 0%,#686868 1px,#404040 100%,#252525 1px)";
+  e.style.border = "solid 1px black";
+  e.style.borderRadius = "1px";
+  e.style.padding = "0.5em 1em";
+  e.style.textDecoration = "none";
+  e.style.textTransform = "uppercase";
+  e.style.textShadow = "black 0 0 1px";
+  e.style.fontFamily = 'Helvetica Narrow","Arial Narrow",Tahoma,Arial,Helvetica,sans-serif;';
+  e.style.letterSpacing = "0";
+  e.style.fontWeight = "bold";
+  e.style.color = "white";
+  e.href = "https://gate.eveonline.com/Contacts";
+  e.appendChild(document.createTextNode("Reload Page"));
+  d.appendChild(e);
+  e.style.visibility = "hidden";
+
+  return e;
+}
+
+var lastProgress;
+function showProgress(msg) {
+  lastProgress = null;
+  updateProgress(msg);
+  lastProgress = null;
+}
+
+function updateProgress(msg) {
+  if (lastProgress) {
+    lastProgress.replaceChild(document.createTextNode(msg),
+                              lastProgress.firstChild);
+  } else {
+    lastProgress = document.createElement("li");
+    lastProgress.appendChild(document.createTextNode(msg));
+    outputList.appendChild(lastProgress);
+  }
+}
+
+function showError(msg) {
+  console.error(msg);
+  lastProgress = null;
+  var li = document.createElement("li");
+  li.appendChild(document.createTextNode("Error: " + msg));
+  li.style.color = "yellow";
+  outputList.appendChild(li);
+}
+
+var pageSize = 12;
+
+function queryContactList(progress) {
+  var url = "https://gate.eveonline.com/Mail/AddressBookSearch"
+  return $.get(url, {page: 1, keyword: ""}).pipe(
+    function(resp) {
+      var list = resp.Content.Contacts;
+      var total = resp.Content.TotalContacts;
+      var counter = 1;
+      if (progress)
+        progress(counter, Math.ceil(total / pageSize));
+      var reqs = [];
+      for (var i = 2; (i - 1) * pageSize < total; ++i) {
+        reqs.push($.get(url, {page: i, keyword: ""}).pipe(
+            function(resp) {
+              if (progress)
+                progress(++counter, Math.ceil(total / pageSize));
+              list.push.apply(list, resp.Content.Contacts);
+            }));
+      }
+      return $.when.apply($, reqs).pipe(function() { return list; });
+    });
+}
+
+function addOrDeleteContacts(op, names, progress) {
+  var reqs = [];
+
+  var counter = 0;
+  var failed = [];
+  var data = {
+    selectedStanding: "-10",
+    addToWatchlist: true,
+    sendNotify: false,
+    message: "",
+    approvedCost: 0,
+    __RequestVerificationToken: window.postToken
+  };
+  var endpoint = "/" + op + "Contact";
+  var method;
+  if (op == "Delete")
+    method = "DELETE";
+  else
+    method = "POST";
+  for (var i = 0; i < names.length; ++i) {
+    (function(name) {
+    var url =
+         "https://gate.eveonline.com/Profile/" +
+         encodeURIComponent(name) +
+         endpoint;
+      reqs.push($.ajax({url: url, type: method, data: data}).pipe(null, function() {
+          failed.push(name);
+          return $.Deferred().resolve();
+        }).pipe(function() {
+          if (progress)
+            progress(++counter);
+        }));
+    })(names[i]);
+  }
+
+  return $.when.apply($, reqs).pipe(function() {
+    return failed;
+  });
+}
+
+function addContacts(names, progress) {
+  return addOrDeleteContacts("Add", names, progress);
+}
+
+function deleteLabels(labels, progress) {
+  var reqs = [];
+  var counter = 0;
+
+  for (var i = 0; i < labels.length; ++i) {
+    var data = {
+      labelId: labels[i],
+      __RequestVerificationToken: window.postToken
+    };
+    reqs.push($.ajax({
+      type: "DELETE",
+      url: "https://gate.eveonline.com/Contacts/DeleteLabel",
+      data: data
+    }).pipe(
+      function() {
+        if (progress)
+          progress(++counter);
+      }));
+  };
+
+  return $.when.apply($, reqs);
+}
+
+function applyLabel(labelId, characterIds) {
+  var reqs = [];
+  var chunkSize = 50;
+
+  for (var i = 0; i * chunkSize < characterIds.length; ++i) {
+    var offset = i * chunkSize;
+    var chunk = characterIds.slice(offset, offset + chunkSize);
+    var data = {
+      labelIds: labelId,
+      mailIds: chunk,
+      __RequestVerificationToken: window.postToken
+    };
+    reqs.push($.ajax({
+      type: "POST",
+      url: "https://gate.eveonline.com/Contacts/ApplyLabels",
+      data: data,
+      traditional: true
+    }));
+  }
+
+  return $.when.apply($, reqs);
+}
+
+function createLabel(labelName) {
+  return $.post("https://gate.eveonline.com/Contacts/CreateLabel", {
+    name: labelName,
+    __RequestVerificationToken: window.postToken
+  });
+}
+
+function createApplyLabels(labelsByIndex, labelsToCreate) {
+  // Labels really need to be created sequentially so we can actually guess
+  // the label id that will be assigned.
+
+  var deferred = $.Deferred();
+
+  var labelNames = Object.keys(labelsToCreate);
+  var i = 0;
+  var go = function() {
+    if (i >= labelNames.length) {
+      deferred.resolve();
+      return;
+    }
+
+    var label = labelNames[i];
+    createLabel(label).pipe(
+      function() {
+        var labelId;
+        // after labelid = (1 << 30), the API breaks down: You can't delete
+        // further labels from the web UI (though it works ingame), so let's
+        // not add any either.
+        for (var j = i; j < 31; ++j) {
+          var po2 = (1 << j).toString();
+          if (!labelsByIndex[po2]) {
+            labelsByIndex[labelId = po2] = label;
+            break;
+          }
+        }
+        if (!labelId) {
+          showError("Ran out of room for labels.");
+          return $.Deferred().reject();
+        }
+        ++i;
+        updateProgress("... applying label " + label);
+        return applyLabel(labelId, labelsToCreate[label]);
+      }).pipe(function() {
+        go();
+      }, function() {
+        deferred.reject.apply(deferred, arguments);
+      });
+  };
+  go();
+
+  return deferred.promise();
+}
+
+function deleteContacts(toDelete, progress) {
+  return addOrDeleteContacts("Delete", toDelete, progress);
+  // var reqs = [];
+  // var chunkSize = 50;
+
+  // for (var i = 0; i * chunkSize < toDelete.length; ++i) {
+  //   var offset = i * chunkSize;
+
+  //   var chunk = toDelete.slice(offset, offset + chunkSize);
+
+  //   reqs.push($.ajax({
+  //     type: "DELETE",
+  //     url: "https://gate.eveonline.com/Contacts/DeleteMultipleContacts",
+  //     data: {
+  //       contacts: chunk.join(";"),
+  //       __RequestVerificationToken: window.postToken
+  //     },
+  //   }));
+  // }
+
+  // return $.when.apply($, reqs);
+}
+
+function contactListProgress(i, pages) {
+  updateProgress("... read page " + i + "/" + pages + " of contacts list");
+}
+
+// newContacts: array of {name:, ship:, tag:} objects
+function updateWatchlist(newContacts) {
+  // toAdd: list of lowercase names of desired wl entries
+  var toAdd = {};
+  for (var i = 0; i < newContacts.length; ++i) {
+    toAdd[newContacts[i].name.toLowerCase()] = true;
+  }
+  showProgress("scanning contact list...")
+  var toDelete = [];
+  var namesToAdd;
+
+  function addContactProgress(i) {
+    updateProgress("... added contact " + i + "/" + namesToAdd.length);
+  }
+  function deleteContactProgress(i) {
+    updateProgress("... deleted contact " + i + "/" + toDelete.length);
+  }
+
+  var list;
+  // 1) grab existing contact list
+  return queryContactList(contactListProgress).pipe(function(listResult) {
+    // listResult: merged array of AddressBookSearch -> result.Content.Contacts
+    // 2) determine who from the input to not add because they exist on the
+    //    contact list, and who to delete from the contact list because they
+    //    don't exist in the input
+    list = listResult;
+    var oldWatchlist = {};
+    for (var i = 0; i < list.length; ++i) {
+      var entry = list[i];
+      var name = entry.Identity.Name;
+      var nameLower = name.toLowerCase();
+      if (nameLower in toAdd) {
+        delete toAdd[nameLower];
+      } else if (entry.Labels.some(function(label) { return label.Name == labelAuto; } )) {
+        toDelete.push(name);
+        list.splice(i--, 1);
+      }
+    }
+    namesToAdd = Object.keys(toAdd);
+
+    // 3) actually delete them
+    if (toDelete.length > 0) {
+      showProgress("deleting removed " + toDelete.length + " watchlist entries");
+      return deleteContacts(toDelete, deleteContactProgress).pipe(function(notDeleted) {
+        if (notDeleted.length > 0)
+          showProgress("was unable to delete: " + notDeleted.join(", "));
+      });
+    }
+  }).pipe(function() {
+    // 4) add all the new names
+    if (namesToAdd.length > 0) {
+      if (namesToAdd.length + list.length > 1024) {
+        showError("Not enough room on contact list to add "
+                  + namesToAdd.length + " characters to watchlist.");
+        return $.Deferred().reject();
+      }
+
+      showProgress("adding " + namesToAdd.length + " contacts");
+      return addContacts(namesToAdd, addContactProgress).pipe(function(notAdded) {
+        if (notAdded.length > 0)
+          showProgress("was unable to add: " + notAdded.join(", "));
+
+        showProgress("re-scanning contact list for new character info");
+        return queryContactList(contactListProgress);
+      });
+    } else {
+      return list;
+    }
+  }).pipe(function(newList) {
+    // 5) apply labels to everyone, new and existing
+    return updateLabels(newList, newContacts, namesToAdd);
+  });
+}
+
+var labelsPrefix = "wl:"
+var labelAuto = labelsPrefix + "autoadded";
+var shipTypes = {
+  Aeon:   "super",
+  Wyvern: "super",
+  Nyx: "super",
+  Hel: "super",
+  Revenant: "super",
+  Avatar: "titan",
+  Leviathan: "titan",
+  Erebus: "titan",
+  Ragnarok: "titan",
+  super: "super",
+  titan: "titan"
+};
+
+// contactList: merged array of AddressBookSearch -> result.Content.Contacts
+// newContacts: array of {name:, ship:, tag:} objects
+// addedNames: lowercase names of characters that were just added to watchlist
+function updateLabels(contactList, newContacts, addedNames) {
+  var labelsByIndex = scrapeLabels();
+  var labelAutoId = 0;
+
+  // we want to delete all wl: labels besides wl:autoadded, easier to
+  // recreate them all from scratch rather than figuring out which to
+  // keep and how to change them.
+  var labelsToDelete = [];
+  showProgress("determining labels to apply");
+  for (var i in labelsByIndex) {
+    if (!labelsByIndex.hasOwnProperty(i))
+      continue;
+    var label = labelsByIndex[i];
+    if (!label)
+      continue;
+    if (label.substr(0, labelsPrefix.length) == labelsPrefix) {
+      if (label == labelAuto) {
+        labelAutoId = i;
+      } else {
+        labelsToDelete.push(i);
+        delete labelsByIndex[i];
+        continue;
+      }
+    }
+  }
+
+  // build a lowercase-character-name -> character-id lookup table
+  var labelsToCreate = {};
+  var characterIdByName = {};
+  for (var i = 0; i < contactList.length; ++i) {
+    var contact = contactList[i].Identity;
+    var name = contact.Name.toLowerCase();
+    var id = contact.Id;
+    characterIdByName[name] = id;
+  }
+  function pushNewLabel(id, label) {
+    label = labelsPrefix + label;
+    var labelList = labelsToCreate[label];
+    if (!labelList)
+      labelList = labelsToCreate[label] = [];
+    labelList.push(id);
+  }
+  // from the contacts we're managing, assign everybody their wl: tag labels
+  for (var i = 0; i < newContacts.length; ++i) {
+    var contact = newContacts[i];
+    var id = characterIdByName[contact.name.toLowerCase()];
+    if (!id) {
+      showError("couldn't find character named '" + contact.name + "'");
+      continue;
+    }
+    var ship = contact.ship;
+    if (!ship) continue;
+    var shipType = shipTypes[ship];
+    if (!shipType) continue;
+    pushNewLabel(id, shipType);
+    var tag = contact.tag || "other";
+    var labelName = labelsPrefix +
+    pushNewLabel(id, tag + ":" + shipType);
+  }
+  // add the wl:autoadded tag to all the new names
+  var idsTagAuto = [];
+  for (var i = 0; i < addedNames.length; ++i) {
+    var name = addedNames[i];
+    var id = characterIdByName[name.toLowerCase()];
+    if (!id)
+      continue;
+    idsTagAuto.push(id);
+  }
+
+  function deleteProgress(i) {
+    updateProgress("... deleting label " + i + "/" + labelsToDelete.length);
+  }
+
+  showProgress("deleting old labels");
+  return deleteLabels(labelsToDelete, deleteProgress).pipe(function() {
+    showProgress("applying new labels");
+    if (idsTagAuto.length == 0)
+      return;
+
+    // apply this label separately so if applying the other labels fails,
+    // at least everybody is tagged so they can be removed again.
+    updateProgress("... applying label " + labelAuto);
+    if (labelAutoId == 0) {
+      var obj = {};
+      obj[labelAuto] = idsTagAuto;
+      return createApplyLabels(labelsByIndex, obj);
+    } else {
+      return applyLabel(labelAutoId, idsTagAuto);
+    }
+  }).pipe(function() {
+    return createApplyLabels(labelsByIndex, labelsToCreate);
+  });
+}
+
+function scrapeLabels() {
+  var existingLabels = {};
+  var labelElems = document.querySelectorAll(".labelListItem[href^=\"/Contacts/Index/\"] > span");
+  for (var i = 0; i < labelElems.length; ++i) {
+    var e = labelElems.item(i);
+    var href = e.parentNode.getAttribute("href");
+    if (!href) continue;
+    var offset = href.lastIndexOf("/");
+    if (offset == -1) continue;
+    var labelId = href.substr(offset + 1);
+    var labelName = e.firstChild.nodeValue;
+    offset = labelName.lastIndexOf("(");
+    if (offset == -1) continue;
+    labelName = labelName.substr(0, offset - 1);
+
+    existingLabels[labelId] = labelName;
+  }
+  showProgress("read " + labelElems.length + " labels");
+  return existingLabels;
+}
+
+function doTheThing(action) {
+  if (document.getElementById("eveGateWlImporterDiv")) {
+    alert("Please reload the page first.");
+    return;
+  }
+  var reloadButton = hidePage();
+  action().pipe(
+    function() {
+      showProgress("Done! Reload the page now!");
+    },
+    function(e, status, error) {
+      console.log(e);
+      if (typeof e == "string") {
+        showError(e);
+      } else {
+        var msg = status + " - " + error + " - " + e.status + " " + e.statusText;
+        showError(msg);
+        showProgress("That didn't work out. Maybe reload and try again, or ask for help.");
+      }
+    }).always(function() {
+      reloadButton.style.visibility = "visible";
+    });
+}
+
+function importUpdateWatchlist() {
+  showProgress("loading watchlist template");
+  return $.get("https://eve.rmk2.org/.templates/@template", {}, null, "json").pipe(updateWatchlist);
+}
+
+function deleteAll() {
+  showProgress("deleting entire watchlist!");
+  return queryContactList(contactListProgress).pipe(function(contacts) {
+    var toDelete = [];
+    for (var i = 0; i < contacts.length; ++i) {
+      var c = contacts[i];
+      if (c.InWatchList)
+        toDelete.push(c.Identity.Name);
+    }
+    showProgress("deleting " + toDelete.length + " watchlist entries out of "
+                 + contacts.length + " total contacts");
+    return deleteContacts(toDelete, function(i) {
+      updateProgress("deleted " + i + "/" + toDelete.length);
+    });
+  });
+}
+
+if (document.location.protocol == "https:"
+    && document.location.host == "gate.eveonline.com"
+    && document.location.pathname.indexOf("/Contacts") == 0)
+  doTheThing(importUpdateWatchlist);
+else
+  alert("This bookmarklet must be used from https://gate.eveonline.com/Contacts");
