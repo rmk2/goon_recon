@@ -8,11 +8,14 @@
 (define cl-filter (make-parameter null))
 (define cl-csv (make-parameter #f))
 (define cl-raw (make-parameter #f))
+(define cl-case (make-parameter #f))
 
 (define parse-args
   (command-line
    #:multi
    [("-e" "--regexp" "-f" "--filter") str "Custom filter" (cl-filter (cons  str (cl-filter)))]
+   #:once-each
+   [("-i" "--ignore-case") "Case insensitive search" (cl-case #t)]
    #:once-any
    [("-p" "--print" "-c" "--csv") "Print output as csv strings, one entry per line" (cl-csv #t)]
    [("-l" "--list") "Print output as a Scheme list-of-strings, one sub-list per line" (cl-csv #f)]
@@ -47,7 +50,7 @@
     ((_ filter) (filter-results filter (input-map-split data)))
     ((_ filter lst) (filter-map
 		     (lambda (l)
-		       (if (memf (lambda (x) (regexp-match filter x)) l) l #f))
+		       (if (memf (lambda (x) (regexp-match (if (cl-case) (string-append "(?i:" filter ")") filter) x)) l) l #f))
 		     lst))))
 
 (define-syntax filter-unique
