@@ -9,6 +9,7 @@
 (define cl-csv (make-parameter #f))
 (define cl-raw (make-parameter #f))
 (define cl-case (make-parameter #f))
+(define cl-name (make-parameter #f))
 
 (define parse-args
   (command-line
@@ -16,6 +17,7 @@
    [("-e" "--regexp" "-f" "--filter") str "Custom filter" (cl-filter (cons  str (cl-filter)))]
    #:once-each
    [("-i" "--ignore-case") "Case insensitive search" (cl-case #t)]
+   [("-n" "--unique-name") "Filter by unique name only" (cl-name #t)]
    #:once-any
    [("-p" "--print" "-c" "--csv") "Print output as csv strings, one entry per line" (cl-csv #t)]
    [("-l" "--list") "Print output as a Scheme list-of-strings, one sub-list per line" (cl-csv #f)]
@@ -59,7 +61,9 @@
     ((_ :print query) (for-each (lambda (r) (displayln (string-join r ","))) (filter-unique query)))
     ((_ query) (reverse
 		(remove-duplicates (reverse query)
-				   #:key (lambda (x) (string-join (list-tail (reverse x) 3)))
+				   #:key (lambda (x) (if (cl-name)
+							 (list-ref x 1)
+							 (string-join (list-tail (reverse x) 3))))
 				   regexp-match)))))
 
 (define (run-filter query)
