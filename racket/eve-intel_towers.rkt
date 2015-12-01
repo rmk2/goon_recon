@@ -3,23 +3,44 @@
 
 (require json)
 (require 2htdp/batch-io)
-(require racket/string)
 (require srfi/19)
 (require net/url)
 
-;; FILE HANDLING
+;; Command-line argument handling
 
-(define api
-  (let ([url "https://zkillboard.com/api/no-items/groupID/365/regionID/10000051/startTime/201511190000"])
-    (call/input-url (string->url url)
-		    get-pure-port
-		    read-json)))
+(define cl-regions (make-parameter null))
+(define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
+(define cl-end (make-parameter ""))
 
-(define tower-typeids
-  (let ([url "https://public-crest.eveonline.com/inventory/groups/365/"])
-    (call/input-url (string->url url)
-		    get-pure-port
-		    read-json)))
+(define parse-args
+  (command-line
+   #:multi
+   [("-r" "--region") str "Select regions to use in the query" (cl-regions (cons str (cl-regions)))]
+   #:once-each
+   [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
+   [("-e" "--end-date") str "Select end date, format: YYYYMMDD" (cl-end str)]))
+
+;; Data fetching
+
+(define (json-api str)
+  (call/input-url (string->url str) get-pure-port read-json))
+
+(define api (json-api "https://zkillboard.com/api/no-items/groupID/365/regionID/10000051/startTime/201511190000"))
+
+(define tower-typeids (json-api "https://public-crest.eveonline.com/inventory/groups/365/"))
+
+(define region-ids (json-api "https://public-crest.eveonline.com/regions/"))
+
+(define (pull-url [regionid 11000001] [date (cl-date)])
+  (when (number? regionid)
+    (let ([built-url
+	   (string-append "https://zkillboard.com/api/groupID/365/regionID/"
+			  (if (number? regionid) (number->string regionid) regionid)
+			  "/no-items/startTime/"
+			  (if (number? date) (number->string date) date)
+			  "0000"
+			  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") ""))])
+      (json-api built-url))))
 
 ;; PARSING
 
@@ -34,7 +55,7 @@
 
 (define-syntax filter-id
   (syntax-rules ()
-    ((_ str) (car (regexp-match #px"[0-9]{4,5}" str)))))
+    ((_ str) (car (regexp-match #px"[0-9]{4,8}" str)))))
 
 (define typeid-parse
   (map (lambda (hash) (cons
@@ -42,11 +63,20 @@
 		       (hash-ref hash 'name)))
        (hash-ref tower-typeids 'types)))
 
+(define regionid-parse
+  (map (lambda (hash) (cons
+		       (hash-ref hash 'name)
+		       (string->number (filter-id (hash-ref hash 'href)))))
+       (hash-ref region-ids 'items)))
+
 (define-syntax convert-typeids
-  (syntax-rules ()
-    ((_ n) (if (assoc n typeid-parse)
-	       (cdr (assoc n typeid-parse))
-	       #f))))
+  (syntax-rules (:id :name)
+    ((_ :id n) (if (assoc n typeid-parse)
+		   (cdr (assoc n typeid-parse))
+		   #f))
+    ((_ :name str) (if (assoc str regionid-parse)
+		       (cdr (assoc str regionid-parse))
+		       #f))))
 
 (define-syntax input-map-split
   (syntax-rules ()
@@ -56,17 +86,23 @@
   (syntax-rules ()
     ((_ input) (map (lambda (x) (string-join x ",")) input))))
 
-(define (zkill-towers)
-  (let ([parse-data api])
+(define (run-regions lst)
+  (let loop ([query lst] [i 0] [result null])
+    (if (< i (length query))
+	(loop query (+ i 1) (append result (zkill-towers (pull-url (convert-typeids :name (list-ref query i)) (cl-date)))))
+	result)))
+
+(define (zkill-towers url)
+  (let ([parse-data url])
     (filter-map (lambda (km-list)
 		  (let ([victim (hash-ref km-list 'victim)]
 			[date (hash-ref km-list 'killTime)]
 			[location (hash-ref km-list 'solarSystemID)]
 			[attackers (hash-ref km-list 'attackers)]
 			[id (hash-ref km-list 'killID)])
-		    (if (convert-typeids (hash-ref victim 'shipTypeID))
+		    (if (convert-typeids :id (hash-ref victim 'shipTypeID))
 			(list
-			 (convert-typeids (hash-ref victim 'shipTypeID))
+			 (convert-typeids :id (hash-ref victim 'shipTypeID))
 			 (hash-ref victim 'corporationName)
 			 (hash-ref victim 'allianceName)
 			 (solar-parse :system (number->string location))
@@ -77,5 +113,4 @@
 		parse-data)))
 
 (for-each (lambda (x) (displayln x))
-	  (input-map-join (zkill-towers)))
-
+	  (input-map-join (run-regions (cl-regions))))
