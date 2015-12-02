@@ -5,6 +5,7 @@
 (require 2htdp/batch-io)
 (require srfi/19)
 (require net/url)
+(require file/gunzip)
 
 ;; Command-line argument handling
 
@@ -31,7 +32,11 @@
 ;; DATA fetching
 
 (define (json-api str)
-  (call/input-url (string->url str) get-pure-port read-json))
+  (bytes->jsexpr
+   (call/input-url (string->url str)
+		   get-pure-port
+		   (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
+		   '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
 
 (define typeids (json-api (string-append "https://public-crest.eveonline.com/inventory/groups/"
 					 (if (number? (cl-group)) (number->string (cl-group)) (cl-group))
