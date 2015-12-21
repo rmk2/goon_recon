@@ -93,7 +93,11 @@
      (lambda (return)
        (for-each
 	(lambda (km-list)
-	  (let ([location (hash-ref km-list 'solarSystemID)])
+	  (let ([victim (hash-ref km-list 'victim)]
+		[date (hash-ref km-list 'killTime)]
+		[location (hash-ref km-list 'solarSystemID)]
+		[attackers (hash-ref km-list 'attackers)]
+		[id (hash-ref km-list 'killID)])
 	    (for-each
 	     (lambda (x)
 	       (when (cond [(and (query-titans) (query-supers)) (convert-typeids :check (hash-ref x 'shipTypeID))]
@@ -108,9 +112,8 @@
 			 (hash-ref x 'corporationName)
 			 (hash-ref x 'allianceName)
 			 (solar-parse (number->string location))
-			 (if (query-timestamps) (string-append "," (date->string (current-date) "~1")) ""))))
-	     (hash-ref km-list 'attackers))))
+			 (if (query-timestamps) (string-append "," (date->string (string->date date "~Y-~m-~d") "~1")) ""))))
+	     attackers)))
 	zkill)))))
 
 (zkill-parse)
-
