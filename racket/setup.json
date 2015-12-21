@@ -11,10 +11,8 @@
 {"id":"latest","length":750,"type":"major"},
 {"id":"latest","length":1000,"type":"minor"},
 {"id":"latest","length":750,"type":"minor"},
-{"id":"allister","length":1000,"type":"all"},
-{"id":"allister","length":750,"type":"all"},
-{"id":"allister","length":1000,"type":"major"},
-{"id":"allister","length":750,"type":"major"},
-{"id":"allister","length":1000,"type":"minor"},
-{"id":"allister","length":750,"type":"minor"}
+{"id":"delayed","length":1000,"type":"deployment"},
+{"id":"delayed","length":750,"type":"deployment"},
+{"id":"latest","length":1000,"type":"deployment"},
+{"id":"latest","length":750,"type":"deployment"}
 ]
