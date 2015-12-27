@@ -16,6 +16,8 @@
 (define cl-attacker (make-parameter #f))
 (define cl-group (make-parameter 365))
 (define cl-losses (make-parameter #t))
+(define cl-name (make-parameter #f))
+(define cl-alliance (make-parameter null))
 
 (define parse-args
   (command-line
@@ -27,7 +29,9 @@
    [("-l" "--link" "--href") "Show links to killmails, default: false" (cl-href #t)]
    [("-a" "--attackers") "Show a list of attacking alliances, default: false" (cl-attacker #t)]
    [("-g" "--group") str "Select a groupid, default: 365" (cl-group str)]
-   [("-k" "--kills") "Show kills by <groupid>, default: false" (cl-losses #f)]))
+   [("-k" "--kills") "Show kills by <groupid>, default: false" (cl-losses #f)]
+   [("-n" "--name") "Show attackers' alliance/name, default: false" (cl-name #t)]
+   [("-A" "--alliance") str "Filter by alliance ID, default: false" (cl-alliance str)]))
 
 ;; DATA fetching
 
@@ -56,7 +60,8 @@
 			  "/no-items/startTime/"
 			  (if (number? date) (number->string date) date)
 			  "0000"
-			  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") ""))])
+			  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") "")
+			  (if (not (null? (cl-alliance))) (string-append "/allianceID/" (cl-alliance)) ""))])
       (json-api built-url))))
 
 ;; PARSING
@@ -87,13 +92,16 @@
        (hash-ref region-ids 'items)))
 
 (define-syntax convert-typeids
-  (syntax-rules (:id :name)
+  (syntax-rules (:id :name :check)
     ((_ :id n) (if (assoc n typeid-parse)
 		   (cdr (assoc n typeid-parse))
 		   (number->string n)))
     ((_ :name str) (if (assoc str regionid-parse)
 		       (cdr (assoc str regionid-parse))
-		       #f))))
+		       #f))
+    ((_ :check n) (if (assoc n typeid-parse)
+		      #t
+		      #f))))
 
 (define-syntax input-map-split
   (syntax-rules ()
@@ -110,12 +118,22 @@
 		 #f))))
 
 (define-syntax concat-attackers
-  (syntax-rules ()
+  (syntax-rules (:name)
     ((_ hash) (remove-duplicates (map (lambda (x)
 					(if (string-empty? (hash-ref x 'allianceName))
 					    "none"
 					    (hash-ref x 'allianceName)))
-				      hash)))))
+				      hash)))
+    ((_ :name hash) (filter-map (lambda (x) (if (convert-typeids :check (hash-ref x 'shipTypeID))
+						(string-append (if (string-empty? (hash-ref x 'allianceName))
+								   "none"
+								   (hash-ref x 'allianceName))
+							       "::"
+							       (hash-ref x 'characterName)
+							       "::"
+							       (convert-typeids :id (hash-ref x 'shipTypeID)))
+						#f))
+				hash))))
 
 (define (zkill-parse url)
   (let ([parse-data url])
@@ -128,14 +146,15 @@
 		    (filter string?
 			    (list
 			     (convert-typeids :id (hash-ref victim 'shipTypeID))
-			     (if (string-empty? (hash-ref victim 'characterName)) #f (hash-ref victim 'characterName))
+			     (if (string-empty? (hash-ref victim 'characterName)) "#Tower" (hash-ref victim 'characterName))
 			     (hash-ref victim 'corporationName)
 			     (hash-ref victim 'allianceName)
 			     (solar-parse :system (number->string location))
 			     (solar-parse :region (number->string location))
 			     date
 			     (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f)
-			     (if (cl-attacker) (string-join (concat-attackers attackers) "|") #f)))))
+			     (if (cl-attacker) (string-join (concat-attackers attackers) "|") #f)
+			     (if (cl-name) (string-join (concat-attackers :name attackers) "|") #f)))))
 		parse-data)))
 
 (define (run-regions lst)
