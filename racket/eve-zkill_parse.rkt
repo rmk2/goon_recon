@@ -158,10 +158,7 @@
 		parse-data)))
 
 (define (run-regions lst)
-  (let loop ([query lst] [i 0] [result null])
-    (if (< i (length query))
-	(loop query (+ i 1) (append result (zkill-parse (pull-url (convert-typeids :name (list-ref query i)) (cl-date) (cl-group)))))
-	result)))
+  (append-map (lambda (query) (zkill-parse (pull-url (convert-typeids :name query) (cl-date) (cl-group)))) lst))
 
 (for-each (lambda (x) (displayln x))
 	  (input-map-join (run-regions (cl-regions))))
