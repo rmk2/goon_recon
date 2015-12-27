@@ -17,12 +17,13 @@
 (define cl-group (make-parameter 365))
 (define cl-losses (make-parameter #t))
 (define cl-name (make-parameter #f))
-(define cl-alliance (make-parameter null))
+(define cl-alliances (make-parameter null))
 
 (define parse-args
   (command-line
    #:multi
    [("-r" "--region") str "Select regions to use in the query" (cl-regions (cons str (cl-regions)))]
+   [("-A" "--alliances") str "Filter by alliance ID, default: false" (cl-alliances (cons str (cl-alliances)))]
    #:once-each
    [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
    [("-e" "--end-date") str "Select end date, format: YYYYMMDD" (cl-end str)]
@@ -30,8 +31,7 @@
    [("-a" "--attackers") "Show a list of attacking alliances, default: false" (cl-attacker #t)]
    [("-g" "--group") str "Select a groupid, default: 365" (cl-group str)]
    [("-k" "--kills") "Show kills by <groupid>, default: false" (cl-losses #f)]
-   [("-n" "--name") "Show attackers' alliance/name, default: false" (cl-name #t)]
-   [("-A" "--alliance") str "Filter by alliance ID, default: false" (cl-alliance str)]))
+   [("-n" "--name") "Show attackers' alliance/name, default: false" (cl-name #t)]))
 
 ;; DATA fetching
 
@@ -61,7 +61,9 @@
 			  (if (number? date) (number->string date) date)
 			  "0000"
 			  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") "")
-			  (if (not (null? (cl-alliance))) (string-append "/allianceID/" (cl-alliance)) ""))])
+			  (if (not (null? (cl-alliances)))
+			      (string-append "/allianceID/" (string-join (cl-alliances) ","))
+			      ""))])
       (json-api built-url))))
 
 ;; PARSING
