@@ -43,10 +43,7 @@
 		      read-json))))
 
 (define (api)
-  (let loop ([groups '(30 659)] [i 0] [result '()])
-    (if (< i (length groups))
-	(loop groups (+ i 1) (append (pull-url (list-ref groups i)) result))
-	result)))
+  (append-map (lambda (id) (pull-url id)) '(30 659)))
 
 ;; PARSING
 
