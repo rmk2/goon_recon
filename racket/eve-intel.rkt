@@ -6,6 +6,7 @@
 (require racket/string)
 (require srfi/19)
 (require net/url)
+(require file/gunzip)
 
 (define query-supers (make-parameter #f))
 (define query-titans (make-parameter #f))
@@ -30,6 +31,13 @@
 
 ;; FILE HANDLING
 
+(define (json-api str)
+  (bytes->jsexpr
+   (call/input-url (string->url str)
+		   get-pure-port
+		   (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
+		   '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
+
 (define (pull-url groupid)
   (when (number? groupid)
     (let ([built-url
@@ -38,9 +46,7 @@
 			  "/no-items/startTime/"
 			  (date->string (current-date) "~Y~m~d")
 			  "0000")])
-      (call/input-url (string->url built-url)
-		      get-pure-port
-		      read-json))))
+      (json-api built-url))))
 
 (define (api)
   (append-map (lambda (id) (pull-url id)) '(30 659)))
