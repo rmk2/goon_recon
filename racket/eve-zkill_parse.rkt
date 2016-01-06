@@ -18,6 +18,7 @@
 (define cl-losses (make-parameter #t))
 (define cl-name (make-parameter #f))
 (define cl-alliances (make-parameter null))
+(define cl-interactive (make-parameter #f))
 
 (define parse-args
   (command-line
@@ -31,7 +32,8 @@
    [("-a" "--attackers") "Show a list of attacking alliances, default: false" (cl-attacker #t)]
    [("-g" "--group") str "Select a groupid, default: 365" (cl-group str)]
    [("-k" "--kills") "Show kills by <groupid>, default: false" (cl-losses #f)]
-   [("-n" "--name") "Show attackers' alliance/name, default: false" (cl-name #t)]))
+   [("-n" "--name") "Show attackers' alliance/name, default: false" (cl-name #t)]
+   [("-i" "--interactive") "Read from stdin" (cl-interactive #t)]))
 
 ;; DATA fetching
 
@@ -138,7 +140,9 @@
 				hash))))
 
 (define (zkill-parse url)
-  (let ([parse-data url])
+  (let ([parse-data (if (cl-interactive)
+			(read-json)
+			url)])
     (filter-map (lambda (km-list)
 		  (let ([victim (hash-ref km-list 'victim)]
 			[date (hash-ref km-list 'killTime)]
