@@ -1,8 +1,7 @@
 #! /usr/bin/env racket
 #lang racket
 
-(require json)
-(require net/url)
+(require eve)
 
 (define coalition-tags (make-parameter #t))
 
@@ -29,21 +28,11 @@
 
 ;; Data fetching
 
-(define (unify-data)
-  (let ([collected-file "/var/www/servers/eve.rmk2.org/pages/eve-intel_retroactive.txt"]
-	[regions-file "/var/www/servers/eve.rmk2.org/pages/eve-intel_regions.txt"])
-    (if (and (file-exists? collected-file) (file-exists? regions-file))
-	(append (file->lines collected-file) (file->lines regions-file))
-	(let ([collected "https://eve.rmk2.org/eve-intel_retroactive.txt"]
-	      [regions "https://eve.rmk2.org/eve-intel_regions.txt"])
-	  (append (call/input-url (string->url collected) get-pure-port port->lines)
-		  (call/input-url (string->url regions) get-pure-port port->lines))))))
-
 (define (create-input)
   (map (lambda (l) (list (list-ref l 1)
 			 (list-ref l 0)
 			 (list-ref l 3)))
-       (input-map-split (unify-data))))
+       (input-map-split (edis-data))))
 
 (define coalitions
   (let [(file "/var/www/servers/eve.rmk2.org/pages/coalitions.txt")]
@@ -54,10 +43,6 @@
 			port->lines))))
 
 ;; Data handling
-
-(define-syntax input-map-split
-  (syntax-rules ()
-    ((_ input) (map (lambda (x) (string-split x ",")) input))))
 
 (define (cons-data list)
   (map (lambda (i)
@@ -72,12 +57,13 @@
 	    [else result])))
        list))
 
-(define (hash-data)
-  (map (lambda (l) (make-hash l)) (cons-data
-				   (reverse
-				    (remove-duplicates (reverse (create-input))
-						       #:key (lambda (x) (string-downcase (car x)))
-						       string=?)))))
+(define (hash-data lst)
+  (map (lambda (l) (make-hash l))
+       (cons-data
+	(reverse
+	 (remove-duplicates (reverse lst)
+			    #:key (lambda (x) (string-downcase (car x)))
+			    string=?)))))
 
 ;; Create an assoc-ready list of pairs for coalition data: (alliance . coalition)
 
@@ -128,17 +114,17 @@
     ((_ filter) (for-each (lambda (hash)
 			    (when (memf (lambda (x) (regexp-match filter x)) (hash-values hash))
 			      (println (hash-values hash))))
-			  (hash-data)))
+			  (hash-data (create-input))))
     ((_ :hash filter) (filter-map (lambda (hash)
 				    (if (memf (lambda (x) (regexp-match filter x)) (hash-values hash))
 					hash
 					#f))
-				  (hash-data)))
+				  (hash-data (create-input))))
     ((_ :hash-tag filter) (filter-map (lambda (x)
 					(if (regexp-match filter (hash-ref x 'tag))
 					    x
 					    #f))
-				      (hash-data)))))
+				      (hash-data (create-input))))))
 
 ;; Curtail list to a maximum of n unique entries (default: n = (cl-length) = 1000)
 
