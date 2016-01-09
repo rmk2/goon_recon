@@ -8,7 +8,8 @@
 	 srfi/19)
 
 (provide (all-from-out json
-		       xml)
+		       xml
+		       srfi/19)
 	 (all-defined-out))
 
 ;; Extract XML APIv2 response bodies
