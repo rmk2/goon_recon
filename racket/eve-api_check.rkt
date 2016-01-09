@@ -54,15 +54,15 @@
 		       (hash-ref hash 'allianceName)))
        lst))
 
-;; Execution
+;; EDIS super data
 
-(define (edis)
+(define edis
   (remove-duplicates
    (map (lambda (lst)
 	  (list-ref lst 1))
 	(input-map-split (edis-data)))))
 
-(define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list (edis) 100)))
+(define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list edis 100)))
 
 (define (edis-affiliation)
   (map (lambda (lst) (api-affiliation (input-hash-join (rowset->hash (string->xexpr lst)) 'characterID))) (edis-charid)))
@@ -72,5 +72,7 @@
 
 (define (main)
   (for-each (lambda (y) (displayln (string-join y ","))) (parse-data (edis-result))))
+
+;; Execution
 
 (main)
