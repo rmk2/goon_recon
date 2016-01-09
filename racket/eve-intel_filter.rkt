@@ -1,7 +1,7 @@
 #! /usr/bin/env racket
 #lang racket
 
-(require net/url)
+(require eve)
 
 ;; Command-line argument handling
 
@@ -25,27 +25,9 @@
 
 ;; Data fetching
 
-(define (unify-data)
-  (let ([collected-file "/var/www/servers/eve.rmk2.org/pages/eve-intel_retroactive.txt"]
-	[regions-file "/var/www/servers/eve.rmk2.org/pages/eve-intel_regions.txt"])
-    (if (and (file-exists? collected-file) (file-exists? regions-file))
-	(append (file->lines collected-file) (file->lines regions-file))
-	(let ([collected "https://eve.rmk2.org/eve-intel_retroactive.txt"]
-	      [regions "https://eve.rmk2.org/eve-intel_regions.txt"])
-	  (append (call/input-url (string->url collected) get-pure-port port->lines)
-		  (call/input-url (string->url regions) get-pure-port port->lines))))))
-
-(define data (unify-data))
+(define data (edis-data))
 
 ;; Macros
-
-(define-syntax input-map-split
-  (syntax-rules ()
-    ((_ input) (map (lambda (x) (string-split x ",")) input))))
-
-;; (define-syntax input-map-join
-;;   (syntax-rules ()
-;;     ((_ input) (map (lambda (x) (string-join x ",")) input))))
 
 (define-syntax filter-results
   (syntax-rules ()
