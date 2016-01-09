@@ -9,7 +9,8 @@
 
 (provide (all-from-out json
 		       xml
-		       srfi/19)
+		       srfi/19
+		       net/url)
 	 (all-defined-out))
 
 ;; Extract XML APIv2 response bodies
@@ -86,3 +87,11 @@
     ((_ :system str) (car (hash-ref solar-list str)))
     ((_ :region str) (cadr (hash-ref solar-list str)))
     ((_ str) (string-join (hash-ref solar-list str) ","))))
+
+;; Filter duplicates with a list's car as key, preserving original order (desc)
+
+(define (unique-car lst)
+  (reverse
+   (remove-duplicates (reverse lst)
+		      #:key (lambda (x) (string-downcase (car x)))
+		      string=?)))
