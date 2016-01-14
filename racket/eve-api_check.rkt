@@ -11,7 +11,7 @@
 
 ;; Define API polls
 
-(define query-limit (make-parameter 1000))
+(define query-limit (make-parameter 5000))
 
 (define polled-data (let ([lst (unique-car (input-map-split (edis-data)) second)])
 		      (if (<= (length lst) (query-limit))
@@ -64,12 +64,10 @@
 ;; EDIS super data
 
 (define edis
-  (sort
-   (map (lambda (lst)
-	  (list
-	   (list-ref lst 1)))
-	polled-data)
-   #:key car string-ci<?))
+  (map (lambda (lst)
+	 (list
+	  (list-ref lst 1)))
+       polled-data))
 
 (define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten edis) 90)))
 
@@ -79,25 +77,22 @@
 (define (edis-result)
   (append-map (lambda (x) (rowset->hash (string->xexpr x))) (edis-affiliation)))
 
-(define (edis-shiptype)
-  (sort
-   (map (lambda (lst)
-	  (list
-	   (list-ref lst 1)
-	   (list-ref lst 0)))
-	polled-data)
-   #:key car string-ci<?))
+(define edis-shiptype
+  (map (lambda (lst)
+	 (cons
+	  (list-ref lst 1)
+	  (list-ref lst 0)))
+       polled-data))
 
 (define (result-shiptype)
-  (filter-map (lambda (hash ship) (if (string-ci=? (hash-ref hash 'characterName) (car ship))
-				      (list
-				       (second ship)
-				       (hash-ref hash 'characterName)
-				       (hash-ref hash 'corporationName)
-				       (hash-ref hash 'allianceName))
-				      #f))
-	      (sort (edis-result) #:key (lambda (k) (hash-ref k 'characterName)) string-ci<?)
-	      (edis-shiptype)))
+  (filter-map (lambda (hash) (if (assoc (hash-ref hash 'characterName) edis-shiptype)
+				 (list
+				  (cdr (assoc (hash-ref hash 'characterName) edis-shiptype))
+				  (hash-ref hash 'characterName)
+				  (hash-ref hash 'corporationName)
+				  (hash-ref hash 'allianceName))
+				 #f))
+	      (edis-result)))
 
 (define (check-api)
   (for-each (lambda (y) (displayln (string-join y ","))) (result-shiptype)))
