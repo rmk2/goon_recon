@@ -34,14 +34,18 @@
   (let ([file "/var/www/servers/eve.rmk2.org/pages/eve-api_check.txt"])
     (if (file-exists? file)
 	(file->lines file)
-	(call/input-url (string->url "http://eve.rmk2.org/eve-api_check.txt")
+	(call/input-url (string->url "https://eve.rmk2.org/eve-api_check.txt")
 			get-pure-port
 			port->lines))))
 
 (define (create-input)
-  (map (lambda (l) (list (list-ref l 1)
-			 (list-ref l 0)
-			 (list-ref l 3)))
+  (map (lambda (l) (if (= (length l) 4)
+		       (list (list-ref l 1)
+			     (list-ref l 0)
+			     (list-ref l 3))
+		       (list (list-ref l 1)
+			     (list-ref l 0)
+			     "")))
        (input-map-split (if (query-raw)
 			    (edis-data)
 			    (api-data)))))
@@ -50,7 +54,7 @@
   (let [(file "/var/www/servers/eve.rmk2.org/pages/coalitions.txt")]
     (if (file-exists? file)
 	(file->lines file)
-	(call/input-url (string->url "http://eve.rmk2.org/coalitions.txt")
+	(call/input-url (string->url "https://eve.rmk2.org/coalitions.txt")
 			get-pure-port
 			port->lines))))
 
