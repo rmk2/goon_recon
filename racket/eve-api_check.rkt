@@ -11,7 +11,7 @@
 
 ;; Define API polls
 
-(define polled-data (edis-data))
+(define polled-data (take-right (edis-data) 2600)) ;; API poll limit: 30/s
 
 (define api-root "https://api.eveonline.com")
 
