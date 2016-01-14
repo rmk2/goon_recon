@@ -11,7 +11,7 @@
 
 ;; Define API polls
 
-(define polled-data (take-right (edis-data) 2600)) ;; API poll limit: 30/s
+(define polled-data (input-map-split (edis-data)))
 
 (define api-root "https://api.eveonline.com")
 
@@ -64,10 +64,10 @@
     (map (lambda (lst)
 	   (list
 	    (list-ref lst 1)))
-	 (input-map-split polled-data)))
+	 polled-data))
    #:key car string-ci<?))
 
-(define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten edis) 90)))
+(define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten edis) 100)))
 
 (define (edis-affiliation)
   (map (lambda (lst) (api-affiliation (input-hash-join (rowset->hash (string->xexpr lst)) 'characterID))) (edis-charid)))
@@ -82,7 +82,7 @@
 	   (list
 	    (list-ref lst 1)
 	    (list-ref lst 0)))
-	 (input-map-split polled-data)))
+	 polled-data))
    #:key car string-ci<?))
 
 (define (result-shiptype)
