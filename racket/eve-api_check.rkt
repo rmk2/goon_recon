@@ -11,6 +11,8 @@
 
 ;; Define API polls
 
+(define polled-data (edis-data))
+
 (define api-root "https://api.eveonline.com")
 
 (define (api-charid names)
@@ -57,12 +59,15 @@
 ;; EDIS super data
 
 (define edis
-  (remove-duplicates
-   (map (lambda (lst)
-	  (list-ref lst 1))
-	(input-map-split (edis-data)))))
+  (sort
+   (unique-car
+    (map (lambda (lst)
+	   (list
+	    (list-ref lst 1)))
+	 (input-map-split polled-data)))
+   #:key car string-ci<?))
 
-(define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list edis 100)))
+(define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten edis) 90)))
 
 (define (edis-affiliation)
   (map (lambda (lst) (api-affiliation (input-hash-join (rowset->hash (string->xexpr lst)) 'characterID))) (edis-charid)))
@@ -70,9 +75,30 @@
 (define (edis-result)
   (append-map (lambda (x) (rowset->hash (string->xexpr x))) (edis-affiliation)))
 
-(define (main)
-  (for-each (lambda (y) (displayln (string-join y ","))) (parse-data (edis-result))))
+(define (edis-shiptype)
+  (sort 
+   (unique-car
+    (map (lambda (lst)
+	   (list
+	    (list-ref lst 1)
+	    (list-ref lst 0)))
+	 (input-map-split polled-data)))
+   #:key car string-ci<?))
+
+(define (result-shiptype)
+  (filter-map (lambda (hash ship) (if (string-ci=? (hash-ref hash 'characterName) (car ship))
+				      (list
+				       (second ship)
+				       (hash-ref hash 'characterName)
+				       (hash-ref hash 'corporationName)
+				       (hash-ref hash 'allianceName))
+				      #f))
+	      (sort (edis-result) #:key (lambda (k) (hash-ref k 'characterName)) string-ci<?)
+	      (edis-shiptype)))
+
+(define (check-api)
+  (for-each (lambda (y) (displayln (string-join y ","))) (result-shiptype)))
 
 ;; Execution
 
-(main)
+(check-api)
