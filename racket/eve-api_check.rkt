@@ -11,7 +11,12 @@
 
 ;; Define API polls
 
-(define polled-data (input-map-split (edis-data)))
+(define query-limit (make-parameter 1000))
+
+(define polled-data (let ([lst (unique-car (input-map-split (edis-data)) second)])
+		      (if (<= (length lst) (query-limit))
+			  lst
+			  (take-right lst (query-limit)))))
 
 (define api-root "https://api.eveonline.com")
 
@@ -60,14 +65,13 @@
 
 (define edis
   (sort
-   (unique-car
-    (map (lambda (lst)
-	   (list
-	    (list-ref lst 1)))
-	 polled-data))
+   (map (lambda (lst)
+	  (list
+	   (list-ref lst 1)))
+	polled-data)
    #:key car string-ci<?))
 
-(define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten edis) 100)))
+(define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten edis) 90)))
 
 (define (edis-affiliation)
   (map (lambda (lst) (api-affiliation (input-hash-join (rowset->hash (string->xexpr lst)) 'characterID))) (edis-charid)))
@@ -76,13 +80,12 @@
   (append-map (lambda (x) (rowset->hash (string->xexpr x))) (edis-affiliation)))
 
 (define (edis-shiptype)
-  (sort 
-   (unique-car
-    (map (lambda (lst)
-	   (list
-	    (list-ref lst 1)
-	    (list-ref lst 0)))
-	 polled-data))
+  (sort
+   (map (lambda (lst)
+	  (list
+	   (list-ref lst 1)
+	   (list-ref lst 0)))
+	polled-data)
    #:key car string-ci<?))
 
 (define (result-shiptype)

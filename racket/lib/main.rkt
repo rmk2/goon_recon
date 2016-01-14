@@ -90,8 +90,8 @@
 
 ;; Filter duplicates with a list's car as key, preserving original order (desc)
 
-(define (unique-car lst)
+(define (unique-car lst [f car])
   (reverse
    (remove-duplicates (reverse lst)
-		      #:key (lambda (x) (string-downcase (car x)))
+		      #:key (lambda (x) (string-downcase (f x)))
 		      string=?)))
