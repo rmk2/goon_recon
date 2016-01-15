@@ -26,31 +26,12 @@
 	    "/eve/CharacterID.xml.aspx?names="
 	    names)))
 
-;; (define poll-test (api-charid (string-join
-;; 				     '("Allister McGruffin"
-;; 				       "Kameror"
-;; 				       "Exarcheia"
-;; 				       "Leon Bronshtein"
-;; 				       "Peace Attack"
-;; 				       "Juniper Leo"
-;; 				       "Schwa Nuts"
-;; 				       "Kathao Crendraven"
-;; 				       "fawlty7"
-;; 				       "Elo Knight")
-;; 				     ",")))
-
 (define (api-affiliation ids)
   (xml-api
    (string-append
     api-root
     "/eve/CharacterAffiliation.xml.aspx?ids="
     ids)))
-
-;; (define poll-affiliation
-;;   (rowset->hash
-;;    (string->xexpr
-;;     (api-affiliation
-;;      (input-hash-join (rowset->hash (string->xexpr poll-test)) 'characterID)))))
 
 ;; Parse XML API data 
 
@@ -63,11 +44,15 @@
 
 ;; EDIS super data
 
-(define edis
-  (map (lambda (lst)
-	 (list
-	  (list-ref lst 1)))
-       polled-data))
+(define-syntax edis-list
+  (syntax-rules (:shiptype)
+    ((_ lst) (map (lambda (l) (list (list-ref l 1))) lst))
+    ((_ :shiptype lst) (map (lambda (l) (cons (list-ref l 1)
+					      (list-ref l 0)))
+			    lst))))
+
+(define edis (edis-list polled-data))
+(define edis-shiptype (edis-list :shiptype polled-data))
 
 (define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten edis) 90)))
 
@@ -76,13 +61,6 @@
 
 (define (edis-result)
   (append-map (lambda (x) (rowset->hash (string->xexpr x))) (edis-affiliation)))
-
-(define edis-shiptype
-  (map (lambda (lst)
-	 (cons
-	  (list-ref lst 1)
-	  (list-ref lst 0)))
-       polled-data))
 
 (define (result-shiptype)
   (filter-map (lambda (hash) (if (assoc (hash-ref hash 'characterName) edis-shiptype)
