@@ -1,0 +1,85 @@
+#! /usr/bin/env racket
+#lang racket
+
+(require db)
+
+(provide (all-from-out db)
+	 (all-defined-out))
+
+(define sqlc (mysql-connect #:user "eve" #:database "eve_sde" #:password "q+WK9nnGO3EWWZJQaxO8Iv55CdLRACAP"))
+
+(define-syntax parse-type
+  (syntax-rules (:members :id :group :name)
+    ((_ arg) (cond
+	      [(number? arg)
+	       (query-row sqlc "SELECT typeID,groupID,typeName FROM invTypes WHERE typeID LIKE ?" arg)]
+	      [(string? arg)
+	       (query-row sqlc "SELECT typeID,groupID,typeName FROM invTypes WHERE typeName LIKE ?" arg)]))
+    ((_ :members arg) (if (number? arg)
+			  (query-rows sqlc "SELECT typeID,groupID,typeName FROM invTypes WHERE groupID LIKE ?" arg)
+			  #f))
+    ((_ :id arg) (vector-ref (parse-type arg) 0))
+    ((_ :group arg) (vector-ref (parse-type arg) 1))
+    ((_ :name arg) (vector-ref (parse-type arg) 2))))
+
+(define-syntax parse-group
+  (syntax-rules (:id :name)
+    ((_ arg) (cond
+	      [(number? arg)
+	       (query-row sqlc "SELECT groupID,groupName FROM invGroups WHERE groupID LIKE ?" arg)]
+	      [(string? arg)
+	       (query-row sqlc "SELECT groupID,groupName FROM invGroups WHERE groupName LIKE ?" arg)]))
+    ((_ :id arg) (vector-ref (parse-group arg) 0))
+    ((_ :name arg) (vector-ref (parse-group arg) 1))))
+
+(define-syntax parse-inv
+  (syntax-rules (:id :group :name)
+    ((_ :id v) (vector-ref v 0))
+    ((_ :name v) (vector-ref (vector-take-right v 1) 0))
+    ((_ :group v) (if (= (vector-length v) 3) (vector-ref v 1) #f))
+    ((_ v) (parse-inv :id v))))
+
+(define-syntax parse-solarsystem
+  (syntax-rules (:region :constellation :id :name)
+    ((_ arg) (cond
+	      [(number? arg)
+	       (query-row sqlc (string-append "SELECT regionID,constellationID,solarSystemID,solarSystemName "
+					      "FROM mapSolarSystems WHERE solarSystemID  LIKE ?") arg)]
+	      [(string? arg)
+	       (query-row sqlc (string-append "SELECT regionID,constellationID,solarSystemID,solarSystemName "
+					      "FROM mapSolarSystems WHERE solarSystemName  LIKE ?") arg)]))
+    ((_ :region arg) (vector-ref (parse-solarsystem arg) 0))
+    ((_ :constellation arg) (vector-ref (parse-solarsystem arg) 1))
+    ((_ :id arg) (vector-ref (parse-solarsystem arg) 2))
+    ((_ :name arg) (vector-ref (parse-solarsystem arg) 3))))
+
+(define-syntax parse-constellation
+  (syntax-rules (:region :id :name)
+    ((_ arg) (cond
+	      [(number? arg)
+	       (query-row sqlc (string-append "SELECT regionID,constellationID,constellationName "
+					      "FROM mapConstellations WHERE constellationID  LIKE ?") arg)]
+	      [(string? arg)
+	       (query-row sqlc (string-append "SELECT regionID,constellationID,constellationName "
+					      "FROM mapConstellations WHERE constellationName  LIKE ?") arg)]))
+    ((_ :region arg) (vector-ref (parse-constellation arg) 0))
+    ((_ :id arg) (vector-ref (parse-constellation arg) 1))
+    ((_ :name arg) (vector-ref (parse-constellation arg) 2))))
+
+(define-syntax parse-region
+  (syntax-rules (:id :name)
+    ((_ arg) (cond
+	      [(number? arg)
+	       (query-row sqlc "SELECT regionID,regionName FROM mapRegions WHERE regionID LIKE ?" arg)]
+	      [(string? arg)
+	       (query-row sqlc "SELECT regionID,regionName FROM mapRegions WHERE regionName LIKE ?" arg)]))
+    ((_ :id arg) (vector-ref (parse-region arg) 0))
+    ((_ :name arg) (vector-ref (parse-region arg) 1))))
+
+(define-syntax parse-map
+  (syntax-rules (:id :region :constellation :name)
+    ((_ :region v) (vector-ref v 0))
+    ((_ :name v) (vector-ref (vector-take-right v 1) 0))
+    ((_ :id v) (vector-ref (vector-drop-right (vector-take-right v 2) 1) 0))
+    ((_ :constellation v) (if (>= (vector-length v) 3) (vector-ref v 1) #f))
+    ((_ v) (parse-map :id v))))

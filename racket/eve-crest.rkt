@@ -4,6 +4,7 @@
 (require json)
 (require racket/date)
 (require net/url)
+(require "eve-sql.rkt")
 
 (define api
   (let [(file "/dev/shm/crest-campaigns.json")]
@@ -53,26 +54,6 @@
     ((_ :tab list) (for-each (lambda (x) (displayln x)) (map (lambda (y) (string-join y "\t")) list)))
     ((_ list) (result-print :filter ".*" list))))
 
-;; Handle region data
-
-(define regions-output-file "./region_data.list")
-
-(define regions-input
-  (let ([file regions-output-file])
-    (if (file-exists? file)
-	(read (open-input-file file))
-	(call/input-url (string->url "https://eve.rmk2.org/.rkt/region_data.list")
-			get-pure-port
-			read))))
-			
-(define-syntax find-region
-  (syntax-rules ()
-    ((_ query input) (car (filter-map (lambda (x)
-					(if (member query (flatten x))
-					    (car x)
-					    #f))
-				      input)))))
-
 ;; Query API data
 
 (define (crest-query)
@@ -82,7 +63,7 @@
 		      (json-filter :type x)
 		      (json-filter :name (json-filter :system x))
 		      (json-filter :name (json-filter :constellation x))
-		      (find-region (json-filter :constellation-id x) regions-input)
+		      (parse-region :name (parse-constellation :region (string->number (json-filter :constellation-id x))))
 		      (json-filter :time x)))
 	 query-data)))
 
@@ -91,4 +72,3 @@
 ;; (result-print :filter ".*" (crest-query))
 
 (result-print :csv (crest-query))
-
