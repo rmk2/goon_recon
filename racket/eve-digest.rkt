@@ -5,8 +5,6 @@
 (require "eve-sql.rkt")
 (require racket/set)
 
-;; Command-line argument handling
-
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
 (define cl-end (make-parameter null))
 (define cl-href (make-parameter #f))
@@ -16,12 +14,56 @@
 (define cl-regions (make-parameter null))
 (define cl-alliances (make-parameter null))
 
+;; Found out whether input (which is always a string) is actually a string, or a number
+
+(define-syntax filter-id
+  (syntax-rules ()
+    ((_ str) (cond
+	      [(regexp-match #px"^[0-9]{1,8}$" str) "Number"]
+	      [(regexp-match #px"^[A-Z0-9. -_]{1,5}$" str) "Ticker"]
+	      [else "Name"]))))
+
+;; Functions to parse names into type/group/region IDs
+
+(define (type->id str)
+  (case (filter-id str)
+    [("Name") (number->string (parse-type :id str))]
+    [else str]))
+
+(define (group->id str)
+  (case (filter-id str)
+    [("Name") (number->string (parse-group :id str))]
+    [else str]))
+
+(define (region->id str)
+  (case (filter-id str)
+    [("Name") (number->string (parse-region :id str))]
+    [else str]))
+
+;; Functions to let us find alliances either by ID, ticker or name
+
+(define alliances (rowset->hash
+		   (string->xexpr
+		    (xml-api "https://api.eveonline.com/eve/AllianceList.xml.aspx?version=1"))))
+
+;; Command-line argument handling
+
+(define-syntax parse-alliance
+  (syntax-rules (:id :ticker :name)
+    ((_ query) (case (filter-id query)
+		 [("Number") (findf (lambda (lst) (equal? query (hash-ref lst 'allianceID))) alliances)]
+		 [("Ticker") (findf (lambda (lst) (equal? query (hash-ref lst 'shortName))) alliances)]
+		 [("Name") (findf (lambda (lst) (regexp-match query (hash-ref lst 'name))) alliances)]))
+    ((_ :id query) (hash-ref (parse-alliance query) 'allianceID))
+    ((_ :ticker query) (hash-ref (parse-alliance query) 'shortName))
+    ((_ :name query) (hash-ref (parse-alliance query) 'name))))
+
 (define parse-args
   (command-line
    #:multi
-   [("-r" "--region") str "Select regions to use in the query" (cl-regions (cons str (cl-regions)))]
-   [("-A" "--alliance") str "Filter by alliance ID, default: false" (cl-alliances (cons str (cl-alliances)))]
-   [("-g" "--group") str "Select a groupid, default: 365" (cl-groups (cons str (cl-groups)))]
+   [("-r" "--region") str "Select regions to use in the query, default: false" (cl-regions (cons (region->id str) (cl-regions)))]
+   [("-A" "--alliance") str "Filter by alliance ID, default: false" (cl-alliances (cons (parse-alliance :id str) (cl-alliances)))]
+   [("-g" "--group") str "Select a groupid, default: false" (cl-groups (cons (group->id str) (cl-groups)))]
    #:once-each
    [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
    [("-e" "--end-date") str "Select end date, format: YYYYMMDD" (cl-end str)]
@@ -30,6 +72,8 @@
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
    [("-L" "--losses") "Show losses by <groupid>, default: false" (begin (cl-losses #t) (cl-kills #f))]))
+
+;; Parse zkillboard data
 
 (define-syntax id/string->string
   (syntax-rules (:map)
