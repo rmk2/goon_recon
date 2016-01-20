@@ -158,6 +158,45 @@
 				    (concat-data :check (list victim))))))
 		km-data)))
 
+;; HTML Output
+
+(define (create-html-table lst)
+  (if (empty? (cdr lst))
+      #f
+      (div 'class: "data"
+	   (h2 (car lst))
+	   (table
+	    (thead (tr (th "Shiptype")
+		       (th "Name")
+		       (th "Corporation")
+		       (th "Alliance")
+		       (th "System")
+		       (th "Region")
+		       (th "Date")
+		       (if (cl-href) (th "Link") null)))
+	    (tbody
+	     (map (lambda (data) (tr (map (lambda (str) (td (if (regexp-match #px"^http" str)
+								(a 'href: str 'target: "_blank" "-> link")
+								str))) data)))
+		  (cdr lst)))))))
+
+(define (output-html lst)
+  (begin
+    (output-xml (doctype 'html))
+    (output-xml
+     (html
+      (head
+       (title "EVE Killboard Digest")
+       (literal (style/inline 'type: "text/css" ".data { margin: 1em 3%; }"))
+       (literal (style/inline 'type: "text/css" "table { border-collapse: collapse;  border: 1px solid black; width: 100%; }"))
+       (literal (style/inline 'type: "text/css" "thead { border-bottom: 1px solid black; }"))
+       (literal (style/inline 'type: "text/css" "td { padding: 0.3em; border-right: 1px solid black; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 15.5em; }"))
+       (literal (style/inline 'type: "text/css" "tr:nth-child(2n+1) > td { background-color: #efefef; }")))
+      (body
+       (div 'id: "content"
+	    (h1 "EVE Killboard Digest")
+	    (filter-map (lambda (t) (create-html-table t)) lst)))))))
+
 ;; Exec
 
 ;; (cl-alliances '("864733958"))
