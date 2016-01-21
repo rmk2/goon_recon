@@ -8,6 +8,7 @@
 (require (only-in scribble/html/xml
 		  literal
 		  output-xml))
+(require srfi/19)
 
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
 (define cl-end (make-parameter null))
@@ -18,12 +19,14 @@
 (define cl-regions (make-parameter null))
 (define cl-alliances (make-parameter null))
 
+(define cl-html (make-parameter #f))
+
 ;; Found out whether input (which is always a string) is actually a string, or a number
 
 (define-syntax filter-id
   (syntax-rules ()
     ((_ str) (cond
-	      [(regexp-match #px"^[0-9]{1,8}$" str) "Number"]
+	      [(regexp-match #px"^[0-9]{1,}$" str) "Number"]
 	      [(regexp-match #px"^[A-Z0-9. -_]{1,5}$" str) "Ticker"]
 	      [else "Name"]))))
 
@@ -72,6 +75,7 @@
    [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
    [("-e" "--end-date") str "Select end date, format: YYYYMMDD" (cl-end str)]
    [("-l" "--link" "--href") "Show links to killmails, default: false" (cl-href #t)]
+   [("-H" "--html") "Output parsed data as html, default: false" (cl-html #t)]
    #:once-any
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
@@ -136,17 +140,21 @@
 
 (define-syntax parse-helper
   (syntax-rules ()
+    ((_ hash)
+     (list
+      (parse-type :name (hash-ref hash 'shipTypeID))
+      (hash-ref hash 'characterName)
+      (hash-ref hash 'corporationName)
+      (hash-ref hash 'allianceName)))
     ((_ hash location date id)
      (filter string?
-	     (list
-	      (parse-type :name (hash-ref hash 'shipTypeID))
-	      (hash-ref hash 'characterName)
-	      (hash-ref hash 'corporationName)
-	      (hash-ref hash 'allianceName)
-	      (parse-solarsystem :name location)
-	      (parse-region :name (parse-solarsystem :region location))
-	      date
-	      (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f))))))
+	     (append
+	      (parse-helper hash)
+	      (list
+	       (parse-solarsystem :name location)
+	       (parse-region :name (parse-solarsystem :region location))
+	       date
+	       (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f)))))))
 
 (define (parse-kills lst #:attackers [run-attackers? #t])
   (let ([km-data lst])
@@ -167,22 +175,38 @@
 (define (create-html-table lst)
   (if (empty? (cdr lst))
       #f
-      (div 'class: "data"
-	   (h2 (car lst))
-	   (table
-	    (thead (tr (th "Shiptype")
-		       (th "Name")
-		       (th "Corporation")
-		       (th "Alliance")
-		       (th "System")
-		       (th "Region")
-		       (th "Date")
-		       (if (cl-href) (th "Link") null)))
-	    (tbody
-	     (map (lambda (data) (tr (map (lambda (str) (td (if (regexp-match #px"^http" str)
-								(a 'href: str 'target: "_blank" "-> link")
-								str))) data)))
-		  (cdr lst)))))))
+      (let ([id (string-downcase (car (regexp-match #px"^\\w+" (car lst))))])
+	(div 'class: "data"
+	     (h2 (car lst))
+	     (table 'id: id 'class: "tablesorter"
+		    (thead (tr (th "Shiptype")
+			       (th "Name")
+			       (th "Corporation")
+			       (th "Alliance")
+			       (th "System")
+			       (th "Region")
+			       (th "Date")
+			       (if (cl-href) (th "Link") null)))
+		    (tbody
+		     (map (lambda (data) (tr (map (lambda (str) (td (if (regexp-match #px"^http" str)
+									(a 'href: str 'target: "_blank" "-> link")
+									str))) data)))
+			  (cdr lst))))))))
+
+(define (create-html-filter)
+  (p 'id: "filter" 'style: "padding-left:.2em"
+     (format "Results filtered for: Alliance (~a), Shipgroup (~a), Region (~a), since (~a)"
+	     (string-join
+	      (map (lambda (a) (parse-alliance :name a)) (cl-alliances)) "|")
+	     (string-join
+	      (map (lambda (g) (parse-group :name (string->number (group->id g)))) (cl-groups)) "|")
+	     (string-join
+	      (map (lambda (r) (parse-region :name (string->number (region->id r)))) (cl-regions)) "|")
+	     (date->string (string->date (cl-date) "~Y~m~d") "~5"))))
+
+(define (create-html-navigation lst)
+  (div 'id: "navigation" 'class: "navbar"
+       (map (lambda (link) (a 'class: "nav-ele" 'href: (string-downcase (string-append link ".html")) link))lst)))
 
 (define (output-html lst)
   (begin
@@ -195,10 +219,17 @@
        (literal (style/inline 'type: "text/css" "table { border-collapse: collapse;  border: 1px solid black; width: 100%; }"))
        (literal (style/inline 'type: "text/css" "thead { border-bottom: 1px solid black; }"))
        (literal (style/inline 'type: "text/css" "td { padding: 0.3em; border-right: 1px solid black; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 15.5em; }"))
-       (literal (style/inline 'type: "text/css" "tr:nth-child(2n+1) > td { background-color: #efefef; }")))
+       (literal (style/inline 'type: "text/css" "tr:nth-child(2n+1) > td { background-color: #efefef; }"))
+       (literal (style/inline 'type: "text/css" "th.header { background: url(\"data:image/gif;base64, R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==\") no-repeat 99% ; margin-left: -1px; background-position: center left; padding: .2em 1.33em; text-align: left; } th.headerSortUp { background: url(\"data:image/gif;base64, R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7\") no-repeat 99% ; } th.headerSortDown { background: url(\"data:image/gif;base64, R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7\") no-repeat 99% ; }"))
+       (script 'type: "text/javascript" 'src: "https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
+       (script 'type: "text/javascript" 'src: "./jquery.tablesorter.min.js")
+       ;; (script (literal "$(document).ready(function() { $(\"#killmails\").tablesorter( { sortList: [[6,0]] } ); });")))
+       (script (literal "$(document).ready(function() { $(\"*\").tablesorter( { sortList: [[6,0]] } ); });")))
       (body
        (div 'id: "content"
 	    (h1 "EVE Killboard Digest")
+	    (create-html-filter)
+	    (p 'style: "padding-left:.2em" "Hint: hold down SHIFT to select multiple columns for sorting")
 	    (filter-map (lambda (t) (create-html-table t)) lst)))))))
 
 ;; Exec
@@ -206,7 +237,6 @@
 ;; (cl-alliances '("864733958"))
 ;; (cl-groups '("898"))
 ;; (cl-regions (list (id/string->string (parse-region :id "Fade"))))
-(cl-date "20160120")
 
 ;; (define test (pull-url #:date (cl-date) #:alliances '("864733958") #:group (parse-group :id "Black Ops") #:kills #t #:losses #t))
 (define test (pull-url))
@@ -214,10 +244,19 @@
 (define test-kills (parse-kills test #:attackers #t))
 (define test-losses (parse-kills test #:attackers #f))
 
-(list
- (if (cl-kills) (parse-kills test #:attackers #t) null)
- (if (cl-losses) (parse-kills test #:attackers #f) null))
+(define test-output
+  (list
+   (cons "Active Pilots (last appearance)" (unique-car (append test-kills test-losses) second))
+   (cons "Attackers" test-kills)
+   (cons "Victims" test-losses)))
 
-(with-output-to-file "/dev/shm/eve-digest.html"
-  (lambda () (output-html (list (cons "Kills" test-kills) (cons "Losses" null))))
-  #:exists 'truncate/replace)
+(if (cl-html)
+    (output-html test-output)
+    (list
+     (if (cl-kills) test-kills null)
+     (if (cl-losses) test-losses null)))
+
+(define (test-html)
+  (with-output-to-file "/dev/shm/eve-digest.html"
+    (lambda () (output-html test-output))
+    #:exists 'truncate/replace))
