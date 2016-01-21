@@ -4,6 +4,10 @@
 (require eve)
 (require "eve-sql.rkt")
 (require racket/set)
+(require scribble/html/html)
+(require (only-in scribble/html/xml
+		  literal
+		  output-xml))
 
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
 (define cl-end (make-parameter null))
@@ -202,10 +206,18 @@
 ;; (cl-alliances '("864733958"))
 ;; (cl-groups '("898"))
 ;; (cl-regions (list (id/string->string (parse-region :id "Fade"))))
+(cl-date "20160120")
 
 ;; (define test (pull-url #:date (cl-date) #:alliances '("864733958") #:group (parse-group :id "Black Ops") #:kills #t #:losses #t))
 (define test (pull-url))
 
+(define test-kills (parse-kills test #:attackers #t))
+(define test-losses (parse-kills test #:attackers #f))
+
 (list
  (if (cl-kills) (parse-kills test #:attackers #t) null)
  (if (cl-losses) (parse-kills test #:attackers #f) null))
+
+(with-output-to-file "/dev/shm/eve-digest.html"
+  (lambda () (output-html (list (cons "Kills" test-kills) (cons "Losses" null))))
+  #:exists 'truncate/replace)
