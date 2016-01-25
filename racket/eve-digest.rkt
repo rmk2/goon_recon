@@ -195,14 +195,15 @@
 
 (define (create-html-filter)
   (p 'id: "filter" 'style: "padding-left:.2em"
-     (format "Results filtered for: Alliance (~a), Shipgroup (~a), Region (~a), since (~a)"
+     (format "Results filtered for: Alliance (~a), Shipgroup (~a), Region (~a), since (~a), last updated (~a)"
 	     (string-join
 	      (map (lambda (a) (parse-alliance :name a)) (cl-alliances)) "|")
 	     (string-join
 	      (map (lambda (g) (parse-group :name (string->number (group->id g)))) (cl-groups)) "|")
 	     (string-join
 	      (map (lambda (r) (parse-region :name (string->number (region->id r)))) (cl-regions)) "|")
-	     (date->string (string->date (cl-date) "~Y~m~d") "~5"))))
+	     (date->string (string->date (cl-date) "~Y~m~d") "~5")
+	     (date->string (current-date) "~5"))))
 
 (define (create-html-navigation lst)
   (div 'id: "navigation" 'class: "navbar"
