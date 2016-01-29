@@ -18,6 +18,7 @@
 (define cl-groups (make-parameter null))
 (define cl-regions (make-parameter null))
 (define cl-alliances (make-parameter null))
+(define cl-shiptypes (make-parameter null))
 
 (define cl-html (make-parameter #f))
 
@@ -71,6 +72,7 @@
    [("-r" "--region") str "Select regions to use in the query, default: false" (cl-regions (cons (region->id str) (cl-regions)))]
    [("-A" "--alliance") str "Filter by alliance ID, default: false" (cl-alliances (cons (parse-alliance :id str) (cl-alliances)))]
    [("-g" "--group") str "Select a groupid, default: false" (cl-groups (cons (group->id str) (cl-groups)))]
+   [("-t" "--type") str "Select a typeid, default: false" (cl-shiptypes (cons (type->id str) (cl-shiptypes)))]
    #:once-each
    [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
    [("-e" "--end-date") str "Select end date, format: YYYYMMDD" (cl-end str)]
@@ -90,6 +92,7 @@
 
 (define (pull-url #:date [date (cl-date)]
 		  #:groups [groups (cl-groups)]
+		  #:types [types (cl-shiptypes)]
 		  #:regions [regions (cl-regions)]
 		  #:alliances [alliances (cl-alliances)]
 		  #:kills [show-kills? (cl-kills)]
@@ -104,7 +107,10 @@
 	   [show-kills? "/kills"]
 	   [else (error "Use either \"#:kills #t\" or \"#:losses #t\" when calling the pull-url function")])
 	  (if (not (null? groups))
-	      (string-join (map (lambda (n) (string-append "/groupID/" n)) groups) "/")
+	      (string-append "/groupID/" (string-join groups ","))
+	      "")
+	  (if (not (null? types))
+	      (string-append "/shipTypeID/" (string-join types ","))
 	      "")
 	  (if (not (null? regions))
 	      (string-append "/regionID/" (string-join regions))
@@ -118,25 +124,31 @@
 (define (groupid->list lst)
   (append-map (lambda (i) (map (lambda (n) (vector-ref n 0)) (parse-type :members (string->number i)))) lst))
 
+(define (map-string-number lst) (map (lambda (i) (string->number i)) lst))
+
 (define-syntax concat-data
-  (syntax-rules (:alliance :shiptype :check)
+  (syntax-rules (:alliance :group :shiptype :check)
     ((_ :alliance lst) (filter-map (lambda (x)
 				     (cond
 				      [(null? (cl-alliances)) x]
 				      [(member (number->string (hash-ref x 'allianceID)) (cl-alliances)) x]
 				      [else #f]))
 				   lst))
+    ((_ :group lst) (filter-map (lambda (x)
+				  (cond
+				   [(null? (cl-groups)) x]
+				   [(member (hash-ref x 'shipTypeID) (groupid->list (cl-groups))) x]
+				   [else #f]))
+				lst))
     ((_ :shiptype lst) (filter-map (lambda (x)
 				     (cond
-				      [(null? (cl-groups)) x]
-				      [(member (hash-ref x 'shipTypeID) (groupid->list (cl-groups))) x]
+				      [(null? (cl-shiptypes)) x]
+				      [(member (hash-ref x 'shipTypeID) (map-string-number (cl-shiptypes))) x]
 				      [else #f]))
 				   lst))
-    ((_ :check lst) (cond
-		     [(null? (cl-alliances)) (concat-data :shiptype lst)]
-		     [(null? (cl-groups)) (concat-data :alliance lst)]
-		     [else (set-intersect (concat-data :alliance lst)
-					  (concat-data :shiptype lst))]))))
+    ((_ :check lst) (set-intersect (concat-data :alliance lst)
+				   (concat-data :group lst)
+				   (concat-data :shiptype lst)))))
 
 (define-syntax parse-helper
   (syntax-rules ()
