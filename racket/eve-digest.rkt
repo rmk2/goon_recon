@@ -152,8 +152,8 @@
 						[else #f]))
 					     lst))
     ((_ :check lst) (set-intersect (concat-data :alliance lst)
-				   (concat-data :group lst))
-				   (concat-data :shiptype lst))))
+				   (concat-data :group lst)
+				   (concat-data :shiptype lst)))))
 
 (define-syntax parse-helper
   (syntax-rules ()
