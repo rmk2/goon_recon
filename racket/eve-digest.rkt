@@ -9,6 +9,7 @@
 		  literal
 		  output-xml))
 (require srfi/19)
+(require racket/future)
 
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
 (define cl-end (make-parameter null))
@@ -132,27 +133,30 @@
 
 (define-syntax concat-data
   (syntax-rules (:alliance :group :shiptype :check)
-    ((_ :alliance lst) (filter-map (lambda (x)
-				     (cond
-				      [(null? (cl-alliances)) x]
-				      [(member (number->string (hash-ref x 'allianceID)) (cl-alliances)) x]
-				      [else #f]))
-				   lst))
-    ((_ :group lst) (filter-map (lambda (x)
-				  (cond
-				   [(null? (cl-groups)) x]
-				   [(member (hash-ref x 'shipTypeID) (groupid->list (cl-groups))) x]
-				   [else #f]))
-				lst))
-    ((_ :shiptype lst) (filter-map (lambda (x)
-				     (cond
-				      [(null? (cl-shiptypes)) x]
-				      [(member (hash-ref x 'shipTypeID) (map-string-number (cl-shiptypes))) x]
-				      [else #f]))
-				   lst))
-    ((_ :check lst) (set-intersect (concat-data :alliance lst)
-				   (concat-data :group lst)
-				   (concat-data :shiptype lst)))))
+    ((_ :alliance lst) (future (lambda () 
+				 (filter-map (lambda (x)
+					       (cond
+						[(null? (cl-alliances)) x]
+						[(member (number->string (hash-ref x 'allianceID)) (cl-alliances)) x]
+						[else #f]))
+					     lst))))
+    ((_ :group lst) (future (lambda ()
+			      (filter-map (lambda (x)
+					    (cond
+					     [(null? (cl-groups)) x]
+					     [(member (hash-ref x 'shipTypeID) (groupid->list (cl-groups))) x]
+					     [else #f]))
+					  lst))))
+    ((_ :shiptype lst) (future (lambda ()
+				 (filter-map (lambda (x)
+					       (cond
+						[(null? (cl-shiptypes)) x]
+						[(member (hash-ref x 'shipTypeID) (map-string-number (cl-shiptypes))) x]
+						[else #f]))
+					     lst))))
+    ((_ :check lst) (set-intersect (touch (concat-data :alliance lst))
+				   (touch (concat-data :group lst))
+				   (touch (concat-data :shiptype lst))))))
 
 (define-syntax parse-helper
   (syntax-rules ()
@@ -192,13 +196,17 @@
 ;; together. We also re-sort the combined region list by date to keep things
 ;; legible.
 
-(define (run-regions lst)
-  (sort
-   (append-map (lambda (current-region) (pull-url #:regions current-region)) lst)
-   string<?
-   #:key (lambda (h) (hash-ref h 'killTime))
-   #:cache-keys? #t))
-  
+(define (run-regions lst #:kills [show-kills? #f] #:losses [show-losses? #f])
+  (if (empty? lst)
+      (pull-url)
+      (sort (append-map (lambda (current-region) (pull-url #:regions current-region
+							   #:kills show-kills?
+							   #:losses show-losses?))
+			lst)
+	    string<?
+	    #:key (lambda (h) (hash-ref h 'killTime))
+	    #:cache-keys? #t)))
+
 ;; HTML Output
 
 (define (create-html-table lst)
@@ -280,23 +288,27 @@
 ;; Generic Output
 
 (define cache-kills (if (cl-kills)
-			(parse-kills (run-regions (cl-regions)) #:attackers #t)
+			(future (lambda () (parse-kills (run-regions (cl-regions) #:kills #t) #:attackers #t)))
 			null))
 
 (define cache-losses (if (cl-losses)
-			 (parse-kills (run-regions (cl-regions))  #:attackers #f)
+			 (future (lambda () (parse-kills (run-regions (cl-regions) #:losses #t)  #:attackers #f)))
 			 null))
 
 (define-values (active attackers victims)
   (values
    (if (cl-active)
-       (cons "Active Pilots (last appearance)" (unique-car (append cache-kills cache-losses) second))
+       (cons "Active Pilots (last appearance)"
+	     (unique-car (append
+			  (if (future? cache-kills) (touch cache-kills) null)
+			  (if (future? cache-losses) (touch cache-losses) null))
+			 second))
        #f)
    (if (not (empty? cache-kills))
-       (cons "Attackers" cache-kills)
+       (cons "Attackers" (touch cache-kills))
        #f)
    (if (not (empty? cache-losses))
-       (cons "Victims" cache-losses)
+       (cons "Victims" (touch cache-losses))
        #f)))
 
 ;; Exec
