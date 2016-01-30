@@ -133,30 +133,27 @@
 
 (define-syntax concat-data
   (syntax-rules (:alliance :group :shiptype :check)
-    ((_ :alliance lst) (future (lambda () 
-				 (filter-map (lambda (x)
+    ((_ :alliance lst) (filter-map (lambda (x)
 					       (cond
 						[(null? (cl-alliances)) x]
 						[(member (number->string (hash-ref x 'allianceID)) (cl-alliances)) x]
 						[else #f]))
-					     lst))))
-    ((_ :group lst) (future (lambda ()
-			      (filter-map (lambda (x)
+					     lst))
+    ((_ :group lst) (filter-map (lambda (x)
 					    (cond
 					     [(null? (cl-groups)) x]
 					     [(member (hash-ref x 'shipTypeID) (groupid->list (cl-groups))) x]
 					     [else #f]))
-					  lst))))
-    ((_ :shiptype lst) (future (lambda ()
-				 (filter-map (lambda (x)
+					  lst))
+    ((_ :shiptype lst) (filter-map (lambda (x)
 					       (cond
 						[(null? (cl-shiptypes)) x]
 						[(member (hash-ref x 'shipTypeID) (map-string-number (cl-shiptypes))) x]
 						[else #f]))
-					     lst))))
-    ((_ :check lst) (set-intersect (touch (concat-data :alliance lst))
-				   (touch (concat-data :group lst))
-				   (touch (concat-data :shiptype lst))))))
+					     lst))
+    ((_ :check lst) (set-intersect (concat-data :alliance lst))
+				   (concat-data :group lst))
+				   (concat-data :shiptype lst)))
 
 (define-syntax parse-helper
   (syntax-rules ()
