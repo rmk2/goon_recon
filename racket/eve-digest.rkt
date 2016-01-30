@@ -285,11 +285,11 @@
 ;; Generic Output
 
 (define cache-kills (if (cl-kills)
-			(future (lambda () (parse-kills (run-regions (cl-regions) #:kills #t) #:attackers #t)))
+			(parse-kills (run-regions (cl-regions) #:kills #t) #:attackers #t)
 			null))
 
 (define cache-losses (if (cl-losses)
-			 (future (lambda () (parse-kills (run-regions (cl-regions) #:losses #t)  #:attackers #f)))
+			 (parse-kills (run-regions (cl-regions) #:losses #t)  #:attackers #f)
 			 null))
 
 (define-values (active attackers victims)
@@ -297,15 +297,15 @@
    (if (cl-active)
        (cons "Active Pilots (last appearance)"
 	     (unique-car (append
-			  (if (future? cache-kills) (touch cache-kills) null)
-			  (if (future? cache-losses) (touch cache-losses) null))
+			  cache-kills
+			  cache-losses)
 			 second))
        #f)
    (if (not (empty? cache-kills))
-       (cons "Attackers" (touch cache-kills))
+       (cons "Attackers" cache-kills)
        #f)
    (if (not (empty? cache-losses))
-       (cons "Victims" (touch cache-losses))
+       (cons "Victims" cache-losses)
        #f)))
 
 ;; Exec
