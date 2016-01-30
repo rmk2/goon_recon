@@ -24,7 +24,7 @@
 
 (define cl-html (make-parameter #f))
 
-;; Found out whether input (which is always a string) is actually a string, or a number
+;; Find out whether input (which is always a string) is actually a string, or a number
 
 (define-syntax filter-id
   (syntax-rules ()
@@ -56,8 +56,6 @@
 		   (string->xexpr
 		    (xml-api "https://api.eveonline.com/eve/AllianceList.xml.aspx?version=1"))))
 
-;; Command-line argument handling
-
 (define-syntax parse-alliance
   (syntax-rules (:id :ticker :name)
     ((_ query) (case (filter-id query)
@@ -67,6 +65,8 @@
     ((_ :id query) (hash-ref (parse-alliance query) 'allianceID))
     ((_ :ticker query) (hash-ref (parse-alliance query) 'shortName))
     ((_ :name query) (hash-ref (parse-alliance query) 'name))))
+
+;; Command-line argument handling
 
 (define parse-args
   (command-line
@@ -117,7 +117,7 @@
 	      (string-append "/shipTypeID/" (string-join types ","))
 	      "")
 	  (if (not (null? regions))
-	      (string-append "/regionID/" (string-join regions))
+	      (string-append "/regionID/" regions)
 	      "")
 	  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") "")
 	  (if (not (null? alliances))
@@ -186,6 +186,19 @@
 				    (concat-data :check (list victim))))))
 		km-data)))
 
+;; Workaround for zkill's limitiation of one region per query, which cannot be
+;; concatened via commas in one request, either. Instead, we have to do
+;; sequential polls, which we can however append in order to parse them all
+;; together. We also re-sort the combined region list by date to keep things
+;; legible.
+
+(define (run-regions lst)
+  (sort
+   (append-map (lambda (current-region) (pull-url #:regions current-region)) lst)
+   string<?
+   #:key (lambda (h) (hash-ref h 'killTime))
+   #:cache-keys? #t))
+  
 ;; HTML Output
 
 (define (create-html-table lst)
@@ -267,11 +280,11 @@
 ;; Generic Output
 
 (define cache-kills (if (cl-kills)
-			(parse-kills (pull-url) #:attackers #t)
+			(parse-kills (run-regions (cl-regions)) #:attackers #t)
 			null))
 
 (define cache-losses (if (cl-losses)
-			 (parse-kills (pull-url) #:attackers #f)
+			 (parse-kills (run-regions (cl-regions))  #:attackers #f)
 			 null))
 
 (define-values (active attackers victims)
