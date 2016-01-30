@@ -151,9 +151,9 @@
 						[(member (hash-ref x 'shipTypeID) (map-string-number (cl-shiptypes))) x]
 						[else #f]))
 					     lst))
-    ((_ :check lst) (set-intersect (concat-data :alliance lst))
+    ((_ :check lst) (set-intersect (concat-data :alliance lst)
 				   (concat-data :group lst))
-				   (concat-data :shiptype lst)))
+				   (concat-data :shiptype lst))))
 
 (define-syntax parse-helper
   (syntax-rules ()
