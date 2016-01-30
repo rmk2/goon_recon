@@ -13,6 +13,8 @@
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
 (define cl-end (make-parameter null))
 (define cl-href (make-parameter #f))
+(define cl-csv (make-parameter #f))
+(define cl-active (make-parameter #f))
 (define cl-losses (make-parameter #f))
 (define cl-kills (make-parameter #t))
 (define cl-groups (make-parameter null))
@@ -77,7 +79,9 @@
    [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
    [("-e" "--end-date") str "Select end date, format: YYYYMMDD" (cl-end str)]
    [("-l" "--link" "--href") "Show links to killmails, default: false" (cl-href #t)]
-   [("-H" "--html") "Output parsed data as html, default: false" (cl-html #t)]
+   [("-P" "--pilot" "--active") "Show a list of (unique) active pilots" (cl-active #t)]
+   [("-H" "--html") "Output parsed data as html, default: false" (begin (cl-csv #f) (cl-html #t))]
+   [("-c" "--csv" "-p" "--print") "Print output as csv, default: false" (begin (cl-html #f) (cl-csv #t))]
    #:once-any
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
@@ -207,11 +211,13 @@
 
 (define (create-html-filter)
   (p 'id: "filter" 'style: "padding-left:.2em"
-     (format "Results filtered for: Alliance (~a), Shipgroup (~a), Region (~a), since (~a), last updated (~a)"
+     (format "Results filtered for: Alliance (~a), Shipgroup (~a), Shiptype (~a), Region (~a), since (~a), last updated (~a)"
 	     (string-join
 	      (map (lambda (a) (parse-alliance :name a)) (cl-alliances)) "|")
 	     (string-join
 	      (map (lambda (g) (parse-group :name (string->number (group->id g)))) (cl-groups)) "|")
+	     (string-join
+	      (map (lambda (t) (parse-type :name (string->number (type->id t)))) (cl-shiptypes)) "|")
 	     (string-join
 	      (map (lambda (r) (parse-region :name (string->number (region->id r)))) (cl-regions)) "|")
 	     (date->string (string->date (cl-date) "~Y~m~d") "~5")
@@ -245,31 +251,45 @@
 	    (p 'style: "padding-left:.2em" "Hint: hold down SHIFT to select multiple columns for sorting")
 	    (filter-map (lambda (t) (create-html-table t)) lst)))))))
 
+;; CSV Output
+
+(define (output-csv lst)
+  (append-map (lambda (l) (list* "-------------"
+				 (string-append "> " (car l))
+				 "-------------"
+				 (input-map-join (cdr l))))
+	      lst))
+
+(define (print-csv lst)
+  (for-each (lambda (x) (displayln x))
+	    lst))
+
+;; Generic Output
+
+(define cache-kills (if (cl-kills)
+			(parse-kills (pull-url) #:attackers #t)
+			null))
+
+(define cache-losses (if (cl-losses)
+			 (parse-kills (pull-url) #:attackers #f)
+			 null))
+
+(define-values (active attackers victims)
+  (values
+   (if (cl-active)
+       (cons "Active Pilots (last appearance)" (unique-car (append cache-kills cache-losses) second))
+       #f)
+   (if (not (empty? cache-kills))
+       (cons "Attackers" cache-kills)
+       #f)
+   (if (not (empty? cache-losses))
+       (cons "Victims" cache-losses)
+       #f)))
+
 ;; Exec
 
-;; (cl-alliances '("864733958"))
-;; (cl-groups '("898"))
-;; (cl-regions (list (id/string->string (parse-region :id "Fade"))))
-
-;; (define test (pull-url #:date (cl-date) #:alliances '("864733958") #:group (parse-group :id "Black Ops") #:kills #t #:losses #t))
-(define test (pull-url))
-
-(define test-kills (parse-kills test #:attackers #t))
-(define test-losses (parse-kills test #:attackers #f))
-
-(define test-output
-  (list
-   (cons "Active Pilots (last appearance)" (unique-car (append test-kills test-losses) second))
-   (cons "Attackers" test-kills)
-   (cons "Victims" test-losses)))
-
-(if (cl-html)
-    (output-html test-output)
-    (list
-     (if (cl-kills) test-kills null)
-     (if (cl-losses) test-losses null)))
-
-(define (test-html)
-  (with-output-to-file "/dev/shm/eve-digest.html"
-    (lambda () (output-html test-output))
-    #:exists 'truncate/replace))
+(let ([data (filter list? (list active attackers victims))])
+  (cond
+   [(cl-html) (output-html data)]
+   [(cl-csv) (print-csv (output-csv data))]
+   [else data]))
