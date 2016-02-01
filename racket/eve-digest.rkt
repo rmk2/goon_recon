@@ -14,7 +14,7 @@
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
 (define cl-end (make-parameter null))
 (define cl-href (make-parameter #f))
-(define cl-csv (make-parameter #f))
+(define cl-quiet (make-parameter #f))
 (define cl-active (make-parameter #f))
 (define cl-losses (make-parameter #f))
 (define cl-kills (make-parameter #t))
@@ -24,6 +24,7 @@
 (define cl-shiptypes (make-parameter null))
 
 (define cl-html (make-parameter #f))
+(define cl-csv (make-parameter #f))
 
 ;; Wrapper to use "futures" whenever more than one core are available (thanks EDIS...)
 
@@ -34,7 +35,10 @@
 			  func))
     ((_ :touch func) (if (future? func)
 			 (touch func)
-			 func))))
+			 func))
+    ((_ func) (if (future? fun)
+		  (future-wrapper :touch func)
+		  (future-wrapper :future func)))))
 
 ;; Find out whether input (which is always a string) is actually a string, or a number
 
@@ -94,6 +98,7 @@
    [("-P" "--pilot" "--active") "Show a list of (unique) active pilots" (cl-active #t)]
    [("-H" "--html") "Output parsed data as html, default: false" (begin (cl-csv #f) (cl-html #t))]
    [("-c" "--csv" "-p" "--print") "Print output as csv, default: false" (begin (cl-html #f) (cl-csv #t))]
+   [("-q" "--quiet") "Print Active Pilots only, suppress other output, default: false" (begin (cl-active #t) (cl-quiet #t))]
    #:once-any
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
@@ -312,10 +317,12 @@
 			  (future-wrapper :touch cache-losses))
 			 second))
        #f)
-   (if (not (empty? (future-wrapper :touch cache-kills)))
+   (if (and (not (cl-quiet))
+	    (not (empty? (future-wrapper :touch cache-kills))))
        (cons "Attackers" (future-wrapper :touch cache-kills))
        #f)
-   (if (not (empty? (future-wrapper :touch cache-losses)))
+   (if (and (not (cl-quiet))
+	    (not (empty? (future-wrapper :touch cache-losses))))
        (cons "Victims" (future-wrapper :touch cache-losses))
        #f)))
 
