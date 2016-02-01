@@ -22,6 +22,7 @@
 (define cl-regions (make-parameter null))
 (define cl-alliances (make-parameter null))
 (define cl-shiptypes (make-parameter null))
+(define cl-corporations (make-parameter null))
 
 (define cl-html (make-parameter #f))
 (define cl-csv (make-parameter #f))
@@ -91,6 +92,8 @@
    [("-A" "--alliance") str "Filter by alliance ID, default: false" (cl-alliances (cons (parse-alliance :id str) (cl-alliances)))]
    [("-g" "--group") str "Select a groupid, default: false" (cl-groups (cons (group->id str) (cl-groups)))]
    [("-t" "--type") str "Select a typeid, default: false" (cl-shiptypes (cons (type->id str) (cl-shiptypes)))]
+   [("-c" "--corporation" "--corp") str "Filter by corporation ID, default: false"
+    (cl-corporations (cons (id/string->string (parse-corporation :id str)) (cl-corporations)))]
    #:once-each
    [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
    [("-e" "--end-date") str "Select end date, format: YYYYMMDD" (cl-end str)]
@@ -116,6 +119,7 @@
 		  #:types [types (cl-shiptypes)]
 		  #:regions [regions (cl-regions)]
 		  #:alliances [alliances (cl-alliances)]
+		  #:corporations [corporations (cl-corporations)]
 		  #:kills [show-kills? (cl-kills)]
 		  #:losses [show-losses? (cl-losses)])
   (let ([built-url
@@ -139,6 +143,9 @@
 	  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") "")
 	  (if (not (null? alliances))
 	      (string-append "/allianceID/" (string-join alliances ","))
+	      "")
+	  (if (not (null? corporations))
+	      (string-append "/corporationID/" (string-join corporations ","))
 	      ""))])
     (json-api built-url)))
 
@@ -150,23 +157,23 @@
 (define-syntax concat-data
   (syntax-rules (:alliance :group :shiptype :check)
     ((_ :alliance lst) (filter-map (lambda (x)
-					       (cond
-						[(null? (cl-alliances)) x]
-						[(member (number->string (hash-ref x 'allianceID)) (cl-alliances)) x]
-						[else #f]))
-					     lst))
+				     (cond
+				      [(null? (cl-alliances)) x]
+				      [(member (number->string (hash-ref x 'allianceID)) (cl-alliances)) x]
+				      [else #f]))
+				   lst))
     ((_ :group lst) (filter-map (lambda (x)
-					    (cond
-					     [(null? (cl-groups)) x]
-					     [(member (hash-ref x 'shipTypeID) (groupid->list (cl-groups))) x]
-					     [else #f]))
-					  lst))
+				  (cond
+				   [(null? (cl-groups)) x]
+				   [(member (hash-ref x 'shipTypeID) (groupid->list (cl-groups))) x]
+				   [else #f]))
+				lst))
     ((_ :shiptype lst) (filter-map (lambda (x)
-					       (cond
-						[(null? (cl-shiptypes)) x]
-						[(member (hash-ref x 'shipTypeID) (map-string-number (cl-shiptypes))) x]
-						[else #f]))
-					     lst))
+				     (cond
+				      [(null? (cl-shiptypes)) x]
+				      [(member (hash-ref x 'shipTypeID) (map-string-number (cl-shiptypes))) x]
+				      [else #f]))
+				   lst))
     ((_ :check lst) (set-intersect (concat-data :alliance lst)
 				   (concat-data :group lst)
 				   (concat-data :shiptype lst)))))
@@ -245,9 +252,11 @@
 
 (define (create-html-filter)
   (p 'id: "filter" 'style: "padding-left:.2em"
-     (format "Results filtered for: Alliance (~a), Shipgroup (~a), Shiptype (~a), Region (~a), since (~a), last updated (~a)"
+     (format "Results filtered for: Alliance (~a), Corporation (~a), Shipgroup (~a), Shiptype (~a), Region (~a), since (~a), last updated (~a)"
 	     (string-join
 	      (map (lambda (a) (parse-alliance :name a)) (cl-alliances)) "|")
+	     (string-join
+	      (map (lambda (a) (parse-corporation :name a)) (cl-corporations)) "|")
 	     (string-join
 	      (map (lambda (g) (parse-group :name (string->number (group->id g)))) (cl-groups)) "|")
 	     (string-join
