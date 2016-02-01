@@ -83,3 +83,23 @@
     ((_ :id v) (vector-ref (vector-drop-right (vector-take-right v 2) 1) 0))
     ((_ :constellation v) (if (>= (vector-length v) 3) (vector-ref v 1) #f))
     ((_ v) (parse-map :id v))))
+
+(define-syntax parse-corporation
+  (syntax-rules (:id :ticker :name)
+    ((_ arg)
+     (cond
+      [(number? arg)
+       (query-row sqlc (string-append "SELECT corporationID,ticker,corporationName FROM "
+				      "customCorporations WHERE corporationID LIKE ?") arg)]
+      [(regexp-match #px"^[0-9]{1,}$" arg)
+       (query-row sqlc (string-append "SELECT corporationID,ticker,corporationName FROM "
+				      "customCorporations WHERE corporationID LIKE ?") arg)]
+      [(regexp-match #px"^[A-Z0-9. -_]{1,5}$" arg)
+       (query-row sqlc (string-append "SELECT corporationID,ticker,corporationName FROM "
+				      "customCorporations WHERE ticker LIKE ?") arg)]
+      [else
+       (query-row sqlc (string-append "SELECT corporationID,ticker,corporationName FROM "
+				      "customCorporations WHERE corporationNAME LIKE ?") arg)]))
+    ((_ :id arg) (vector-ref (parse-corporation arg) 0))
+    ((_ :ticker arg) (vector-ref (parse-corporation arg) 1))
+    ((_ :name arg) (vector-ref (parse-corporation arg) 2))))
