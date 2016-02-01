@@ -162,6 +162,12 @@
 				      [(member (number->string (hash-ref x 'allianceID)) (cl-alliances)) x]
 				      [else #f]))
 				   lst))
+    ((_ :corporation lst) (filter-map (lambda (x)
+					(cond
+					 [(null? (cl-corporations)) x]
+					 [(member (number->string (hash-ref x 'corporationID)) (cl-corporations)) x]
+					 [else #f]))
+				      lst))
     ((_ :group lst) (filter-map (lambda (x)
 				  (cond
 				   [(null? (cl-groups)) x]
@@ -175,6 +181,7 @@
 				      [else #f]))
 				   lst))
     ((_ :check lst) (set-intersect (concat-data :alliance lst)
+				   (concat-data :corporation lst)
 				   (concat-data :group lst)
 				   (concat-data :shiptype lst)))))
 
