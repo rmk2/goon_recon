@@ -25,6 +25,17 @@
 
 (define cl-html (make-parameter #f))
 
+;; Wrapper to use "futures" whenever more than one core are available (thanks EDIS...)
+
+(define-syntax future-wrapper
+  (syntax-rules (:future :touch)
+    ((_ :future func) (if (> (processor-count) 1)
+			  (future (lambda () func))
+			  func))
+    ((_ :touch func) (if (future? func)
+			 (touch func)
+			 func))))
+
 ;; Find out whether input (which is always a string) is actually a string, or a number
 
 (define-syntax filter-id
@@ -285,11 +296,11 @@
 ;; Generic Output
 
 (define cache-kills (if (cl-kills)
-			(parse-kills (run-regions (cl-regions) #:kills #t) #:attackers #t)
+			(future-wrapper :future (parse-kills (run-regions (cl-regions) #:kills #t) #:attackers #t))
 			null))
 
 (define cache-losses (if (cl-losses)
-			 (parse-kills (run-regions (cl-regions) #:losses #t)  #:attackers #f)
+			 (future-wrapper :future (parse-kills (run-regions (cl-regions) #:losses #t)  #:attackers #f))
 			 null))
 
 (define-values (active attackers victims)
@@ -297,15 +308,15 @@
    (if (cl-active)
        (cons "Active Pilots (last appearance)"
 	     (unique-car (append
-			  cache-kills
-			  cache-losses)
+			  (future-wrapper :touch cache-kills)
+			  (future-wrapper :touch cache-losses))
 			 second))
        #f)
-   (if (not (empty? cache-kills))
-       (cons "Attackers" cache-kills)
+   (if (not (empty? (future-wrapper :touch cache-kills)))
+       (cons "Attackers" (future-wrapper :touch cache-kills))
        #f)
-   (if (not (empty? cache-losses))
-       (cons "Victims" cache-losses)
+   (if (not (empty? (future-wrapper :touch cache-losses)))
+       (cons "Victims" (future-wrapper :touch cache-losses))
        #f)))
 
 ;; Exec
