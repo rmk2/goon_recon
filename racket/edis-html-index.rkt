@@ -6,6 +6,7 @@
 (define prefix (make-parameter "/var/www/servers/"))
 (define suffix (make-parameter "/pages/"))
 (define index-file (make-parameter "index.html"))
+(define message (make-parameter "Move along, nothing to see here!"))
 
 (define domains (make-parameter null))
 
@@ -16,9 +17,10 @@
    #:once-each
    [("-p" "--prefix") str "Prefix, default: /var/www/servers/" (prefix str)]
    [("-s" "--suffix") str "Suffix, default: /pages/" (suffix str)]
-   [("-o" "--output" "-f" "--file") str "Name of index file, default: index.html" (index-file str)]))
+   [("-o" "--output" "-f" "--file") str "Name of index file, default: index.html" (index-file str)]
+   [("-m" "--message") str "Message to print below the domain" (message str)]))
 
-(define (output-html name)
+(define (output-html name [message (message)])
   (output-xml (doctype 'html))
   (output-xml
    (html
@@ -29,7 +31,7 @@
     (body
      (h1 name)
      (div 'class: "content"
-	  (p "Move along, nothing to see here!"))))))
+	  (p message))))))
 
 (define (main)
   (for-each (lambda (name)
