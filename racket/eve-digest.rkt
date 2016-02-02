@@ -158,32 +158,28 @@
   (syntax-rules (:alliance :corporation :group :shiptype :check)
     ((_ :alliance lst) (filter-map (lambda (x)
 				     (cond
-				      [(null? (cl-alliances)) x]
 				      [(member (number->string (hash-ref x 'allianceID)) (cl-alliances)) x]
 				      [else #f]))
 				   lst))
     ((_ :corporation lst) (filter-map (lambda (x)
 					(cond
-					 [(null? (cl-corporations)) x]
 					 [(member (number->string (hash-ref x 'corporationID)) (cl-corporations)) x]
 					 [else #f]))
 				      lst))
     ((_ :group lst) (filter-map (lambda (x)
 				  (cond
-				   [(null? (cl-groups)) x]
 				   [(member (hash-ref x 'shipTypeID) (groupid->list (cl-groups))) x]
 				   [else #f]))
 				lst))
     ((_ :shiptype lst) (filter-map (lambda (x)
 				     (cond
-				      [(null? (cl-shiptypes)) x]
 				      [(member (hash-ref x 'shipTypeID) (map-string-number (cl-shiptypes))) x]
 				      [else #f]))
 				   lst))
-    ((_ :check lst) (set-intersect (concat-data :alliance lst)
-				   (concat-data :corporation lst)
-				   (concat-data :group lst)
-				   (concat-data :shiptype lst)))))
+    ((_ :check lst) (set-intersect (if (null? (cl-alliances)) lst (concat-data :alliance lst))
+				   (if (null? (cl-corporations)) lst (concat-data :corporation lst))
+				   (if (null? (cl-groups)) lst (concat-data :group lst))
+				   (if (null? (cl-shiptypes)) lst (concat-data :shiptype lst))))))
 
 (define-syntax parse-helper
   (syntax-rules ()
