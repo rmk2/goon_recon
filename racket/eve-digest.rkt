@@ -190,14 +190,15 @@
       (hash-ref hash 'corporationName)
       (hash-ref hash 'allianceName)))
     ((_ hash location date id)
-     (filter string?
-	     (append
-	      (parse-helper hash)
-	      (list
-	       (parse-solarsystem :name location)
-	       (parse-region :name (parse-solarsystem :region location))
-	       date
-	       (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f)))))))
+     (let ([location-base (parse-solarsystem location)])
+       (filter string?
+	       (append
+		(parse-helper hash)
+		(list
+		 (parse-map :name location-base)
+		 (parse-region :name (parse-map :region location-base))
+		 date
+		 (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f))))))))
 
 (define (parse-kills lst #:attackers [run-attackers? #t])
   (let ([km-data lst])
