@@ -27,7 +27,7 @@
 (define cl-html (make-parameter #f))
 (define cl-csv (make-parameter #f))
 
-;; Wrapper to use "futures" whenever more than one core are available (thanks EDIS...)
+;; Wrapper to use "futures" whenever more than one core is available (thanks EDIS...)
 
 (define-syntax future-wrapper
   (syntax-rules (:future :touch)
@@ -37,7 +37,7 @@
     ((_ :touch func) (if (future? func)
 			 (touch func)
 			 func))
-    ((_ func) (if (future? fun)
+    ((_ func) (if (future? func)
 		  (future-wrapper :touch func)
 		  (future-wrapper :future func)))))
 
