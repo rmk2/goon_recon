@@ -155,7 +155,7 @@
 (define (map-string-number lst) (map (lambda (i) (string->number i)) lst))
 
 (define-syntax concat-data
-  (syntax-rules (:alliance :group :shiptype :check)
+  (syntax-rules (:alliance :corporation :group :shiptype :check)
     ((_ :alliance lst) (filter-map (lambda (x)
 				     (cond
 				      [(null? (cl-alliances)) x]
