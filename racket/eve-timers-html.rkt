@@ -1,9 +1,8 @@
 #! /usr/bin/env racket
 #lang racket
 
-(require net/url)
+(require eve)
 (require scribble/html)
-(require srfi/19)
 
 (define api
   (let ([file "/var/www/servers/eve.rmk2.org/pages/sov_timers.txt"])
@@ -11,15 +10,10 @@
 	(file->lines file)
 	(call/input-url (string->url "https://eve.rmk2.org/sov_timers.txt") get-pure-port port->lines))))
 
-
-(define-syntax input-map-split
-  (syntax-rules ()
-    ((_ input) (map (lambda (x) (string-split x ",")) input))))
-
 (define-syntax clean-date
   (syntax-rules ()
-    ((_ str) (if (regexp-match #px"^[0-9]{4}" str)
-		 (string-join (string-split str "T"))
+    ((_ str) (if (regexp-match #px"^[0-9]{4}-[0-9]{2}-[0-9]{2}" str)
+		 (date->string (string->date str "~Y-~m~dT~H:~M:~S") "~1 ~3")
 		 str))))
 
 (define (html-output . param)
@@ -49,4 +43,3 @@
      (p 'style: "padding-left:.2em" (string-append "Last updated: " (date->string (current-date) "~4")))))))
 
 (html-output)
-
