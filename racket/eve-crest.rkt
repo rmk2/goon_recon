@@ -1,19 +1,10 @@
 #! /usr/bin/env racket
 #lang racket
 
-(require json)
-(require racket/date)
-(require net/url)
+(require eve)
 (require "eve-sql.rkt")
 
-(define api
-  (let [(file "/dev/shm/crest-campaigns.json")]
-    (if (and (file-exists? file)
-	     (> (file-or-directory-modify-seconds file) (- (current-seconds) 3600)))
-	(read-json (open-input-file file))
-	(call/input-url (string->url "https://public-crest.eveonline.com/sovereignty/campaigns/")
-			get-pure-port
-			read-json))))
+(define api (json-api "https://public-crest.eveonline.com/sovereignty/campaigns/"))
 
 (define-syntax json-filter
   (syntax-rules (:name :defender-raw :defender :defender-name :attackers :system
