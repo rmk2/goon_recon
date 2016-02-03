@@ -46,9 +46,10 @@
 		       (list (list-ref l 1)
 			     (list-ref l 0)
 			     "")))
-       (input-map-split (if (query-raw)
-			    (edis-data)
-			    (api-data)))))
+       (input-map-split (cond
+			 [(query-raw) (edis-data)]
+			 [(empty? (api-data)) (edis-data)]
+			 [else (api-data)]))))
 
 (define coalitions
   (let [(file "/var/www/servers/eve.rmk2.org/pages/coalitions.txt")]
