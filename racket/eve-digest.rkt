@@ -8,7 +8,6 @@
 (require (only-in scribble/html/xml
 		  literal
 		  output-xml))
-(require srfi/19)
 (require racket/future)
 
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
