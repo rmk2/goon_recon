@@ -59,21 +59,37 @@
 
 ;; Generic CREST (json) API polling function; output: jsexpr
 
-(define (json-api str)
-  (bytes->jsexpr
-   (call/input-url (string->url str)
-		   get-pure-port
-		   (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
-		   '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
+(define-syntax json-api
+  (syntax-rules (:gzip :plain)
+    ((_ :plain str)
+     (bytes->jsexpr
+      (call/input-url (string->url str)
+		      get-pure-port
+		      port->bytes
+		      '("User-Agent: ryko@rmk2.org"))))
+    ((_ :gzip str)
+     (bytes->jsexpr
+      (call/input-url (string->url str)
+		      get-pure-port
+		      (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
+		      '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
+    ((_ str) (json-api :gzip str))))
 
 ;; Generic APIv2 (xml) API polling function; output: string
 
-(define (xml-api str)
-  (call/input-url (string->url str)
-		  get-pure-port
-		  (lambda (input) (call-with-output-string (lambda (x) (gunzip-through-ports input x))))
-		  '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org")))
-
+(define-syntax xml-api
+  (syntax-rules (:gzip :plain)
+    ((_ :plain str)
+     (call/input-url (string->url str)
+		     get-pure-port
+		     port->string
+		     '("User-Agent: ryko@rmk2.org")))
+    ((_ :gzip str)
+     (call/input-url (string->url str)
+		     get-pure-port
+		     (lambda (input) (call-with-output-string (lambda (x) (gunzip-through-ports input x))))
+		     '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org")))
+    ((_ str) (xml-api :plain str))))
 
 ;; Solarsystem data parsing
 
