@@ -3,8 +3,11 @@
 
 (require eve)
 
-(provide (all-defined-out))
-
+(provide (except-out (all-defined-out)
+		     edis-shiptype
+		     result-shiptype
+		     check-api))
+		     
 ;; XML options
 
 (collapse-whitespace #t)
