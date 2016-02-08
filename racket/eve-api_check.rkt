@@ -3,6 +3,8 @@
 
 (require eve)
 
+(provide (all-defined-out))
+
 ;; XML options
 
 (collapse-whitespace #t)
@@ -37,8 +39,11 @@
 
 (define (parse-data lst)
   (map (lambda (hash) (list
+		       (hash-ref hash 'characterID)
 		       (hash-ref hash 'characterName)
+		       (hash-ref hash 'corporationID)
 		       (hash-ref hash 'corporationName)
+		       (hash-ref hash 'allianceID)
 		       (hash-ref hash 'allianceName)))
        lst))
 
