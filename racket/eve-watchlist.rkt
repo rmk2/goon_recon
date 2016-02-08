@@ -2,6 +2,7 @@
 #lang racket
 
 (require eve)
+(require "eve-sql_supers.rkt")
 
 (define coalition-tags (make-parameter #t))
 (define query-raw (make-parameter #f))
@@ -30,26 +31,11 @@
 
 ;; Data fetching
 
-(define (api-data)
-  (let ([file "/var/www/servers/eve.rmk2.org/pages/eve-api_check.txt"])
-    (if (file-exists? file)
-	(file->lines file)
-	(call/input-url (string->url "https://eve.rmk2.org/eve-api_check.txt")
-			get-pure-port
-			port->lines))))
-
 (define (create-input)
-  (map (lambda (l) (if (= (length l) 4)
-		       (list (list-ref l 1)
-			     (list-ref l 0)
-			     (list-ref l 3))
-		       (list (list-ref l 1)
-			     (list-ref l 0)
-			     "")))
-       (input-map-split (cond
-			 [(query-raw) (edis-data)]
-			 [(empty? (api-data)) (edis-data)]
-			 [else (api-data)]))))
+  (map (lambda (v) (list (vector-ref v 0)
+			 (vector-ref v 1)
+			 (vector-ref v 2)))
+       (sql-filter-watchlist)))
 
 (define coalitions
   (let [(file "/var/www/servers/eve.rmk2.org/pages/coalitions.txt")]
