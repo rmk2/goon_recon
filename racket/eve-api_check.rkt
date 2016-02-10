@@ -6,7 +6,7 @@
 (provide (except-out (all-defined-out)
 		     edis-shiptype
 		     result-shiptype
-		     check-api))
+		     print-result-shiptype))
 		     
 ;; XML options
 
@@ -62,13 +62,10 @@
 (define edis (edis-list polled-data))
 (define edis-shiptype (edis-list :shiptype polled-data))
 
-(define (edis-charid) (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten edis) 90)))
-
-(define (edis-affiliation)
-  (map (lambda (lst) (api-affiliation (input-hash-join (rowset->hash (string->xexpr lst)) 'characterID))) (edis-charid)))
-
-(define (edis-result)
-  (append-map (lambda (x) (rowset->hash (string->xexpr x))) (edis-affiliation)))
+(define (api-check-result lst)
+  (append-map (lambda (x) (rowset->hash (string->xexpr x)))
+	      (map (lambda (lst) (api-affiliation (input-hash-join (rowset->hash (string->xexpr lst)) 'characterID)))
+		   (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten lst) 90)))))
 
 (define (result-shiptype)
   (filter-map (lambda (hash) (if (assoc (hash-ref hash 'characterName) edis-shiptype)
@@ -80,9 +77,7 @@
 				 #f))
 	      (edis-result)))
 
-(define (check-api)
+(define (print-result-shiptype)
   (for-each (lambda (y) (displayln (string-join y ","))) (result-shiptype)))
 
 ;; Execution
-
-(check-api)

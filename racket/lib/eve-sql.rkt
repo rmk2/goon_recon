@@ -1,12 +1,10 @@
-#! /usr/bin/env racket
 #lang racket
 
 (require db)
 
-(provide (all-from-out db)
-	 (all-defined-out))
+(require "eve-sql_main.rkt")
 
-(define sqlc (mysql-connect #:user "eve" #:database "eve_sde" #:password "q+WK9nnGO3EWWZJQaxO8Iv55CdLRACAP"))
+(provide (all-defined-out))
 
 (define-syntax parse-type
   (syntax-rules (:members :id :group :name)

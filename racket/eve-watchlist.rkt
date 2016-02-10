@@ -2,7 +2,6 @@
 #lang racket
 
 (require eve)
-(require "eve-sql_supers.rkt")
 
 (define coalition-tags (make-parameter #t))
 (define query-raw (make-parameter #f))

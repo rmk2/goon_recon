@@ -2,11 +2,9 @@
 #lang racket
 
 (require eve)
-(require "eve-api_check.rkt")
-(require "eve-sql_supers.rkt")
 
 (define input-data (unique-car (input-map-split (edis-data)) second))
-(define check-data (parse-data (edis-result)))
+(define check-data (parse-data (api-check-result (edis-list polled-data))))
 
 (eve-create-tables)
 

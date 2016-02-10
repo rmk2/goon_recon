@@ -5,109 +5,27 @@
 	 file/gunzip
 	 xml
 	 xml/path
-	 srfi/19)
+	 srfi/19
+	 db)
+
+(require "eve-api_tools.rkt")
+(require "eve-file_tools.rkt")
+(require "eve-list_tools.rkt")
+(require "eve-sql_main.rkt")
+(require "eve-sql.rkt")
+(require "eve-sql_supers.rkt")
 
 (provide (all-from-out json
+		       net/url
+		       file/gunzip
 		       xml
+		       xml/path
 		       srfi/19
-		       net/url)
-	 (all-defined-out))
+		       db))
 
-;; Extract XML APIv2 response bodies
-
-(define (rowset->hash lst)
-  (filter-map (lambda (x) (if (list? x)
-			      (make-hash (map (lambda (y) (cons (car y) (cadr y))) (cadr x)))
-			      #f))
-	      (se-path*/list '(rowset) lst)))
-
-;; Split a list into members of length n
-
-(define (split-list lst [n 100])
-  (let loop ([query lst] [limit n] [i 1] [result null])
-    (if (<= (* i limit) (length query))
-	(loop query limit (+ i 1) (list* (drop (take query (* i limit)) (* (- i 1) limit)) result))
-	(reverse (list* (take-right query (remainder (length query) limit)) result)))))
-
-;; Convert specified hash content into csv data
-
-(define-syntax input-hash-join 
-  (syntax-rules ()
-    ((_ hash key) (string-join (map (lambda (x) (hash-ref x key)) hash) ","))))
-
-;; String-split/join each list-of-strings within in a given list
-
-(define-syntax input-map-split
-  (syntax-rules ()
-    ((_ input) (map (lambda (x) (string-split x ",")) input))))
-
-(define-syntax input-map-join
-  (syntax-rules ()
-    ((_ input) (map (lambda (x) (string-join x ",")) input))))
-
-;; Poll unified super intel from local file or via http(s)
-
-(define (edis-data)
-  (let ([collected-file "/var/www/servers/eve.rmk2.org/pages/eve-intel_retroactive.txt"]
-	[regions-file "/var/www/servers/eve.rmk2.org/pages/eve-intel_regions.txt"])
-    (if (and (file-exists? collected-file) (file-exists? regions-file))
-	(append (file->lines collected-file) (file->lines regions-file))
-	(let ([collected "https://eve.rmk2.org/eve-intel_retroactive.txt"]
-	      [regions "https://eve.rmk2.org/eve-intel_regions.txt"])
-	  (append (call/input-url (string->url collected) get-pure-port port->lines)
-		  (call/input-url (string->url regions) get-pure-port port->lines))))))
-
-;; Generic CREST (json) API polling function; output: jsexpr
-
-(define-syntax json-api
-  (syntax-rules (:gzip :plain)
-    ((_ :plain str)
-     (bytes->jsexpr
-      (call/input-url (string->url str)
-		      get-pure-port
-		      port->bytes
-		      '("User-Agent: ryko@rmk2.org"))))
-    ((_ :gzip str)
-     (bytes->jsexpr
-      (call/input-url (string->url str)
-		      get-pure-port
-		      (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
-		      '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
-    ((_ str) (json-api :gzip str))))
-
-;; Generic APIv2 (xml) API polling function; output: string
-
-(define-syntax xml-api
-  (syntax-rules (:gzip :plain)
-    ((_ :plain str)
-     (call/input-url (string->url str)
-		     get-pure-port
-		     port->string
-		     '("User-Agent: ryko@rmk2.org")))
-    ((_ :gzip str)
-     (call/input-url (string->url str)
-		     get-pure-port
-		     (lambda (input) (call-with-output-string (lambda (x) (gunzip-through-ports input x))))
-		     '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org")))
-    ((_ str) (xml-api :plain str))))
-
-;; Solarsystem data parsing
-
-(define solar-list
-  (make-hash
-   (input-map-split
-    (file->lines "/home/ryko/eve-solarsystemids"))))
-
-(define-syntax solar-parse
-  (syntax-rules (:system :region)
-    ((_ :system str) (car (hash-ref solar-list str)))
-    ((_ :region str) (cadr (hash-ref solar-list str)))
-    ((_ str) (string-join (hash-ref solar-list str) ","))))
-
-;; Filter duplicates with a list's car as key, preserving original order (desc)
-
-(define (unique-car lst [f car])
-  (reverse
-   (remove-duplicates (reverse lst)
-		      #:key (lambda (x) (string-downcase (f x)))
-		      string=?)))
+(provide (all-from-out "eve-api_tools.rkt"))
+(provide (all-from-out "eve-file_tools.rkt"))
+(provide (all-from-out "eve-list_tools.rkt"))
+(provide (all-from-out "eve-sql_main.rkt"))
+(provide (all-from-out "eve-sql.rkt"))
+(provide (all-from-out "eve-sql_supers.rkt"))

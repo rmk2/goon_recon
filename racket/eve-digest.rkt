@@ -2,7 +2,6 @@
 #lang racket
 
 (require eve)
-(require "eve-sql.rkt")
 (require racket/set)
 (require scribble/html/html)
 (require (only-in scribble/html/xml
