@@ -75,7 +75,7 @@
 				  (hash-ref hash 'corporationName)
 				  (hash-ref hash 'allianceName))
 				 #f))
-	      (edis-result)))
+	      (api-check-result edis)))
 
 (define (print-result-shiptype)
   (for-each (lambda (y) (displayln (string-join y ","))) (result-shiptype)))
