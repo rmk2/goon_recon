@@ -1,11 +1,7 @@
 #! /usr/bin/env racket
 #lang racket
 
-(require json)
-(require 2htdp/batch-io)
-(require srfi/19)
-(require net/url)
-(require file/gunzip)
+(require eve)
 
 ;; Command-line argument handling
 
@@ -37,13 +33,6 @@
 
 ;; DATA fetching
 
-(define (json-api str)
-  (bytes->jsexpr
-   (call/input-url (string->url str)
-		   get-pure-port
-		   (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
-		   '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
-
 (define typeids (json-api (string-append "https://public-crest.eveonline.com/inventory/groups/"
 					 (if (number? (cl-group)) (number->string (cl-group)) (cl-group))
 					 "/")))
@@ -69,15 +58,6 @@
       (json-api built-url))))
 
 ;; PARSING
-
-(define solar-list
-  (make-hash (read-csv-file "/home/ryko/eve-solarsystemids")))
-
-(define-syntax solar-parse
-  (syntax-rules (:system :region)
-    ((_ :system str) (car (hash-ref solar-list str)))
-    ((_ :region str) (cadr (hash-ref solar-list str)))
-    ((_ str) (string-join (hash-ref solar-list str) ","))))
 
 (define-syntax filter-id
   (syntax-rules ()
@@ -106,14 +86,6 @@
     ((_ :check n) (if (assoc n typeid-parse)
 		      #t
 		      #f))))
-
-(define-syntax input-map-split
-  (syntax-rules ()
-    ((_ input) (map (lambda (x) (string-split x ",")) input))))
-
-(define-syntax input-map-join
-  (syntax-rules ()
-    ((_ input) (map (lambda (x) (string-join x ",")) input))))
 
 (define-syntax string-empty?
   (syntax-rules ()

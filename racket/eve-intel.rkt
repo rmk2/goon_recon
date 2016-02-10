@@ -1,12 +1,8 @@
 #! /usr/bin/env racket
 #lang racket
 
-(require json)
-(require 2htdp/batch-io)
+(require eve)
 (require racket/string)
-(require srfi/19)
-(require net/url)
-(require file/gunzip)
 
 (define query-supers (make-parameter #f))
 (define query-titans (make-parameter #f))
@@ -31,13 +27,6 @@
 
 ;; FILE HANDLING
 
-(define (json-api str)
-  (bytes->jsexpr
-   (call/input-url (string->url str)
-		   get-pure-port
-		   (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
-		   '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
-
 (define (pull-url groupid)
   (when (number? groupid)
     (let ([built-url
@@ -52,15 +41,6 @@
   (append-map (lambda (id) (pull-url id)) '(30 659)))
 
 ;; PARSING
-
-(define solar-list
-  (make-hash (read-csv-file "/home/ryko/eve-solarsystemids")))
-
-(define-syntax solar-parse
-  (syntax-rules (:system :region)
-    ((_ :system str) (car (hash-ref solar-list str)))
-    ((_ :region str) (cadr (hash-ref solar-list str)))
-    ((_ str) (string-join (hash-ref solar-list str) ","))))
 
 (define supers (hash 3514 "Revenant"
 		     22852 "Hel"
