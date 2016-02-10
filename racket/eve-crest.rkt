@@ -2,7 +2,6 @@
 #lang racket
 
 (require eve)
-(require "eve-sql.rkt")
 
 (define api (json-api "https://public-crest.eveonline.com/sovereignty/campaigns/"))
 
