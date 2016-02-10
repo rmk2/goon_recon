@@ -2,6 +2,7 @@
 #lang racket
 
 (require eve)
+(require "eve-api_check.rkt")
 
 (define input-data (unique-car (input-map-split (edis-data)) second))
 (define check-data (parse-data (api-check-result (edis-list polled-data))))
