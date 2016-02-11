@@ -179,6 +179,11 @@
 				   (if (null? (cl-groups)) lst (concat-data :group lst))
 				   (if (null? (cl-shiptypes)) lst (concat-data :shiptype lst))))))
 
+(define (tower? hash)
+  (if (member (hash-ref hash 'shipTypeID) (groupid->list '("365")))
+      #t
+      #f))
+
 (define-syntax parse-helper
   (syntax-rules ()
     ((_ hash)
@@ -187,13 +192,15 @@
       (hash-ref hash 'characterName)
       (hash-ref hash 'corporationName)
       (hash-ref hash 'allianceName)))
-    ((_ hash location date id)
+    ((_ hash location moonid date id)
      (let ([location-base (parse-solarsystem location)])
        (filter string?
 	       (append
 		(parse-helper hash)
 		(list
-		 (parse-map :name location-base)
+		 (if (tower? hash)
+		     (simplify-moon-display (parse-moon :name moonid))
+		     (parse-map :name location-base))
 		 (parse-region :name (parse-map :region location-base))
 		 date
 		 (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f))))))))
@@ -204,9 +211,10 @@
 		  (let ([victim (hash-ref km-list 'victim)]
 			[date (hash-ref km-list 'killTime)]
 			[location (hash-ref km-list 'solarSystemID)]
+			[moonid (hash-ref km-list 'moonID)]
 			[attackers (hash-ref km-list 'attackers)]
 			[id (hash-ref km-list 'killID)])
-		    (filter-map (lambda (a) (parse-helper a location date id))
+		    (filter-map (lambda (a) (parse-helper a location moonid date id))
 				(if run-attackers?
 				    (concat-data :check attackers)
 				    (concat-data :check (list victim))))))

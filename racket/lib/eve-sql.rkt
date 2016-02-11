@@ -101,3 +101,8 @@
     ((_ :id arg) (vector-ref (parse-corporation arg) 0))
     ((_ :ticker arg) (vector-ref (parse-corporation arg) 1))
     ((_ :name arg) (vector-ref (parse-corporation arg) 2))))
+
+(define-syntax parse-moon
+  (syntax-rules (:name)
+    ((_ arg) (query-row sqlc "SELECT itemName FROM mapDenormalize WHERE itemID = ?" arg))
+    ((_ :name arg) (vector-ref (parse-moon arg) 0))))
