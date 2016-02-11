@@ -189,7 +189,7 @@
     ((_ hash)
      (list
       (parse-type :name (hash-ref hash 'shipTypeID))
-      (hash-ref hash 'characterName)
+      (if (tower? hash) #f (hash-ref hash 'characterName))
       (hash-ref hash 'corporationName)
       (hash-ref hash 'allianceName)))
     ((_ hash location moonid date id)
