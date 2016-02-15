@@ -8,9 +8,9 @@
 (provide (all-from-out db/util/datetime)
 	 (all-defined-out))
 
-(define (timerboard-create-table)
+(define (timerboard-prepare-table)
   (if (table-exists? sqlc "customTimerboard")
-      #t
+      (query-exec sqlc "TRUNCATE TABLE customTimerboard")
       (query-exec sqlc "CREATE TABLE customTimerboard ( allianceName VARCHAR(255) NOT NULL, type VARCHAR(50) NOT NULL, system VARCHAR(255) NOT NULL, constellation VARCHAR(255), region VARCHAR(255), datetime DATETIME )")))
 
 (define (timerboard-replace lst)

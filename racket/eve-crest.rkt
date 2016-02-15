@@ -61,7 +61,11 @@
 
 ;; (result-print :filter ".*" (crest-query))
 
-(timerboard-create-table)
-(timerboard-replace (crest-query))
+(let ([data (crest-query)])
+  (if (null? data)
+      (exit)
+      (begin
+	(timerboard-prepare-table)
+	(timerboard-replace data))))
 
 ;;(result-print :csv (crest-query)))
