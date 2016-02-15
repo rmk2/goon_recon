@@ -52,4 +52,4 @@
 	      "ON customSuperKillmails.characterName=customSuperAffiliations.characterName"))))
 
 (define (sql-filter-watchlist)
-  (query-rows sqlc "SELECT characterName,shipType,allianceName FROM eve_sde.customSuperView ORDER BY date,shipType ASC"))
+  (query-rows sqlc "SELECT characterName,shipType,allianceName FROM customSuperView ORDER BY date,shipType ASC"))
