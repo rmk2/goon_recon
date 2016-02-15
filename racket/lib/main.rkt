@@ -13,6 +13,7 @@
 (require "eve-list_tools.rkt")
 (require "eve-string_tools.rkt")
 (require "eve-sql_main.rkt")
+(require "eve-sql_timerboard.rkt")
 (require "eve-sql_types.rkt")
 (require "eve-sql_supers.rkt")
 
@@ -29,5 +30,6 @@
 (provide (all-from-out "eve-list_tools.rkt"))
 (provide (all-from-out "eve-string_tools.rkt"))
 (provide (all-from-out "eve-sql_main.rkt"))
+(provide (all-from-out "eve-sql_timerboard.rkt"))
 (provide (all-from-out "eve-sql_types.rkt"))
 (provide (all-from-out "eve-sql_supers.rkt"))

@@ -7,16 +7,10 @@
 		  literal
 		  output-xml))
 
-(define api
-  (let ([file "/var/www/servers/eve.rmk2.org/pages/sov_timers.txt"])
-    (if (file-exists? file)
-	(file->lines file)
-	(call/input-url (string->url "https://eve.rmk2.org/sov_timers.txt") get-pure-port port->lines))))
-
 (define-syntax clean-date
   (syntax-rules ()
-    ((_ str) (if (regexp-match #px"^[0-9]{4}-[0-9]{2}-[0-9]{2}" str)
-		 (date->string (string->date str "~Y-~m~dT~H:~M:~S") "~1 ~3")
+    ((_ str) (if (sql-timestamp? str)
+		 (date->string (sql-datetime->srfi-date str) "~1 ~3")
 		 str))))
 
 (define (html-output . param)
@@ -42,7 +36,7 @@
 		       (th "Region")
 		       (th "Date")))
 	    (tbody
-	     (map (lambda (data) (tr (map (lambda (str) (td (clean-date str))) data))) (input-map-split api))))
+	     (map (lambda (data) (tr (map (lambda (str) (td (clean-date str))) data))) (timerboard-query))))
      (p 'style: "padding-left:.2em" (string-append "Last updated: " (date->string (current-date) "~4")))))))
 
 (html-output)

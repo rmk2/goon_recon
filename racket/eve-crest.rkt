@@ -61,4 +61,7 @@
 
 ;; (result-print :filter ".*" (crest-query))
 
-(result-print :csv (crest-query))
+(timerboard-create-table)
+(timerboard-replace (crest-query))
+
+;;(result-print :csv (crest-query)))
