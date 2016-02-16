@@ -67,9 +67,7 @@
 
 ;; Functions to let us find alliances either by ID, ticker or name
 
-(define alliances (rowset->hash
-		   (string->xexpr
-		    (xml-api "https://api.eveonline.com/eve/AllianceList.xml.aspx?version=1"))))
+(define alliances (sql-query-alliances))
 
 (define-syntax parse-alliance
   (syntax-rules (:id :ticker :name)
