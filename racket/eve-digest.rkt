@@ -65,27 +65,14 @@
     [("Name") (number->string (parse-region :id str))]
     [else str]))
 
-;; Functions to let us find alliances either by ID, ticker or name
-
-(define alliances (sql-query-alliances))
-
-(define-syntax parse-alliance
-  (syntax-rules (:id :ticker :name)
-    ((_ query) (case (filter-id query)
-		 [("Number") (findf (lambda (lst) (equal? query (hash-ref lst 'allianceID))) alliances)]
-		 [("Ticker") (findf (lambda (lst) (equal? query (hash-ref lst 'shortName))) alliances)]
-		 [("Name") (findf (lambda (lst) (regexp-match query (hash-ref lst 'name))) alliances)]))
-    ((_ :id query) (hash-ref (parse-alliance query) 'allianceID))
-    ((_ :ticker query) (hash-ref (parse-alliance query) 'shortName))
-    ((_ :name query) (hash-ref (parse-alliance query) 'name))))
-
 ;; Command-line argument handling
 
 (define parse-args
   (command-line
    #:multi
    [("-r" "--region") str "Select regions to use in the query, default: false" (cl-regions (cons (region->id str) (cl-regions)))]
-   [("-A" "--alliance") str "Filter by alliance ID, default: false" (cl-alliances (cons (parse-alliance :id str) (cl-alliances)))]
+   [("-A" "--alliance") str "Filter by alliance ID, default: false"
+    (cl-alliances (cons (id/string->string (parse-alliance :id str)) (cl-alliances)))]
    [("-g" "--group") str "Select a groupid, default: false" (cl-groups (cons (group->id str) (cl-groups)))]
    [("-t" "--type") str "Select a typeid, default: false" (cl-shiptypes (cons (type->id str) (cl-shiptypes)))]
    [("-c" "--corporation" "--corp") str "Filter by corporation ID, default: false"
