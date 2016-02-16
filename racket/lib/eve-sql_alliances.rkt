@@ -20,10 +20,10 @@
 
 (define (sql-replace-alliances lst)
   (for-each (lambda (x)
-		   (query sqlc "REPLACE INTO customAlliances VALUES (?, ?, ?)"
-			  (hash-ref x 'allianceID)
-			  (hash-ref x 'name)
-			  (hash-ref x 'shortName)))
+	      (query sqlc "REPLACE INTO customAlliances VALUES (?, ?, ?)"
+		     (hash-ref x 'allianceID)
+		     (hash-ref x 'name)
+		     (hash-ref x 'shortName)))
 	    lst))
 
 (define (sql-query-alliances)

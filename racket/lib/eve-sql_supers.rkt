@@ -6,7 +6,7 @@
 
 (provide (all-defined-out))
 
-(define (eve-create-tables)
+(define (sql-create-supers)
   (begin
     (if (table-exists? sqlc "customSuperAffiliations")
 	#t

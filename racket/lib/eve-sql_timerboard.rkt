@@ -25,5 +25,4 @@
 	    lst))
 
 (define (timerboard-query)
-  (map (lambda (x) (vector->list x))
-       (query-rows sqlc "SELECT * FROM customTimerboard ORDER BY datetime")))
+  (map vector->list (query-rows sqlc "SELECT * FROM customTimerboard ORDER BY datetime")))
