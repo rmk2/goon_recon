@@ -24,7 +24,7 @@
 
 (define cl-html (make-parameter #f))
 (define cl-csv (make-parameter #f))
-(define cl-raw (make-parameter #t))
+(define cl-raw (make-parameter #f))
 (define cl-sql (make-parameter #f))
 
 ;; Wrapper to use "futures" whenever more than one core is available (thanks EDIS...)
