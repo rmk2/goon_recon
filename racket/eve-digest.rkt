@@ -24,6 +24,8 @@
 
 (define cl-html (make-parameter #f))
 (define cl-csv (make-parameter #f))
+(define cl-raw (make-parameter #t))
+(define cl-sql (make-parameter #f))
 
 ;; Wrapper to use "futures" whenever more than one core is available (thanks EDIS...)
 
@@ -85,6 +87,8 @@
    [("-H" "--html") "Output parsed data as html, default: false" (begin (cl-csv #f) (cl-html #t))]
    [("-c" "--csv" "-p" "--print") "Print output as csv, default: false" (begin (cl-html #f) (cl-csv #t))]
    [("-q" "--quiet") "Print Active Pilots only, suppress other output, default: false" (begin (cl-active #t) (cl-quiet #t))]
+   [("-R" "--raw") "Do not parse TypeIDs before outputting them, default: false" (cl-raw #t)]
+   [("-S" "--sql") "Output data to SQL, requires --raw, default: false" (begin (cl-raw #t) (cl-sql #t))]
    #:once-any
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
@@ -190,6 +194,29 @@
 		 date
 		 (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f))))))))
 
+(define-syntax parse-helper-raw
+  (syntax-rules ()
+    ((_ hash)
+     (list
+      (hash-ref hash 'shipTypeID)
+      (hash-ref hash 'characterID)
+      (hash-ref hash 'characterName)
+      (hash-ref hash 'corporationID)
+      (hash-ref hash 'corporationName)
+      (hash-ref hash 'allianceID)
+      (hash-ref hash 'allianceName)))
+    ((_ hash location moonid date id)
+     (append
+      (parse-helper-raw hash)
+      (list
+       (if (tower? hash)
+	   moonid
+	   0)
+       location
+       (parse-region :id (parse-solarsystem :region location))
+       date
+       id)))))
+
 (define (parse-kills lst #:attackers [run-attackers? #t])
   (let ([km-data lst])
     (append-map (lambda (km-list)
@@ -199,7 +226,9 @@
 			[moonid (hash-ref km-list 'moonID)]
 			[attackers (hash-ref km-list 'attackers)]
 			[id (hash-ref km-list 'killID)])
-		    (filter-map (lambda (a) (parse-helper a location moonid date id))
+		    (filter-map (lambda (a) (if (cl-raw)
+						(parse-helper-raw a location moonid date id)
+						(parse-helper a location moonid date id)))
 				(if run-attackers?
 				    (concat-data :check attackers)
 				    (concat-data :check (list victim))))))
@@ -336,4 +365,8 @@
   (cond
    [(cl-html) (output-html data)]
    [(cl-csv) (print-csv (output-csv data))]
+   [(cl-sql) (sql-replace-super
+	      (append
+	       (map (lambda (x) (flatten (append x "Kill"))) (future-wrapper :touch cache-kills))
+	       (map (lambda (x) (flatten (append x "Loss"))) (future-wrapper :touch cache-losses))))]
    [else data]))
