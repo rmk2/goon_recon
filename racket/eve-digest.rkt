@@ -365,7 +365,7 @@
   (cond
    [(cl-html) (output-html data)]
    [(cl-csv) (print-csv (output-csv data))]
-   [(cl-sql) (sql-replace-super
+   [(cl-sql) (super-replace-killmails
 	      (append
 	       (map (lambda (x) (flatten (append x "Kill"))) (future-wrapper :touch cache-kills))
 	       (map (lambda (x) (flatten (append x "Loss"))) (future-wrapper :touch cache-losses))))]
