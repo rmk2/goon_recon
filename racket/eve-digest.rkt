@@ -205,7 +205,7 @@
       (hash-ref hash 'corporationName)
       (hash-ref hash 'allianceID)
       (hash-ref hash 'allianceName)))
-    ((_ hash location moonid date id)
+    ((_ hash location moonid date id victim)
      (append
       (parse-helper-raw hash)
       (list
@@ -215,7 +215,8 @@
        location
        (parse-region :id (parse-solarsystem :region location))
        date
-       id)))))
+       id
+       (hash-ref victim 'shipTypeID))))))
 
 (define (parse-kills lst #:attackers [run-attackers? #t])
   (let ([km-data lst])
@@ -227,7 +228,7 @@
 			[attackers (hash-ref km-list 'attackers)]
 			[id (hash-ref km-list 'killID)])
 		    (filter-map (lambda (a) (if (cl-raw)
-						(parse-helper-raw a location moonid date id)
+						(parse-helper-raw a location moonid date id victim)
 						(parse-helper a location moonid date id)))
 				(if run-attackers?
 				    (concat-data :check attackers)
