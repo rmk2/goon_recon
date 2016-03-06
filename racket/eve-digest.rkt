@@ -21,6 +21,7 @@
 (define cl-alliances (make-parameter null))
 (define cl-shiptypes (make-parameter null))
 (define cl-corporations (make-parameter null))
+(define cl-moons (make-parameter #f))
 
 (define cl-html (make-parameter #f))
 (define cl-csv (make-parameter #f))
@@ -89,6 +90,7 @@
    [("-q" "--quiet") "Print Active Pilots only, suppress other output, default: false" (begin (cl-active #t) (cl-quiet #t))]
    [("-R" "--raw") "Do not parse TypeIDs before outputting them, default: false" (cl-raw #t)]
    [("-S" "--sql") "Output data to SQL, requires --raw, default: false" (begin (cl-raw #t) (cl-sql #t))]
+   [("-m" "--moon" "--moons") "Print moon instead of system for towers, default: false" (cl-moons #t)]
    #:once-any
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
@@ -187,7 +189,7 @@
 	       (append
 		(parse-helper hash)
 		(list
-		 (if (tower? hash)
+		 (if (and (tower? hash) (cl-moons))
 		     (simplify-moon-display (parse-moon :name moonid))
 		     (parse-map :name location-base))
 		 (parse-region :name (parse-map :region location-base))
