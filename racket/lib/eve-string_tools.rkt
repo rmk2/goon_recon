@@ -17,7 +17,8 @@
 		(+ x 1))
 	  (+ n (href ht string x))))))
 
-;; Translate moon names (System ROMAN - Moon INT) into a simpler format (System INT-INT)
+;; Translate moon names (System ROMAN - Moon INT) into a simpler format
+;; (System Planet-Moon), outputting a string as result
 
 (define (simplify-moon-display str)
   (let ([lst (string-split str)])
@@ -26,6 +27,15 @@
 		   (number->string (roman->int (second lst)))
 		   (third lst)
 		   (fifth lst))))
+
+;; Split moon names (System ROMAN - Moon INT) into a list (System Planet[INT]
+;; Moon[INT]), which is useful if they are to end up in an sql table
+
+(define (split-moon-display str)
+  (let ([lst (string-split str)])
+    (list (first lst)
+	  (roman->int (second lst))
+	  (string->number (fifth lst)))))
 
 ;; Translate
 
