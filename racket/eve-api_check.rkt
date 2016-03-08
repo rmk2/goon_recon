@@ -3,11 +3,6 @@
 
 (require eve)
 
-(provide (except-out (all-defined-out)
-		     edis-shiptype
-		     result-shiptype
-		     print-result-shiptype))
-		     
 ;; XML options
 
 (collapse-whitespace #t)
@@ -16,31 +11,12 @@
 
 ;; Define API polls
 
-(define query-limit (make-parameter 5000))
+(define chunk-size (make-parameter 90))
+(define query-limit (make-parameter 2500))
 
-(define polled-data (let ([lst (unique-car (input-map-split (edis-data)) second)])
-		      (if (<= (length lst) (query-limit))
-			  lst
-			  (take-right lst (query-limit)))))
+;; affiliation -> sql-ready list
 
-(define api-root "https://api.eveonline.com")
-
-(define (api-charid names)
-  (xml-api (string-append
-	    api-root
-	    "/eve/CharacterID.xml.aspx?names="
-	    names)))
-
-(define (api-affiliation ids)
-  (xml-api
-   (string-append
-    api-root
-    "/eve/CharacterAffiliation.xml.aspx?ids="
-    ids)))
-
-;; Parse XML API data 
-
-(define (parse-data lst)
+(define (map-hash-parse-affiliation lst)
   (map (lambda (hash) (list
 		       (hash-ref hash 'characterID)
 		       (hash-ref hash 'characterName)
@@ -50,34 +26,9 @@
 		       (hash-ref hash 'allianceName)))
        lst))
 
-;; EDIS super data
+;; Exec
 
-(define-syntax edis-list
-  (syntax-rules (:shiptype)
-    ((_ lst) (map (lambda (l) (list (list-ref l 1))) lst))
-    ((_ :shiptype lst) (map (lambda (l) (cons (list-ref l 1)
-					      (list-ref l 0)))
-			    lst))))
-
-(define edis (edis-list polled-data))
-(define edis-shiptype (edis-list :shiptype polled-data))
-
-(define (api-check-result lst)
-  (append-map (lambda (x) (rowset->hash (string->xexpr x)))
-	      (map (lambda (lst) (api-affiliation (input-hash-join (rowset->hash (string->xexpr lst)) 'characterID)))
-		   (map (lambda (x) (api-charid (string-join x ","))) (split-list (flatten lst) 90)))))
-
-(define (result-shiptype)
-  (filter-map (lambda (hash) (if (assoc (hash-ref hash 'characterName) edis-shiptype)
-				 (list
-				  (cdr (assoc (hash-ref hash 'characterName) edis-shiptype))
-				  (hash-ref hash 'characterName)
-				  (hash-ref hash 'corporationName)
-				  (hash-ref hash 'allianceName))
-				 #f))
-	      (api-check-result edis)))
-
-(define (print-result-shiptype)
-  (for-each (lambda (y) (displayln (string-join y ","))) (result-shiptype)))
-
-;; Execution
+(sql-super-update-affiliations
+ (map-hash-parse-affiliation
+  (exec-limit-api-rate #:function hash-poll-affiliation
+		       #:input (map number->string (sql-super-get-characterids)))))

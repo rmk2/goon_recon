@@ -1,9 +1,12 @@
 #lang racket
 
 (require json)
+(require xml)
 (require xml/path)
 (require net/url)
 (require file/gunzip)
+
+(require "eve-list_tools.rkt")
 
 (provide (all-defined-out))
 
@@ -54,3 +57,59 @@
 (define-syntax input-hash-join 
   (syntax-rules ()
     ((_ hash key) (string-join (map (lambda (x) (hash-ref x key)) hash) ","))))
+
+;; Extract characterIDs from a list of hashes (containing characterID & characterName)
+
+(define (map-hash-extract lst [key 'characterID])
+  (map (lambda (hash) (hash-ref hash key))
+       lst))
+
+;; XML APIv2: root address
+
+(define api-root "https://api.eveonline.com")
+
+;; XML APIv2: Get a list of characterIDs from a list of characterNames
+
+(define (api-charid names)
+  (xml-api (string-append
+	    api-root
+	    "/eve/CharacterID.xml.aspx?names="
+	    names)))
+
+;; XML APIv2: Get a list of affiliations from a list of characterIDs
+
+(define (api-affiliation ids)
+  (xml-api (string-append
+	    api-root
+	    "/eve/CharacterAffiliation.xml.aspx?ids="
+	    ids)))
+
+;; XML APIv2: translate names -> characterIDs, output: list of hashes
+
+(define (hash-poll-characterids lst)
+  (append-map (lambda (str) (rowset->hash (string->xexpr str)))
+	      (map (lambda (x) (api-charid (string-join x ",")))
+		   (split-list (flatten lst) (chunk-size)))))
+
+;; XML APIv2: translate characterIDs -> affiliations, output: list of hashes
+
+(define (hash-poll-affiliation lst)
+  (append-map (lambda (str) (rowset->hash (string->xexpr str)))
+	      (map (lambda (id-list) (api-affiliation (string-join id-list ",")))
+		   (split-list (flatten lst) (chunk-size)))))
+
+;; Run a function with rate limiting, defined by (query-limit), with x second delay
+;; (query-limit) requests per second with (chunk-size) list items per request
+
+(define chunk-size (make-parameter 90))
+(define query-limit (make-parameter 2500))
+
+(define (exec-limit-api-rate #:function function #:input lst #:delay [delay 1])
+  (if (<= (length lst) (query-limit))
+      (function lst)
+      (let loop ([data (split-list lst (query-limit))] [i 0] [result '()])
+	(if (< i (length data))
+	    (begin
+	      (sleep delay)
+	      (loop data (+ i 1) (append (function (list-ref data i)) result)))
+	    result))))
