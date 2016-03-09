@@ -11,6 +11,7 @@
 
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
 (define cl-end (make-parameter null))
+(define cl-id (make-parameter null))
 (define cl-href (make-parameter #f))
 (define cl-quiet (make-parameter #f))
 (define cl-active (make-parameter #f))
@@ -91,6 +92,7 @@
    [("-R" "--raw") "Do not parse TypeIDs before outputting them, default: false" (cl-raw #t)]
    [("-S" "--sql") "Output data to SQL, requires --raw, default: false" (begin (cl-raw #t) (cl-sql #t))]
    [("-m" "--moon" "--moons") "Print moon instead of system for towers, default: false" (cl-moons #t)]
+   [("-i" "--id" "--kill-id") str "Use a killID instead of a date as fetch point" (begin (cl-date null) (cl-id str))]
    #:once-any
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
@@ -110,11 +112,15 @@
 		  #:alliances [alliances (cl-alliances)]
 		  #:corporations [corporations (cl-corporations)]
 		  #:kills [show-kills? (cl-kills)]
-		  #:losses [show-losses? (cl-losses)])
+		  #:losses [show-losses? (cl-losses)]
+		  #:id [killid (cl-id)])
   (let ([built-url
 	 (string-append
 	  "https://zkillboard.com/api/no-items/"
-	  "startTime/" (id/string->string date) "0000"
+	  (if (not (null? date)) (string-append "/startTime/" (id/string->string date) "0000") "")
+	  (if (not (null? killid))
+	      (string-append "/orderDirection/asc/afterKillID/" (id/string->string killid))
+	      "")
 	  (cond
 	   [(and show-losses? show-kills?) ""]
 	   [show-losses? "/losses"]
