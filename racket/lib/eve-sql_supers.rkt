@@ -77,6 +77,23 @@
 				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = intelSuperRaw.systemID "
 				      "LEFT JOIN mapRegions ON mapRegions.regionID = intelSuperRaw.regionID"))))
 
+(define (sql-super-create-watchlist)
+  (if (table-exists? sqlc "intelSuperWatchlist")
+      #t
+      (query-exec sqlc (string-append "CREATE VIEW intelSuperWatchlist AS "
+				      "SELECT "
+				      "shipTypes.typeName AS shipTypeName,api.characterName,api.corporationName,api.allianceName,"
+				      "eventType,victimTypes.typeName AS victimTypeName,killID,mapSolarSystems.solarSystemName,"
+				      "mapRegions.regionName,MAX(datetime) datetime "
+				      "FROM intelSuperRaw "
+				      "LEFT JOIN invTypes AS shipTypes ON shipTypes.typeID = intelSuperRaw.shipTypeID "
+				      "LEFT JOIN invTypes AS victimTypes ON victimTypes.typeID = intelSuperRaw.victimTypeID "
+				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = intelSuperRaw.systemID "
+				      "LEFT JOIN mapRegions ON mapRegions.regionID = intelSuperRaw.regionID "
+				      "LEFT JOIN intelSuperAffiliations AS api ON intelSuperRaw.characterID = api.characterID "
+				      "GROUP BY intelSuperRaw.characterID "
+				      "ORDER BY datetime"))))
+
 ;; Backwards compatibility
 
 (define (super-replace-killmails lst) (sql-super-insert-killmails lst))
