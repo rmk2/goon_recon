@@ -11,9 +11,6 @@
 
 ;; Define API polls
 
-(define chunk-size (make-parameter 90))
-(define query-limit (make-parameter 2500))
-
 ;; affiliation -> sql-ready list
 
 (define (map-hash-parse-affiliation lst)
