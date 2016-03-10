@@ -68,14 +68,26 @@
       #t
       (query-exec sqlc (string-append "CREATE VIEW intelSuperView AS "
 				      "SELECT "
-				      "shipTypes.typeName AS shipTypeName,characterName,corporationName,allianceName,eventType,"
-				      "victimTypes.typeName AS victimTypeName,killID,mapSolarSystems.solarSystemName,"
+				      "shipTypes.typeName AS shipTypeName,characterID,characterName,corporationID,"
+				      "corporationName,allianceID,allianceName,eventType,"
+				      "killID,victimTypes.typeName AS victimTypeName,mapSolarSystems.solarSystemName,"
 				      "mapRegions.regionName,datetime "
 				      "FROM intelSuperRaw "
 				      "LEFT JOIN invTypes AS shipTypes ON shipTypes.typeID = intelSuperRaw.shipTypeID "
 				      "LEFT JOIN invTypes AS victimTypes ON victimTypes.typeID = intelSuperRaw.victimTypeID "
 				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = intelSuperRaw.systemID "
-				      "LEFT JOIN mapRegions ON mapRegions.regionID = intelSuperRaw.regionID"))))
+				      "LEFT JOIN mapRegions ON mapRegions.regionID = intelSuperRaw.regionID "))))
+
+(define (sql-super-create-latest)
+  (if (table-exists? sqlc "intelSuperLatest")
+      #t
+      (query-exec sqlc (string-append "CREATE VIEW intelSuperLatest AS "
+				      "SELECT "
+				      "shipTypeID,characterID,characterName,corporationID,corporationName,allianceID,allianceName,"
+				      "eventType,killID,victimTypeID,systemID,regionID,datetime "
+				      "FROM intelSuperRaw "
+				      "GROUP BY characterID DESC "
+				      "ORDER BY characterName"))))
 
 (define (sql-super-create-watchlist)
   (if (table-exists? sqlc "intelSuperWatchlist")
@@ -83,16 +95,15 @@
       (query-exec sqlc (string-append "CREATE VIEW intelSuperWatchlist AS "
 				      "SELECT "
 				      "shipTypes.typeName AS shipTypeName,api.characterName,api.corporationName,api.allianceName,"
-				      "eventType,victimTypes.typeName AS victimTypeName,killID,mapSolarSystems.solarSystemName,"
-				      "mapRegions.regionName,MAX(datetime) datetime "
-				      "FROM intelSuperRaw "
-				      "LEFT JOIN invTypes AS shipTypes ON shipTypes.typeID = intelSuperRaw.shipTypeID "
-				      "LEFT JOIN invTypes AS victimTypes ON victimTypes.typeID = intelSuperRaw.victimTypeID "
-				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = intelSuperRaw.systemID "
-				      "LEFT JOIN mapRegions ON mapRegions.regionID = intelSuperRaw.regionID "
-				      "LEFT JOIN intelSuperAffiliations AS api ON intelSuperRaw.characterID = api.characterID "
-				      "GROUP BY intelSuperRaw.characterID "
-				      "ORDER BY datetime"))))
+				      "eventType,killID,victimTypes.typeName AS victimTypeName,mapSolarSystems.solarSystemName,"
+				      "mapRegions.regionName,datetime "
+				      "FROM intelSuperLatest as latest "
+				      "LEFT JOIN invTypes AS shipTypes ON shipTypes.typeID = latest.shipTypeID "
+				      "LEFT JOIN invTypes AS victimTypes ON victimTypes.typeID = latest.victimTypeID "
+				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = latest.systemID "
+				      "LEFT JOIN mapRegions ON mapRegions.regionID = latest.regionID "
+				      "LEFT JOIN intelSuperAffiliations AS api ON api.characterID = latest.characterID "
+				      "ORDER BY latest.datetime"))))
 
 ;; Backwards compatibility
 
