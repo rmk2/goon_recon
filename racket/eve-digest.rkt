@@ -79,7 +79,7 @@
     (cl-alliances (cons (id/string->string (parse-alliance :id str)) (cl-alliances)))]
    [("-g" "--group") str "Select a groupid, default: false" (cl-groups (cons (group->id str) (cl-groups)))]
    [("-t" "--type") str "Select a typeid, default: false" (cl-shiptypes (cons (type->id str) (cl-shiptypes)))]
-   [("-c" "--corporation" "--corp") str "Filter by corporation ID, default: false"
+   [("-C" "--corporation" "--corp") str "Filter by corporation ID, default: false"
     (cl-corporations (cons (id/string->string (parse-corporation :id str)) (cl-corporations)))]
    #:once-each
    [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
@@ -96,7 +96,10 @@
    #:once-any
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
-   [("-L" "--losses") "Show losses by <groupid>, default: false" (begin (cl-losses #t) (cl-kills #f))]))
+   [("-L" "--losses") "Show losses by <groupid>, default: false" (begin (cl-losses #t) (cl-kills #f))]
+   [("-X" "--cron" "--intel") "Shortcut for collecting super killmails via cron, setting all appropriate options"
+    (begin (cl-raw #t) (cl-sql #t) (cl-losses #t) (cl-kills #t) (cl-date null) (cl-groups '("30" "659"))
+	   (cl-id (sql-super-latest-killid)))]))
 
 ;; Parse zkillboard data
 

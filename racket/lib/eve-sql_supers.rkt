@@ -30,6 +30,12 @@
 (define (sql-super-get-characterids)
   (query-list sqlc "SELECT characterID FROM intelSuperAffiliations"))
 
+(define (sql-super-latest-killid)
+  (query-value sqlc "SELECT MAX(killID) FROM intelSuperRaw"))
+
+(define (sql-super-latest-datetime)
+  (query-value sqlc "SELECT MAX(datetime) FROM intelSuperRaw"))
+
 (define (sql-super-populate-affiliations)
   (query-exec sqlc "INSERT IGNORE INTO intelSuperAffiliations( characterID,characterName,corporationID,corporationName,allianceID,allianceName ) SELECT DISTINCT characterID,characterName,corporationID,corporationName,allianceID,allianceName FROM intelSuperRaw"))
 
