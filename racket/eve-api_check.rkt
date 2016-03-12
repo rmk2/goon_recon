@@ -25,6 +25,8 @@
 
 ;; Exec
 
+(sql-super-populate-affiliations)
+
 (sql-super-update-affiliations
  (map-hash-parse-affiliation
   (exec-limit-api-rate #:function hash-poll-affiliation
