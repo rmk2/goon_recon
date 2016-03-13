@@ -96,7 +96,7 @@
 				      "SELECT "
 				      "shipTypes.typeName AS shipTypeName,api.characterName,api.corporationName,api.allianceName,"
 				      "eventType,killID,victimTypes.typeName AS victimTypeName,mapSolarSystems.solarSystemName,"
-				      "mapRegions.regionName,datetime "
+				      "mapRegions.regionName,datetime,killCount "
 				      "FROM intelSuperLatest as latest "
 				      "LEFT JOIN invTypes AS shipTypes ON shipTypes.typeID = latest.shipTypeID "
 				      "LEFT JOIN invTypes AS victimTypes ON victimTypes.typeID = latest.victimTypeID "
