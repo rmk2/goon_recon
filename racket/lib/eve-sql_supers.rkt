@@ -84,7 +84,7 @@
       (query-exec sqlc (string-append "CREATE VIEW intelSuperLatest AS "
 				      "SELECT "
 				      "shipTypeID,characterID,characterName,corporationID,corporationName,allianceID,allianceName,"
-				      "eventType,killID,victimTypeID,systemID,regionID,datetime "
+				      "eventType,killID,victimTypeID,systemID,regionID,datetime,COUNT(killID) killCount "
 				      "FROM intelSuperRaw "
 				      "GROUP BY characterID DESC "
 				      "ORDER BY characterName"))))
