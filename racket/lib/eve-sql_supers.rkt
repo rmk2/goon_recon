@@ -94,7 +94,8 @@
       #t
       (query-exec sqlc (string-append "CREATE VIEW intelSuperWatchlist AS "
 				      "SELECT "
-				      "shipTypes.typeName AS shipTypeName,api.characterName,api.corporationName,api.allianceName,"
+				      "shipTypes.typeName AS shipTypeName,api.characterID,api.characterName,"
+				      "api.corporationID,api.corporationName,api.allianceID,api.allianceName,"
 				      "eventType,killID,victimTypes.typeName AS victimTypeName,mapSolarSystems.solarSystemName,"
 				      "mapRegions.regionName,datetime,killCount "
 				      "FROM intelSuperLatest as latest "
