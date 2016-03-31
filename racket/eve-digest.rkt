@@ -144,7 +144,8 @@
 	  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") "")
 	  (if (not (null? killid))
 	      (string-append "/orderDirection/asc/afterKillID/" (id/string->string killid))
-	      ""))])
+	      "")
+	  "/")])
     (json-api built-url)))
 
 (define (groupid->list lst)
