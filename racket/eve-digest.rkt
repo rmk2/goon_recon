@@ -119,11 +119,7 @@
 		  #:id [killid (cl-id)])
   (let ([built-url
 	 (string-append
-	  "https://zkillboard.com/api/no-items/"
-	  (if (not (null? date)) (string-append "/startTime/" (id/string->string date) "0000") "")
-	  (if (not (null? killid))
-	      (string-append "/orderDirection/asc/afterKillID/" (id/string->string killid))
-	      "")
+	  "https://zkillboard.com/api/no-items"
 	  (cond
 	   [(and show-losses? show-kills?) ""]
 	   [show-losses? "/losses"]
@@ -138,19 +134,21 @@
 	  (if (not (null? regions))
 	      (string-append "/regionID/" regions)
 	      "")
-	  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") "")
 	  (if (not (null? alliances))
 	      (string-append "/allianceID/" (string-join alliances ","))
 	      "")
 	  (if (not (null? corporations))
 	      (string-append "/corporationID/" (string-join corporations ","))
+	      "")
+	  (if (not (null? date)) (string-append "/startTime/" (id/string->string date) "0000") "")
+	  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") "")
+	  (if (not (null? killid))
+	      (string-append "/orderDirection/asc/afterKillID/" (id/string->string killid))
 	      ""))])
     (json-api built-url)))
 
 (define (groupid->list lst)
   (append-map (lambda (i) (map (lambda (n) (vector-ref n 0)) (parse-type :members (string->number i)))) lst))
-
-(define (map-string-number lst) (map (lambda (i) (string->number i)) lst))
 
 (define-syntax concat-data
   (syntax-rules (:alliance :corporation :group :shiptype :check)
@@ -171,7 +169,7 @@
 				lst))
     ((_ :shiptype lst) (filter-map (lambda (x)
 				     (cond
-				      [(member (hash-ref x 'shipTypeID) (map-string-number (cl-shiptypes))) x]
+				      [(member (hash-ref x 'shipTypeID) (map string->number (cl-shiptypes))) x]
 				      [else #f]))
 				   lst))
     ((_ :check lst) (set-intersect (if (null? (cl-alliances)) lst (concat-data :alliance lst))
