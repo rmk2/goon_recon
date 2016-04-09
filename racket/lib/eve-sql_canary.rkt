@@ -18,12 +18,12 @@
 
 (define (sql-canary-get-watchlist #:show-losses [show-losses? #f] #:corporations [corporations? #f])
   (query-rows sqlc (string-append "SELECT shipTypeName,characterName,canary.corporationName,canary.allianceName,"
-				  "solarSystemname,regionName,date(datetime) "
+				  "solarSystemname,regionName,date(datetime),activityAvg,activityStd "
 				  "FROM intelSuperWatchlist AS canary "
 				  (if corporations?
 				      "JOIN canaryCorporations AS stat ON canary.corporationID = stat.corporationID "
 				      "JOIN canaryAlliances AS stat ON canary.allianceID = stat.allianceID ")
-				  "WHERE killCount >= (killStd*2) "
-				  "AND DATEDIFF(CURDATE(),datetime) <= 90 "
+				  "WHERE killCount >= (killAvg + killStd) "
+				  "AND DATEDIFF(CURDATE(),datetime) <= 60 "
 				  (if show-losses? "" "AND eventType != 'Loss' ")
 				  "ORDER BY canary.allianceName,datetime,regionName,killCount DESC;")))
