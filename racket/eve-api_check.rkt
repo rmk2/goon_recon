@@ -47,7 +47,7 @@
 			     (main-limit)
 			     (+ index 1)
 			     (length sql-charids)))
-;;	  (poll-api-helper data)
+	  (poll-api-helper data)
 	  (main input (+ index 1))))
       (exit 0)))
 
