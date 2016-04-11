@@ -28,6 +28,7 @@
 (sql-super-populate-affiliations)
 
 (sql-super-update-affiliations
- (map-hash-parse-affiliation
-  (exec-limit-api-rate #:function hash-poll-affiliation
-		       #:input (map number->string (sql-super-get-characterids)))))
+ (exec-limit-api-rate #:function hash-poll-affiliation
+		      #:input (map number->string (sql-super-get-characterids))
+		      #:digest map-hash-parse-affiliation
+		      #:limit 1000))

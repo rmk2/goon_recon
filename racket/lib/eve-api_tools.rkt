@@ -104,12 +104,18 @@
 (define chunk-size (make-parameter 90))
 (define query-limit (make-parameter 2500))
 
-(define (exec-limit-api-rate #:function function #:input lst #:delay [delay 1])
-  (if (<= (length lst) (query-limit))
+(define (exec-limit-api-rate #:function function
+			     #:input lst
+			     #:delay [delay 1]
+			     #:digest [digest null]
+			     #:limit [limit (query-limit)])
+  (if (<= (length lst) limit)
       (function lst)
-      (let loop ([data (split-list lst (query-limit))] [i 0] [result '()])
+      (let loop ([data (split-list lst limit)] [i 0] [result '()])
 	(if (< i (length data))
 	    (begin
 	      (sleep delay)
-	      (loop data (+ i 1) (append (function (list-ref data i)) result)))
+	      (if (null? digest)
+		  (loop data (+ i 1) (append (function (list-ref data i)) result))
+		  (loop data (+ i 1) (append (digest (function (list-ref data i))) result))))
 	    result))))
