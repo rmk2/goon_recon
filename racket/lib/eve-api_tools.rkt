@@ -110,11 +110,13 @@
 			     #:digest [digest null]
 			     #:limit [limit (query-limit)])
   (if (<= (length lst) limit)
-      (function lst)
+      (if (null? digest)
+	  (function lst)
+	  (digest (function lst)))
       (let loop ([data (split-list lst limit)] [i 0] [result '()])
 	(if (< i (length data))
 	    (begin
-	      (sleep delay)
+	      (when (> i 0) (sleep delay))
 	      (if (null? digest)
 		  (loop data (+ i 1) (append (function (list-ref data i)) result))
 		  (loop data (+ i 1) (append (digest (function (list-ref data i))) result))))
