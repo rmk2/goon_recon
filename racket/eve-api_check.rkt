@@ -36,11 +36,19 @@
 
 (sql-super-populate-affiliations)
 
-(let ([input (map number->string (sql-super-get-characterids))] [limit 4000])
-  (let loop ([data (filter (lambda (x) (not (empty? x))) (split-list input limit))] [i 0])
-    (if (and (< i (length data)) (not (null? (list-ref data i))))
+(define main-limit (make-parameter 4000))
+(define sql-charids (split-list (map number->string (sql-super-get-characterids)) (main-limit)))
+
+(define (main input index)
+  (if (< index (length sql-charids))
+      (let ([data (list-ref input index)])
 	(begin
-	  (log-debug (format "[debug] Current iteration (~s items each): ~s of ~s" limit (+ i 1) (length data)))
-	  (poll-api-helper (list-ref data i))
-	  (loop data [+ i 1]))
-	(exit 0))))
+	  (log-debug (format "[debug] Current iteration (main loop, ~s items each): ~s of ~s"
+			     (main-limit)
+			     (+ index 1)
+			     (length sql-charids)))
+;;	  (poll-api-helper data)
+	  (main input (+ index 1))))
+      (exit 0)))
+
+(main sql-charids 0)
