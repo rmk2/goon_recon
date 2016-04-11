@@ -116,7 +116,9 @@
       (let loop ([data (split-list lst limit)] [i 0] [result '()])
 	(if (< i (length data))
 	    (begin
-	      (when (> i 0) (sleep delay))
+	      (when (> i 0) (begin (log-debug (format "[debug] Waiting before next iteration: ~s seconds" delay))
+				   (sleep delay)))
+	      (log-debug (format "[debug] Current iteration (inner loop, ~s items each): ~s of ~s" limit (+ i 1) (length data)))
 	      (if (null? digest)
 		  (loop data (+ i 1) (append (function (list-ref data i)) result))
 		  (loop data (+ i 1) (append (digest (function (list-ref data i))) result))))

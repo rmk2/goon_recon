@@ -12,17 +12,13 @@
 ;; Limit the amount of polled data in memory to avoid running out of virtual
 ;; memory, especially on EDIS
 
-(define (exec-limit-iteration #:input lst
-			      #:digest [digest null]
-			      #:limit [limit 4500])
-  (let loop ([data (split-list lst limit)] [i 0] [result '()])
-    (if (< i (length data))
-	(loop data (+ i 1) (digest (exec-limit-api-rate #:function hash-poll-affiliation
-							#:input (list-ref data i)
-							#:digest map-hash-parse-affiliation
-							#:delay 15
-							#:limit 2500)))
-	(exit 0))))
+(define (poll-api-helper lst)
+  (sql-super-update-affiliations
+   (exec-limit-api-rate #:function hash-poll-affiliation
+			#:input lst
+			#:digest map-hash-parse-affiliation
+			#:delay 15
+			#:limit 2500)))
 
 ;; affiliation -> sql-ready list
 
@@ -40,6 +36,11 @@
 
 (sql-super-populate-affiliations)
 
-(exec-limit-iteration #:input (map number->string (sql-super-get-characterids))
-		      #:digest sql-super-update-affiliations
-		      #:limit 2500)
+(let ([input (map number->string (sql-super-get-characterids))] [limit 4000])
+  (let loop ([data (filter (lambda (x) (not (empty? x))) (split-list input limit))] [i 0])
+    (if (and (< i (length data)) (not (null? (list-ref data i))))
+	(begin
+	  (log-debug (format "[debug] Current iteration (~s items each): ~s of ~s" limit (+ i 1) (length data)))
+	  (poll-api-helper (list-ref data i))
+	  (loop data [+ i 1]))
+	(exit 0))))
