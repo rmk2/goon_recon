@@ -202,7 +202,10 @@
 		 (cond
 		  [(and (tower? hash) (cl-moons)) (simplify-moon-display (parse-moon :name moonid))]
 		  [(and (tower? hash) (cl-location)) (parse-moon :name moonid)]
-		  [(cl-location) (parse-moon :name locationid)]
+		  [(cl-location) (let ([locationid-base (parse-moon :name locationid)])
+				   (if (string? locationid-base)
+				       locationid-base
+				       (parse-map :name location-base)))]
 		  [else (parse-map :name location-base)])
 		 (parse-region :name (parse-map :region location-base))
 		 date
