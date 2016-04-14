@@ -23,6 +23,7 @@
 (define cl-shiptypes (make-parameter null))
 (define cl-corporations (make-parameter null))
 (define cl-moons (make-parameter #f))
+(define cl-location (make-parameter #f))
 
 (define cl-html (make-parameter #f))
 (define cl-csv (make-parameter #f))
@@ -92,6 +93,7 @@
    [("-R" "--raw") "Do not parse TypeIDs before outputting them, default: false" (cl-raw #t)]
    [("-S" "--sql") "Output data to SQL, requires --raw, default: false" (begin (cl-raw #t) (cl-sql #t))]
    [("-m" "--moon" "--moons") "Print moon instead of system for towers, default: false" (cl-moons #t)]
+   [("-M" "--location" "--locations") "Print location information, default: false" (cl-location #t)]
    [("-i" "--id" "--kill-id") str "Use a killID instead of a date as fetch point" (begin (cl-date null) (cl-id str))]
    #:once-any
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
@@ -191,15 +193,17 @@
       (hash-ref hash 'characterName)
       (hash-ref hash 'corporationName)
       (hash-ref hash 'allianceName)))
-    ((_ hash location moonid date id)
+    ((_ hash location moonid locationid date id)
      (let ([location-base (parse-solarsystem location)])
        (filter string?
 	       (append
 		(parse-helper hash)
 		(list
-		 (if (and (tower? hash) (cl-moons))
-		     (simplify-moon-display (parse-moon :name moonid))
-		     (parse-map :name location-base))
+		 (cond
+		  [(and (tower? hash) (cl-moons)) (simplify-moon-display (parse-moon :name moonid))]
+		  [(and (tower? hash) (cl-location)) (parse-moon :name moonid)]
+		  [(cl-location) (parse-moon :name locationid)]
+		  [else (parse-map :name location-base)])
 		 (parse-region :name (parse-map :region location-base))
 		 date
 		 (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f))))))))
@@ -215,13 +219,14 @@
       (hash-ref hash 'corporationName)
       (hash-ref hash 'allianceID)
       (hash-ref hash 'allianceName)))
-    ((_ hash location moonid date id victim)
+    ((_ hash location moonid locationid date id victim)
      (append
       (parse-helper-raw hash)
       (list
-       (if (tower? hash)
-	   moonid
-	   0)
+       (cond
+	[(tower? hash) moonid]
+	[(cl-location) locationid]
+	[else 0])
        location
        (parse-region :id (parse-solarsystem :region location))
        date
@@ -235,11 +240,12 @@
 			[date (hash-ref km-list 'killTime)]
 			[location (hash-ref km-list 'solarSystemID)]
 			[moonid (hash-ref km-list 'moonID)]
+			[locationid (hash-ref (hash-ref km-list 'zkb) 'locationID)]
 			[attackers (hash-ref km-list 'attackers)]
 			[id (hash-ref km-list 'killID)])
 		    (filter-map (lambda (a) (if (cl-raw)
-						(parse-helper-raw a location moonid date id victim)
-						(parse-helper a location moonid date id)))
+						(parse-helper-raw a location moonid locationid date id victim)
+						(parse-helper a location moonid locationid date id)))
 				(if run-attackers?
 				    (concat-data :check attackers)
 				    (concat-data :check (list victim))))))
