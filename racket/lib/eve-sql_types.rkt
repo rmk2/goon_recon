@@ -125,4 +125,7 @@
 (define-syntax parse-moon
   (syntax-rules (:name)
     ((_ arg) (query-maybe-row sqlc "SELECT itemName FROM mapDenormalize WHERE itemID = ?" arg))
-    ((_ :name arg) (vector-ref (parse-moon arg) 0))))
+    ((_ :name arg) (let ([moon-base (parse-moon arg)])
+		     (if (vector? moon-base)
+			 (vector-ref (parse-moon arg) 0)
+			 #f)))))
