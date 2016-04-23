@@ -3,12 +3,13 @@
 
 (require eve)
 
+(define cl-start (make-parameter 35611252))
 (define cl-limit (make-parameter 43517856))
 
 (define global-command "eve-digest.rkt")
 (define global-params "--all --raw --sql -g 'Supercarrier' -g 'Titan'")
 
-(define (run-digest #:limit [limit (cl-limit)])
+(define (run-digest #:limit [limit (cl-limit)] #:start [start (cl-start)])
   (define (sql-super-latest-killid-mod)
     (query-value sqlc "SELECT MAX(killID) FROM intelSuperRaw WHERE killID <= ?" (cl-limit)))
   (define (sql-super-latest-datetime-mod)
@@ -35,4 +36,4 @@
 
 ;; Exec
 
-(run-digest #:limit (cl-limit))
+(run-digest #:limit (cl-limit) #:start (cl-start))
