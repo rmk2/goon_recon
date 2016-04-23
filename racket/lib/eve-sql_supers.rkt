@@ -113,6 +113,4 @@
 (define (super-replace-killmails lst) (sql-super-insert-killmails lst))
 
 (define (sql-filter-watchlist)
-  (query-rows sqlc (string-append "SELECT affiliations.characterName,view.shipTypeName,affiliations.allianceName "
-				  "FROM intelSuperAffiliations AS affiliations "
-				  "INNER JOIN intelSuperView AS view ON affiliations.characterName = view.characterName")))
+  (query-rows sqlc "SELECT characterName,shipTypeName,allianceName FROM intelSuperWatchlist"))
