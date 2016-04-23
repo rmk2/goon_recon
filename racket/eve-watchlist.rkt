@@ -64,7 +64,9 @@
        (cons-data
 	(reverse
 	 (remove-duplicates (reverse lst)
-			    #:key (lambda (x) (string-downcase (car x)))
+			    #:key (lambda (x) (if (string? (car x))
+						  (string-downcase (car x))
+						  (car x)))
 			    string=?)))))
 
 ;; Create an assoc-ready list of pairs for coalition data: (alliance . coalition)
