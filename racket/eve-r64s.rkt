@@ -9,11 +9,11 @@
 
 ;; Read from stdin
 
-(define input (cdr (append* (second (read)))))
+(define pipe-input (cdr (append* (second (read)))))
 
 ;; Ony show us (known) money moons, append their type to the killmail data
 
-(define (query-money-moons [input-list input])
+(define (query-money-moons [input-list pipe-input])
   (filter-map (lambda (x)
 		(let ([moon (vector-ref (parse-moon (list-ref x 7)) 0)])
 		  (if (money-moon? moon)
