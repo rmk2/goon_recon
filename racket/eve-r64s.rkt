@@ -77,8 +77,7 @@
        (literal (style/inline 'type: "text/css" "th.header { background: url(\"data:image/gif;base64, R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==\") no-repeat 99% ; margin-left: -1px; background-position: center left; padding: .2em 1.33em; text-align: left; } th.headerSortUp { background: url(\"data:image/gif;base64, R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7\") no-repeat 99% ; } th.headerSortDown { background: url(\"data:image/gif;base64, R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7\") no-repeat 99% ; }"))
        (script 'type: "text/javascript" 'src: "https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
        (script 'type: "text/javascript" 'src: "./jquery.tablesorter.min.js")
-       ;; (script (literal "$(document).ready(function() { $(\"#killmails\").tablesorter( { sortList: [[6,0]] } ); });")))
-       (script (literal "$(document).ready(function() { $(\"*\").tablesorter( { sortList: [[6,0]] } ); });")))
+       (script (literal "$(document).ready(function() { $(\"*\").tablesorter( { sortList: [[5,0]] } ); });")))
       (body
        (div 'id: "content"
 	    (h1 "EVE Money Moon Digest")
