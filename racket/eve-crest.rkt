@@ -3,7 +3,7 @@
 
 (require eve)
 
-(define api (json-api "https://public-crest.eveonline.com/sovereignty/campaigns/"))
+(define api (json-api "https://crest-tq.eveonline.com/sovereignty/campaigns/"))
 
 (define-syntax json-filter
   (syntax-rules (:name :defender-raw :defender :defender-name :attackers :system
