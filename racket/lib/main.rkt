@@ -10,6 +10,7 @@
 
 (require "eve-api_tools.rkt")
 (require "eve-file_tools.rkt")
+(require "eve-html_tools.rkt")
 (require "eve-list_tools.rkt")
 (require "eve-string_tools.rkt")
 (require "eve-sql_main.rkt")
@@ -30,6 +31,7 @@
 
 (provide (all-from-out "eve-api_tools.rkt"))
 (provide (all-from-out "eve-file_tools.rkt"))
+(provide (all-from-out "eve-html_tools.rkt"))
 (provide (all-from-out "eve-list_tools.rkt"))
 (provide (all-from-out "eve-string_tools.rkt"))
 (provide (all-from-out "eve-sql_main.rkt"))
