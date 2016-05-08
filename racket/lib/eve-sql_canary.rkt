@@ -18,7 +18,7 @@
 
 (define (sql-canary-get-watchlist #:show-losses [show-losses? #f] #:corporations [corporations? #f])
   (query-rows sqlc (string-append "SELECT shipTypeName,characterName,canary.corporationName,canary.allianceName,"
-				  "solarSystemname,regionName,date(datetime),activityAvg,activityStd "
+				  "solarSystemname,regionName,date(datetime),DATE_FORMAT(activityAvg,'%H:%m:%s'),activityStd "
 				  "FROM intelSuperWatchlist AS canary "
 				  (if corporations?
 				      "JOIN canaryCorporations AS stat ON canary.corporationID = stat.corporationID "
