@@ -11,7 +11,7 @@
 (output-xml (doctype 'html))
 (output-xml
  (html
-  (output:create-html-head #:title "Alliance Canary Watchlist")
+  (output:create-html-head #:title "Alliance Canary Watchlist" #:sort-column 3)
   (body
    (div 'id: "content"
 	(h1 "Alliance Canary Watchlist")
