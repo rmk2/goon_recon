@@ -29,6 +29,7 @@
 
 (define (create-html-head #:title [str "Title"] #:sort-column [sort-column 6])
   (head
+   (meta 'charset: "utf-8")
    (title str)
    (literal (style/inline 'type: "text/css" ".data { margin: 1em 0; }"))
    (literal (style/inline 'type: "text/css" "table { border-collapse: collapse;  border: 1px solid black; width: 100%; }"))
