@@ -85,7 +85,7 @@
 				      "SELECT "
 				      "shipTypeID,characterID,characterName,corporationID,corporationName,allianceID,allianceName,"
 				      "eventType,killID,victimTypeID,systemID,regionID,datetime,COUNT(killID) AS killCount,"
-				      "SEC_TO_TIME(AVG(TIME_TO_SEC(time(datetime)))) AS activityAvg,"
+				      "SEC_TO_TIME(ROUND(AVG(TIME_TO_SEC(time(datetime))))) AS activityAvg,"
 				      "ROUND((STDDEV_SAMP(TIME_TO_SEC(time(datetime))) / 3600),1) AS activityStd "
 				      "FROM intelSuperRaw "
 				      "GROUP BY characterID DESC "
