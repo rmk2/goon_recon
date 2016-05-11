@@ -74,14 +74,6 @@
     ((_ :id arg) (vector-ref (parse-region arg) 0))
     ((_ :name arg) (vector-ref (parse-region arg) 1))))
 
-(define-syntax parse-map
-  (syntax-rules (:id :region :constellation :name)
-    ((_ :region v) (vector-ref v 0))
-    ((_ :name v) (vector-ref (vector-take-right v 1) 0))
-    ((_ :id v) (vector-ref (vector-drop-right (vector-take-right v 2) 1) 0))
-    ((_ :constellation v) (if (>= (vector-length v) 3) (vector-ref v 1) #f))
-    ((_ v) (parse-map :id v))))
-
 (define-syntax parse-corporation
   (syntax-rules (:id :ticker :name)
     ((_ arg)
@@ -129,3 +121,18 @@
 		     (if (vector? moon-base)
 			 (vector-ref (parse-moon arg) 0)
 			 #f)))))
+
+(define-syntax parse-map
+  (syntax-rules (:id :type :group :system :constellation :region :name)
+    ((_ arg) (cond
+	      [(number? arg)
+	       (query-maybe-row sqlc "SELECT * FROM mapDenormalize WHERE itemID = ?" arg)]
+	      [(string? arg)
+	       (query-maybe-row sqlc "SELECT * FROM mapDenormalize WHERE itemName = ?" arg)]))
+    ((_ :id) (vector-ref (parse-map arg) 0))
+    ((_ :type) (vector-ref (parse-map arg) 1))
+    ((_ :group) (vector-ref (parse-map arg) 2))
+    ((_ :system) (vector-ref (parse-map arg) 3))
+    ((_ :constellation) (vector-ref (parse-map arg) 4))
+    ((_ :region) (vector-ref (parse-map arg) 5))
+    ((_ :name) (vector-ref (parse-map arg) 6))))
