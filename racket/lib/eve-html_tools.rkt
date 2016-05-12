@@ -21,6 +21,7 @@
 			     (map (lambda (str)
 				    (td (cond
 					 [(sql-date? str) (date->string (sql-datetime->srfi-date str) "~1")]
+					 [(sql-datetime? str) (date->string (sql-datetime->srfi-date str) "~1 ~3")]
 					 [(number? str) str]
 					 [(regexp-match #px"^http" str) (a 'href: str 'target: "_blank" "-> link")]
 					 [else str])))
