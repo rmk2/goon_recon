@@ -79,16 +79,16 @@
     ((_ arg)
      (cond
       [(number? arg)
-       (query-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
+       (query-maybe-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
 				      "customCorporations WHERE corporationID LIKE ?") arg)]
       [(regexp-match #px"^[0-9]{1,}$" arg)
-       (query-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
+       (query-maybe-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
 				      "customCorporations WHERE corporationID LIKE ?") arg)]
       [(regexp-match #px"^[A-Z0-9. -_]{1,5}$" arg)
-       (query-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
+       (query-maybe-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
 				      "customCorporations WHERE corporationTicker LIKE ?") arg)]
       [else
-       (query-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
+       (query-maybe-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
 				      "customCorporations WHERE corporationNAME LIKE ?") arg)]))
     ((_ :id arg) (vector-ref (parse-corporation arg) 0))
     ((_ :ticker arg) (vector-ref (parse-corporation arg) 1))
