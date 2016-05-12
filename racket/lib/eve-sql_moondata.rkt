@@ -21,3 +21,40 @@
 	      [(list? arg) (if (parse-moondata arg) #t #f)]
 	      [(string? arg) (if (parse-moondata (split-moon-display arg)) #t #f)]
 	      [else #f]))))
+
+(define (sql-moon-create-raw)
+  (if (table-exists? sqlc "moonScanRaw")
+      #t
+      (query-exec sqlc "CREATE TABLE moonScanRaw ( regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, allianceTicker VARCHAR(10), corporationTicker VARCHAR(10), datetime DATETIME, typeID INT, UNIQUE KEY (solarSystemID, planet, moon) )")))
+
+(define (sql-moon-update-scan lst)
+  (for-each (lambda (x)
+	      (query sqlc "INSERT INTO moonScanRaw VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE allianceTicker=?,corporationTicker=?,datetime=?,typeID=?"
+		     (first x)
+		     (second x)
+		     (third x)
+		     (fourth x)
+		     (fifth x)
+		     (sixth x)
+		     (seventh x)
+		     (eighth x)
+		     (ninth x)
+		     (sixth x)
+		     (seventh x)
+		     (eighth x)
+		     (ninth x)))
+	    lst))
+
+(define (sql-moon-create-view)
+  (if (table-exists? sqlc "moonScanView")
+      #t
+      (query-exec sqlc (string-append "CREATE VIEW moonScanView AS "
+				      "SELECT "
+				      "mapRegions.regionName,mapConstellations.constellationName,"
+				      "mapSolarSystems.solarSystemName,planet,moon,allianceTicker,"
+				      "corporationTicker,datetime,invTypes.typeName "
+				      "FROM moonScanRaw AS scan "
+				      "LEFT JOIN mapRegions ON mapRegions.regionID = scan.regionID "
+				      "LEFT JOIN mapConstellations ON mapConstellations.constellationID = scan.constellationID "
+				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = scan.solarSystemID "
+				      "LEFT JOIN invTypes on invTypes.typeID = scan.typeID;"))))
