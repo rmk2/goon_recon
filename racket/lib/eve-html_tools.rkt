@@ -19,6 +19,7 @@
 			    (tr
 			     (map (lambda (str)
 				    (td (cond
+					 [(sql-null? str) "-"]
 					 [(sql-date? str) (date->string (sql-datetime->srfi-date str) "~1")]
 					 [(sql-timestamp? str) (date->string (sql-datetime->srfi-date str) "~1 ~3")]
 					 [(number? str) str]
