@@ -2,8 +2,7 @@
 
 (require srfi/19)
 (require db/util/datetime)
-(require (only-in db
-		  sql-date?))
+(require db)
 
 (require scribble/html/html)
 (require (only-in scribble/html/xml
@@ -21,7 +20,7 @@
 			     (map (lambda (str)
 				    (td (cond
 					 [(sql-date? str) (date->string (sql-datetime->srfi-date str) "~1")]
-					 [(sql-datetime? str) (date->string (sql-datetime->srfi-date str) "~1 ~3")]
+					 [(sql-timestamp? str) (date->string (sql-datetime->srfi-date str) "~1 ~3")]
 					 [(number? str) str]
 					 [(regexp-match #px"^http" str) (a 'href: str 'target: "_blank" "-> link")]
 					 [else str])))
