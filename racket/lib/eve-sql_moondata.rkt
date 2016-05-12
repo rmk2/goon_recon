@@ -10,7 +10,7 @@
 (define (parse-moondata lst)
   (query-maybe-row sqlc (string-append
 			 "SELECT corporationTicker,allianceTicker,datetime,moonType "
-			 "FROM moondata WHERE systemName = ? AND planet = ? AND moon = ?")
+			 "FROM moondata WHERE solarSystemName = ? AND planet = ? AND moon = ?")
 		   (first lst)
 		   (second lst)
 		   (third lst)))
@@ -51,10 +51,13 @@
       (query-exec sqlc (string-append "CREATE VIEW moonScanView AS "
 				      "SELECT "
 				      "mapRegions.regionName,mapConstellations.constellationName,"
-				      "mapSolarSystems.solarSystemName,planet,moon,allianceTicker,"
-				      "corporationTicker,datetime,invTypes.typeName "
+				      "mapSolarSystems.solarSystemName,planet,moon,scan.allianceTicker,"
+				      "customAlliances.allianceName,scan.corporationTicker,customCorporations.corporationName,"
+				      "datetime,invTypes.typeName "
 				      "FROM moonScanRaw AS scan "
 				      "LEFT JOIN mapRegions ON mapRegions.regionID = scan.regionID "
 				      "LEFT JOIN mapConstellations ON mapConstellations.constellationID = scan.constellationID "
 				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = scan.solarSystemID "
-				      "LEFT JOIN invTypes on invTypes.typeID = scan.typeID;"))))
+				      "LEFT JOIN invTypes ON invTypes.typeID = scan.typeID "
+				      "LEFT JOIN customAlliances ON customAlliances.allianceTicker = scan.allianceTicker "
+				      "LEFT JOIN customCorporations ON customCorporations.corporationTicker = scan.corporationTicker;"))))

@@ -79,16 +79,16 @@
     ((_ arg)
      (cond
       [(number? arg)
-       (query-row sqlc (string-append "SELECT corporationID,ticker,corporationName FROM "
+       (query-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
 				      "customCorporations WHERE corporationID LIKE ?") arg)]
       [(regexp-match #px"^[0-9]{1,}$" arg)
-       (query-row sqlc (string-append "SELECT corporationID,ticker,corporationName FROM "
+       (query-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
 				      "customCorporations WHERE corporationID LIKE ?") arg)]
       [(regexp-match #px"^[A-Z0-9. -_]{1,5}$" arg)
-       (query-row sqlc (string-append "SELECT corporationID,ticker,corporationName FROM "
-				      "customCorporations WHERE ticker LIKE ?") arg)]
+       (query-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
+				      "customCorporations WHERE corporationTicker LIKE ?") arg)]
       [else
-       (query-row sqlc (string-append "SELECT corporationID,ticker,corporationName FROM "
+       (query-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
 				      "customCorporations WHERE corporationNAME LIKE ?") arg)]))
     ((_ :id arg) (vector-ref (parse-corporation arg) 0))
     ((_ :ticker arg) (vector-ref (parse-corporation arg) 1))
@@ -126,9 +126,9 @@
   (syntax-rules (:id :type :group :system :constellation :region :name)
     ((_ arg) (cond
 	      [(number? arg)
-	       (query-maybe-row sqlc "SELECT * FROM mapDenormalize WHERE itemID = ?" arg)]
+	       (query-maybe-row sqlc "SELECT itemID,typeID,groupID,solarSystemID,constellationID,regionID,itemName FROM mapDenormalize WHERE itemID = ?" arg)]
 	      [(string? arg)
-	       (query-maybe-row sqlc "SELECT * FROM mapDenormalize WHERE itemName = ?" arg)]))
+	       (query-maybe-row sqlc "SELECT itemID,typeID,groupID,solarSystemID,constellationID,regionID,itemName FROM mapDenormalize WHERE itemName = ?" arg)]))
     ((_ :id arg) (vector-ref (parse-map arg) 0))
     ((_ :type arg) (vector-ref (parse-map arg) 1))
     ((_ :group arg) (vector-ref (parse-map arg) 2))
