@@ -5,6 +5,7 @@
 (require xml/path)
 (require net/url)
 (require file/gunzip)
+(require xexpr-path)
 
 (require "eve-list_tools.rkt")
 
@@ -27,6 +28,10 @@
 		      (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
 		      '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
     ((_ str) (json-api :gzip str))))
+
+;; CREST: root address
+
+(define crest-root "https://crest-tq.eveonline.com")
 
 ;; Generic APIv2 (xml) API polling function; output: string
 
@@ -51,6 +56,23 @@
 			      (make-hash (map (lambda (y) (cons (car y) (cadr y))) (cadr x)))
 			      #f))
 	      (se-path*/list '(rowset) lst)))
+
+(define (result->list lst)
+  (filter-map (lambda (x) (cond
+			   [(member 'rowset x) #f]
+			   [(member 'attributes x) #f]
+			   [else (cons (first x) (last x))]))
+	      (filter list? (se-path*/list '(result) lst))))
+
+(define (rowset->list lst)
+  (map (lambda (row) (cadr row))
+       (xexpr-path-list '(result rowset row) lst)))
+
+(define (rowset-name->list key lst)
+  (cons (string->symbol key)
+	(list
+	 (map (lambda (row) (cadr row))
+	      (xexpr-path-list `(result rowset (name ,key) row) lst)))))
 
 ;; Convert specified hash content into csv data
 
