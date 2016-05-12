@@ -57,4 +57,4 @@
 
 ;; Exec
 
-(main (extract-corporationids (query-unknown-corporations)))
+(main (remove-duplicates (extract-corporationids (query-unknown-corporations))))
