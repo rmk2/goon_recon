@@ -61,6 +61,6 @@
 				      "LEFT JOIN invTypes ON invTypes.typeID = scan.typeID "
 				      "LEFT JOIN customAlliances ON customAlliances.allianceTicker = scan.allianceTicker "
 				      "LEFT JOIN customCorporations ON customCorporations.corporationTicker = scan.corporationTicker "
-				      "LEFT JOIN moondata AS data ON data.solarSystemName = scan.solarSystemID "
+				      "LEFT JOIN moondata AS data ON mapSolarSystems.solarSystemName = scan.solarSystemID "
 				      "AND data.planet = scan.planet "
 				      "AND data.moon = scan.moon;"))))
