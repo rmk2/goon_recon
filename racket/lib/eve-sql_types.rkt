@@ -99,16 +99,16 @@
     ((_ arg)
      (cond
       [(number? arg)
-       (query-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
+       (query-maybe-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
 				      "customAlliances WHERE allianceID LIKE ?") arg)]
       [(regexp-match #px"^[0-9]{1,}$" arg)
-       (query-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
+       (query-maybe-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
 				      "customAlliances WHERE allianceID LIKE ?") arg)]
       [(regexp-match #px"^[A-Z0-9. -_]{1,5}$" arg)
-       (query-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
+       (query-maybe-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
 				      "customAlliances WHERE allianceTicker LIKE ?") arg)]
       [else
-       (query-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
+       (query-maybe-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
 				      "customAlliances WHERE allianceName LIKE ?") arg)]))
     ((_ :id arg) (vector-ref (parse-alliance arg) 0))
     ((_ :name arg) (vector-ref (parse-alliance arg) 1))
