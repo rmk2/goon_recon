@@ -193,6 +193,8 @@
 (output-xml (doctype 'html))
 (output-xml
  (html
+  (head
+   (title "Dashboard Scan Result"))
   (body
    (div 'id: "content"
 	(h1 (pretty-print-location (dscan-guess-location data)))
