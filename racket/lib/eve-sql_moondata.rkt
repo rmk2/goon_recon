@@ -63,4 +63,4 @@
 				      "LEFT JOIN customCorporations ON customCorporations.corporationTicker = scan.corporationTicker "
 				      "LEFT JOIN moondata AS data ON data.solarSystemName = mapSolarSystems.solarSystemName "
 				      "AND data.planet = scan.planet "
-				      "AND data.moon = scan.moon;"))))
+				      "AND data.moon = scan.moon"))))

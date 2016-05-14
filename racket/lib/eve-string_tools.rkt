@@ -44,3 +44,7 @@
     ((_ str) (if (regexp-match #px"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}" str)
 		 (date->string (string->date str "~Y-~m~dT~H:~M:~S") "~1 ~3")
 		 str))))
+
+;; Prettier form to check whether a string is empty
+
+(define (string-empty? x) (equal? "" x))
