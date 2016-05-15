@@ -205,9 +205,9 @@
 		  [(cl-location) (let ([locationid-base (parse-moon :name locationid)])
 				   (if (string? locationid-base)
 				       locationid-base
-				       (parse-map :name location-base)))]
-		  [else (parse-map :name location-base)])
-		 (parse-region :name (parse-map :region location-base))
+				       (parse-universe :name location-base)))]
+		  [else (parse-universe :name location-base)])
+		 (parse-region :name (parse-universe :region location-base))
 		 date
 		 (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f))))))))
 

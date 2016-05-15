@@ -80,16 +80,16 @@
      (cond
       [(number? arg)
        (query-maybe-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
-				      "customCorporations WHERE corporationID LIKE ?") arg)]
+					    "customCorporations WHERE corporationID LIKE ?") arg)]
       [(regexp-match #px"^[0-9]{1,}$" arg)
        (query-maybe-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
-				      "customCorporations WHERE corporationID LIKE ?") arg)]
+					    "customCorporations WHERE corporationID LIKE ?") arg)]
       [(regexp-match #px"^[A-Z0-9. -_]{1,5}$" arg)
        (query-maybe-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
-				      "customCorporations WHERE corporationTicker LIKE ?") arg)]
+					    "customCorporations WHERE corporationTicker LIKE ?") arg)]
       [else
        (query-maybe-row sqlc (string-append "SELECT corporationID,corporationTicker,corporationName FROM "
-				      "customCorporations WHERE corporationNAME LIKE ?") arg)]))
+					    "customCorporations WHERE corporationNAME LIKE ?") arg)]))
     ((_ :id arg) (vector-ref (parse-corporation arg) 0))
     ((_ :ticker arg) (vector-ref (parse-corporation arg) 1))
     ((_ :name arg) (vector-ref (parse-corporation arg) 2))))
@@ -100,16 +100,16 @@
      (cond
       [(number? arg)
        (query-maybe-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
-				      "customAlliances WHERE allianceID LIKE ?") arg)]
+					    "customAlliances WHERE allianceID LIKE ?") arg)]
       [(regexp-match #px"^[0-9]{1,}$" arg)
        (query-maybe-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
-				      "customAlliances WHERE allianceID LIKE ?") arg)]
+					    "customAlliances WHERE allianceID LIKE ?") arg)]
       [(regexp-match #px"^[A-Z0-9. -_]{1,5}$" arg)
        (query-maybe-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
-				      "customAlliances WHERE allianceTicker LIKE ?") arg)]
+					    "customAlliances WHERE allianceTicker LIKE ?") arg)]
       [else
        (query-maybe-row sqlc (string-append "SELECT allianceID,allianceName,allianceTicker FROM "
-				      "customAlliances WHERE allianceName LIKE ?") arg)]))
+					    "customAlliances WHERE allianceName LIKE ?") arg)]))
     ((_ :id arg) (vector-ref (parse-alliance arg) 0))
     ((_ :name arg) (vector-ref (parse-alliance arg) 1))
     ((_ :ticker arg) (vector-ref (parse-alliance arg) 2))))
@@ -136,3 +136,11 @@
     ((_ :constellation arg) (vector-ref (parse-map arg) 4))
     ((_ :region arg) (vector-ref (parse-map arg) 5))
     ((_ :name arg) (vector-ref (parse-map arg) 6))))
+
+(define-syntax parse-universe
+  (syntax-rules (:id :region :constellation :name)
+    ((_ :region v) (vector-ref v 0))
+    ((_ :name v) (vector-ref (vector-take-right v 1) 0))
+    ((_ :id v) (vector-ref (vector-drop-right (vector-take-right v 2) 1) 0))
+    ((_ :constellation v) (if (>= (vector-length v) 3) (vector-ref v 1) #f))
+    ((_ v) (parse-universe :id v))))
