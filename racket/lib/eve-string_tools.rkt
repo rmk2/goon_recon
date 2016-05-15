@@ -21,21 +21,24 @@
 ;; (System Planet-Moon), outputting a string as result
 
 (define (simplify-moon-display str)
-  (let ([lst (string-split str)])
-    (string-append (first lst)
-		   " "
-		   (number->string (roman->int (second lst)))
-		   (third lst)
-		   (fifth lst))))
+  (cond [(regexp-match? #px"\\w+\\s\\w+\\s[IVXL]+[ -]{3}\\w+\\s(\\d)" str)
+	 (let ([lst (regexp-match #px"(\\w+\\s\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d)" str)])
+	   (format "~a ~a-~a" (second lst) (roman->int (third lst)) (fourth lst)))]
+	[(regexp-match? #px"(\\w+)\\s([IVXL]+[ -]{3}\\w+\\s(\\d))" str)
+	 (let ([lst (regexp-match #px"(\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d)" str)])
+	   (format "~a ~a-~a" (second lst) (roman->int (third lst)) (fourth lst)))]
+	[else str]))
 
 ;; Split moon names (System ROMAN - Moon INT) into a list (System Planet[INT]
 ;; Moon[INT]), which is useful if they are to end up in an sql table
 
 (define (split-moon-display str)
-  (let ([lst (string-split str)])
-    (list (first lst)
-	  (roman->int (second lst))
-	  (string->number (fifth lst)))))
+  (cond [(regexp-match? #px"\\w+\\s\\w+\\s[IVXL]+[ -]{3}\\w+\\s(\\d)" str)
+	 (let ([lst (regexp-match #px"(\\w+\\s\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d)" str)])
+	   (list (second lst) (roman->int (third lst)) (string->number (fourth lst))))]
+	[(regexp-match? #px"(\\w+)\\s([IVXL]+[ -]{3}\\w+\\s(\\d))" str)
+	 (let ([lst (regexp-match #px"(\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d)" str)])
+	   (list (second lst) (roman->int (third lst)) (string->number (fourth lst))))]))
 
 ;; Translate
 
