@@ -18,7 +18,7 @@
 	      (tbody (map (lambda (row)
 			    (tr
 			     (map (lambda (str)
-				    (if (and (regexp-match? #px"^[A-Z0-9. -_]{1,5}$" str) ticker->class?)
+				    (if (and (string? str) (regexp-match? #px"^[A-Z0-9. -_]{1,5}$" str) ticker->class?)
 					(td 'class: str str)
 					(td (cond
 					     [(sql-null? str) ""]
