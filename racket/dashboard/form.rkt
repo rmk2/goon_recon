@@ -11,7 +11,7 @@
 (output-xml (doctype 'html))
 (output-xml
  (html
-  (output:create-html-head #:title "Dashboard")
+  (output:create-html-head #:title "Dashboard" #:tablesorter #f)
   (body
    (div 'id: "content"
 	(h1 "Dashboard")
