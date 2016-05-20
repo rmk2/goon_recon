@@ -160,7 +160,7 @@
   (format "~a: ~a @ ~akm, belonging to ~a"
 	  (hash-ref (dscan-proximity (moon? data)) 'name)
 	  (parse-type :name (last moonscan-result))
-	  (hash-ref (dscan-proximity (moon? data)) 'distance)
+	  (hash-ref (dscan-proximity (tower? data)) 'distance)
 	  (if (sql-null? (seventh moonscan-result))
 	      "-"
 	      (string-append
