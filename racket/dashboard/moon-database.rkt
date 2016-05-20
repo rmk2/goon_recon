@@ -34,7 +34,8 @@
 			   #:tablesorter #t
 			   #:sort-column 0
 			   (list (literal (style/inline 'type: "text/css" "tr > td[class=\"LOLTX\"], tr > td[class=\"OHGOD\"] { background-color: #4D6EFF; color: white; }"))
-				 (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))))
+				 (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
+				 (literal (style/inline 'type: "text/css" "td { white-space: normal; }"))))
   (body
    (div 'id: "bar"
 	(form 'name: "filter" 'method: "get"
