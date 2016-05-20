@@ -37,7 +37,7 @@
    (literal (style/inline 'type: "text/css" ".data { margin: 1em 0; }"))
    (literal (style/inline 'type: "text/css" "table { border-collapse: collapse;  border: 1px solid black; width: 100%; }"))
    (literal (style/inline 'type: "text/css" "thead { border-bottom: 1px solid black; }"))
-   (literal (style/inline 'type: "text/css" "td { padding: 0.3em; border-right: 1px solid black; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 15.5em; }"))
+   (literal (style/inline 'type: "text/css" "td { padding: 0.3em; border-right: 1px solid black; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 14em; }"))
    (literal (style/inline 'type: "text/css" "tr:nth-child(2n+1) > td { background-color: #efefef; }"))
    (if tablesorter?
        (list
