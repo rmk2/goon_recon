@@ -33,7 +33,7 @@
 (define (digest-update-affiliations lst [i null])
   (begin (sql-corporation-update-affiliations lst)
 	 (log-debug (format "[debug] Saved associations to database"))
-	 (list (number? i) i "written")))
+	 null))
 
 ;; Get CREST alliance data for id
 
@@ -76,7 +76,7 @@
 (define (main start-id)
   (sql-corporation-update-affiliations
    (exec-limit-api-rate #:function map-corporation->alliance
-			#:input (member start-id (map vector->values (sql-alliance-get-allianceids)))
+			#:input (take (member start-id (map vector->values (sql-alliance-get-allianceids))) 30)
 			#:delay 2
 			#:digest digest-update-affiliations
 			#:limit 20)))
