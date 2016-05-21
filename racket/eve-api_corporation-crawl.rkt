@@ -76,7 +76,7 @@
 (define (main start-id)
   (sql-corporation-update-affiliations
    (exec-limit-api-rate #:function map-corporation->alliance
-			#:input (take (member start-id (map vector->values (sql-alliance-get-allianceids))) 30)
+			#:input (member start-id (map vector->values (sql-alliance-get-allianceids)))
 			#:delay 2
 			#:digest digest-update-affiliations
 			#:limit 20)))
