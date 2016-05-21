@@ -30,9 +30,10 @@
 				  "LEFT JOIN customAlliances AS a ON main.allianceID = a.allianceID "
 				  "ORDER BY allianceName")))
 
-(define (digest-update-affiliations lst)
+(define (digest-update-affiliations lst [i null])
   (begin (sql-corporation-update-affiliations lst)
-	 lst))
+	 (log-debug (format "[debug] Saved associations to database"))
+	 (list (null? i) "written" i)))
 
 ;; Get CREST alliance data for id
 
@@ -59,10 +60,27 @@
 			     (if (empty? poll) null poll)))
 	      lst))
 
+;; Continuation
+
+(define (sql-alliance-max-allianceid)
+  (query-value sqlc "SELECT MAX(allianceID) FROM customAlliances"))
+
+(define (sql-alliance-min-allianceid)
+  (query-value sqlc "SELECT MIN(allianceID) FROM customAlliances"))
+
+(define (sql-corporation-max-allianceid)
+  (query-value sqlc "SELECT MAX(allianceID) FROM customCorporationAffiliations"))
+
 ;; Exec
 
-(sql-corporation-update-affiliations
- (exec-limit-api-rate #:function map-corporation->alliance
-		      #:input (map vector->values (sql-alliance-get-allianceids))
-		      #:delay 4
-		      #:limit 100))
+(define (main start-id)
+  (sql-corporation-update-affiliations
+   (exec-limit-api-rate #:function map-corporation->alliance
+			#:input (member start-id (map vector->values (sql-alliance-get-allianceids)))
+			#:delay 2
+			#:digest digest-update-affiliations
+			#:limit 20)))
+
+(cond [(< (sql-corporation-max-allianceid) (sql-alliance-max-allianceid))
+       (main (sql-corporation-max-allianceid))]
+      [else (main (sql-alliance-min-allianceid))])
