@@ -33,7 +33,7 @@
 (define (digest-update-affiliations lst [i null])
   (begin (sql-corporation-update-affiliations lst)
 	 (log-debug (format "[debug] Saved associations to database"))
-	 (list (null? i) "written" i)))
+	 (list (number? i) i "written")))
 
 ;; Get CREST alliance data for id
 
