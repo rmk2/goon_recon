@@ -15,6 +15,11 @@
 (define poll_dscan (extract-bindings 'dscan cgi-data))
 (define poll_corporation (extract-bindings 'corporation cgi-data))
 (define poll_alliance (extract-bindings 'alliance cgi-data))
+(define poll_empty (extract-bindings 'empty cgi-data))
+
+;; Parameters
+
+(define max_distance (make-parameter 10000))
 
 ;; Find alliance for corporation
 
@@ -87,6 +92,9 @@
 (define (station? lst)
   (filter (lambda (hash) (regexp-match? #px"(?i:station)$" (hash-ref hash 'type))) lst))
 
+(define (forcefield? lst)
+  (filter (lambda (hash) (regexp-match? #px"^(?i:force field)" (hash-ref hash 'type))) lst))
+
 ;; Choose closest object (car), ideally after filtering
 ;; Example: (dscan-proximity (moon? lst))
 
@@ -139,7 +147,7 @@
 ;; d-scan -> moon scan data
 
 (define (moonscan [input data] #:corporation [corporation poll_corporation] #:alliance [alliance poll_alliance])
-  (if (< (hash-ref (dscan-proximity (moon? input)) 'distance) 10000)
+  (if (< (hash-ref (dscan-proximity (moon? input)) 'distance) (max_distance))
       (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)]
 	    [tower (hash-ref (dscan-proximity (tower? input)) 'type)])
 	(flatten
@@ -151,15 +159,22 @@
 	  (fill-alliance alliance corporation)
 	  (if (string-empty? (car corporation)) sql-null (map string-upcase corporation))
 	  (srfi-date->sql-timestamp (current-date))
-	  (parse-type :id tower))))
+	  (parse-type :id tower)
+	  (if (and (dscan-proximity (forcefield? input))
+		   (< (hash-ref (dscan-proximity (forcefield? input)) 'distance) (max_distance)))
+	      1
+	      0))))
       #f))
 
 ;; Pretty-print condensed d-scan result for HTML output
 
 (define (pretty-print-dscan-result)
-  (format "~a: ~a @ ~akm, belonging to ~a"
+  (format "~a: ~a~a @ ~akm, belonging to ~a"
 	  (hash-ref (dscan-proximity (moon? data)) 'name)
-	  (parse-type :name (last moonscan-result))
+	  (parse-type :name (ninth moonscan-result))
+	  (if (zero? (tenth moonscan-result))
+		     " (offline) "
+		     " (online) ")
 	  (hash-ref (dscan-proximity (tower? data)) 'distance)
 	  (if (sql-null? (seventh moonscan-result))
 	      "-"
@@ -177,14 +192,19 @@
     (dscan-raw->list (first poll_dscan)))))
 
 (define moonscan-result
-  (if (or (string-empty? (car poll_dscan))
-	  (false? (dscan-proximity (tower? data)))
-	  (false? (dscan-proximity (moon? data))))
-      #f
-      (let ([result (moonscan data)])
-	(if (false? result)
-	    #f
-	    result))))
+  (cond
+   [(and (dscan-proximity (moon? data))
+	 (false? (dscan-proximity (tower? data)))
+	 (equal? "empty" (car poll_empty)))
+    null]
+   [(or (string-empty? (car poll_dscan))
+	(false? (dscan-proximity (tower? data)))
+	(false? (dscan-proximity (moon? data))))
+    #f]
+   [else (let ([result (moonscan data)])
+	   (if (false? result)
+	       #f
+	       result))]))
 
 (when (not (false? moonscan-result))
   (sql-moon-update-scan (list moonscan-result)))

@@ -25,11 +25,11 @@
 (define (sql-moon-create-raw)
   (if (table-exists? sqlc "moonScanRaw")
       #t
-      (query-exec sqlc "CREATE TABLE moonScanRaw ( regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, allianceTicker VARCHAR(10), corporationTicker VARCHAR(10), datetime DATETIME, typeID INT, UNIQUE KEY (solarSystemID, planet, moon) )")))
+      (query-exec sqlc "CREATE TABLE moonScanRaw ( regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, allianceTicker VARCHAR(10), corporationTicker VARCHAR(10), datetime DATETIME, typeID INT, online TINYINT(1), UNIQUE KEY (solarSystemID, planet, moon) )")))
 
 (define (sql-moon-update-scan lst)
   (for-each (lambda (x)
-	      (query sqlc "INSERT INTO moonScanRaw VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE allianceTicker=?,corporationTicker=?,datetime=?,typeID=?"
+	      (query sqlc "INSERT INTO moonScanRaw VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE allianceTicker=?,corporationTicker=?,datetime=?,typeID=?,online=?"
 		     (first x)
 		     (second x)
 		     (third x)
@@ -39,10 +39,12 @@
 		     (seventh x)
 		     (eighth x)
 		     (ninth x)
+		     (tenth x)
 		     (sixth x)
 		     (seventh x)
 		     (eighth x)
-		     (ninth x)))
+		     (ninth x)
+		     (tenth x)))
 	    lst))
 
 (define (sql-moon-create-view)
