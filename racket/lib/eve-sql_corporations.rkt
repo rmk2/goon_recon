@@ -29,11 +29,6 @@
 			       (third x)))
 	    lst))
 
-(define (digest-update-affiliations lst [i null])
-  (begin (sql-corporation-update-affiliations lst)
-	 (log-debug (format "[debug] Saved associations to database"))
-	 null))
-
 (define (sql-corporation-get-affiliations)
   (query-rows sqlc (string-append "SELECT main.corporationID,c.corporationName,main.allianceID,a.allianceName,main.datetime "
 				  "FROM customCorporationAffiliations as main "
