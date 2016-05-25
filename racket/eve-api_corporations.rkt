@@ -3,14 +3,6 @@
 
 (require eve)
 
-(define (sql-update-corporations lst)
-  (for-each (lambda (x)
-	      (query sqlc "INSERT IGNORE customCorporations VALUES (?, ?, ?)"
-		     (first x)
-		     (second x)
-		     (third x)))
-	    lst))
-
 (define (query-unknown-corporations)
   (query-rows sqlc "SELECT allianceTicker FROM moonScanView WHERE corporationName IS NULL"))
 
@@ -51,7 +43,7 @@
   (for-each (lambda (alliance)
 	      (begin
 		(log-debug (format "[debug] Writing corporations for alliance ~s to database" alliance))
-		(sql-update-corporations
+		(sql-corporation-update-corporations
 		 (main-poll (parse-alliance :id alliance)))))
 	    input))
 
