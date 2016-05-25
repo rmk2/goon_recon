@@ -180,7 +180,7 @@
 				   (if (null? (cl-groups)) lst (concat-data :group lst))
 				   (if (null? (cl-shiptypes)) lst (concat-data :shiptype lst))))))
 
-(define (tower? hash)
+(define (id-tower? hash)
   (if (member (hash-ref hash 'shipTypeID) (groupid->list '("365")))
       #t
       #f))
@@ -200,8 +200,8 @@
 		(parse-helper hash)
 		(list
 		 (cond
-		  [(and (tower? hash) (cl-moons)) (simplify-moon-display (parse-moon :name moonid))]
-		  [(and (tower? hash) (cl-location)) (parse-moon :name moonid)]
+		  [(and (id-tower? hash) (cl-moons)) (simplify-moon-display (parse-moon :name moonid))]
+		  [(and (id-tower? hash) (cl-location)) (parse-moon :name moonid)]
 		  [(cl-location) (let ([locationid-base (parse-moon :name locationid)])
 				   (if (string? locationid-base)
 				       locationid-base
@@ -227,7 +227,7 @@
       (parse-helper-raw hash)
       (list
        (cond
-	[(tower? hash) moonid]
+	[(id-tower? hash) moonid]
 	[(cl-location) locationid]
 	[else 0])
        location
