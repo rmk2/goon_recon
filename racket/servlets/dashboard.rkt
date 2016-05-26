@@ -115,7 +115,7 @@
 	  (body
 	   (div 'id: "content"
 		(h1 "Dashboard")
-		(form 'action: "/result" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #t
+		(form 'action: "result" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #t
 		      (fieldset
 		       (legend "D-Scan reporting")
 		       (br)
@@ -182,7 +182,7 @@
 		(br)
 		(br)
 		(hr)
-		(form 'action: "./report"
+		(form 'action: "report"
 		      (input 'type: "submit" 'value: "Return to Dashboard")))))
 	 port))))]
    
