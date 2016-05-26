@@ -97,7 +97,9 @@
   
   (define uri (request-uri req))
   (define path (map path/param-path (url-path uri)))    
-  (define page (car path))
+  (define page (if (> (length path) 1)
+		   (cadr path)
+		   (car path)))
 
   (cond
    
