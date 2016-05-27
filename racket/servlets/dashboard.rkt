@@ -198,7 +198,7 @@
     (define corporation    (cdr (assq 'corporation form-data)))
     (define alliance (cdr (assq 'alliance form-data)))
     (define dscan (cdr (assq 'dscan form-data)))
-    (define location (cdr (assq 'location form-data)))
+    ;; (define location (cdr (assq 'location form-data)))
 
     (define data
       (dscan-list->hash
