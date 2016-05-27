@@ -69,6 +69,7 @@
 	(flatten
 	 (list
 	  (guess-or-location? input location)
+	  "locationid"
 	  (fill-alliance (list alliance) (list corporation))
 	  (if (string-empty? corporation) sql-null (string-upcase corporation))
 	  (srfi-date->sql-timestamp (current-date))
@@ -80,7 +81,12 @@
 ;; 				    (query-rows sqlc "SELECT DISTINCT solarSystemName FROM mapSolarSystems"))))
 
 (define (system? query)
-  (if (false? (query-maybe-row sqlc "SELECT DISTINCT solarSystemName FROM mapSolarSystems WHERE solarSystemName = ?" query))
+  (if (false? (query-maybe-row sqlc "SELECT solarSystemName FROM mapSolarSystems WHERE solarSystemName = ?" query))
+      #f
+      query))
+
+(define (location? query)
+  (if (false? (query-maybe-row sqlc "SELECT * FROM mapDenormalize WHERE itemName = ?" query))
       #f
       query))
 
@@ -103,17 +109,17 @@
 	       "]"))))
 
 (define (pretty-print-citadel-result data result)
-  (if (= (length result) 7)
+  (if (= (length result) 8)
       (format "~a: ~a @ ~akm, belonging to ~a"
 	      (parse-solarsystem :name (third result))
 	      (hash-ref (dscan-proximity (citadel? data)) 'type)
 	      (hash-ref (dscan-proximity (citadel? data)) 'distance)
-	      (if (sql-null? (fifth result))
+	      (if (sql-null? (sixth result))
 		  "-"
 		  (string-append
-		   (parse-corporation :name (fifth result))
+		   (parse-corporation :name (sixth result))
 		   "["
-		   (fifth result)
+		   (sixth result)
 		   "]")))
       "No valid location found"))
 
@@ -175,10 +181,10 @@
 		       (br)
 		       ;; (input 'type: "checkbox" 'name: "empty" 'value: "empty" "Empty (no tower)")
 		       ;; (br)
-		       (p "Note: only enter a location if no celestial appears on D-Scan")
-		       "Location: "
-		       (input 'type: "text" 'name: "location" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
-		       (br)
+		       ;; (p "Note: only enter a location if no celestial appears on D-Scan")
+		       ;; "Location: "
+		       ;; (input 'type: "text" 'name: "location" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
+		       ;; (br)
 		       (br)
 		       (input 'type: "submit" 'value: "Submit"))))))
 	 port))))]
