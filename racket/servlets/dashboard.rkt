@@ -27,13 +27,9 @@
 
 (define system-mime-types (read-mime-types "/etc/mime.types"))
 
-;; (define ext=>mime-type
-;;   #hash((#""     . #"text/html; charset=utf-8")
-;; 	(#"html" . #"text/html; charset=utf-8")
-;; 	(#"png"  . #"image/png")
-;; 	(#"rkt"  . #"text/x-racket; charset=utf-8")))
+(define location null)
 
-;; d-scan -> moon scan data
+;; d-scan -> scan data
 
 (define (moonscan input #:corporation corporation #:alliance alliance)
   (if (< (hash-ref (dscan-proximity (moon? input)) 'distance) (max_distance))
@@ -56,23 +52,70 @@
 	      0))))
       #f))
 
+(define (guess-or-location? lst location)
+  (let ([guess (guess->location (dscan-guess-location lst))])
+    (cond
+     [(null? guess) (if (system? location)
+			(let ([location-base (parse-solarsystem location)])
+			  (list (parse-universe :region location-base)
+				(parse-universe :constellation location-base)
+				(parse-universe :id location-base)))
+			null)]
+     [else guess])))
+
+(define (citadelscan input #:corporation corporation #:alliance alliance #:location location)
+  (if (< (hash-ref (dscan-proximity (citadel? input)) 'distance) (max_distance))
+      (let ([citadel (hash-ref (dscan-proximity (citadel? input)) 'type)])
+	(flatten
+	 (list
+	  (guess-or-location? input location)
+	  (fill-alliance (list alliance) (list corporation))
+	  (if (string-empty? corporation) sql-null (string-upcase corporation))
+	  (srfi-date->sql-timestamp (current-date))
+	  (parse-type :id citadel))))
+      #f))
+
+;; (define (system? query) (findf (lambda (str) (equal? (string-downcase query) (string-downcase str)))
+;; 			       (map vector->values
+;; 				    (query-rows sqlc "SELECT DISTINCT solarSystemName FROM mapSolarSystems"))))
+
+(define (system? query)
+  (if (false? (query-maybe-row sqlc "SELECT DISTINCT solarSystemName FROM mapSolarSystems WHERE solarSystemName = ?" query))
+      #f
+      query))
+
 ;; Pretty-print condensed d-scan result for HTML output
 
-(define (pretty-print-dscan-result data moonscan-result)
+(define (pretty-print-moon-result data result)
   (format "~a: ~a~a @ ~akm, belonging to ~a"
 	  (hash-ref (dscan-proximity (moon? data)) 'name)
-	  (parse-type :name (ninth moonscan-result))
-	  (if (zero? (tenth moonscan-result))
+	  (hash-ref (dscan-proximity (tower? data)) 'type)
+	  (if (zero? (tenth result))
 	      " (offline) "
 	      " (online) ")
 	  (hash-ref (dscan-proximity (tower? data)) 'distance)
-	  (if (sql-null? (seventh moonscan-result))
+	  (if (sql-null? (seventh result))
 	      "-"
 	      (string-append
-	       (parse-corporation :name (seventh moonscan-result))
+	       (parse-corporation :name (seventh result))
 	       "["
-	       (seventh moonscan-result)
+	       (seventh result)
 	       "]"))))
+
+(define (pretty-print-citadel-result data result)
+  (if (= (length result) 7)
+      (format "~a: ~a @ ~akm, belonging to ~a"
+	      (parse-solarsystem :name (third result))
+	      (hash-ref (dscan-proximity (citadel? data)) 'type)
+	      (hash-ref (dscan-proximity (citadel? data)) 'distance)
+	      (if (sql-null? (fifth result))
+		  "-"
+		  (string-append
+		   (parse-corporation :name (fifth result))
+		   "["
+		   (fifth result)
+		   "]")))
+      "No valid location found"))
 
 ;; Moon database
 
@@ -132,6 +175,10 @@
 		       (br)
 		       ;; (input 'type: "checkbox" 'name: "empty" 'value: "empty" "Empty (no tower)")
 		       ;; (br)
+		       (p "Note: only enter a location if no celestial appears on D-Scan")
+		       "Location: "
+		       (input 'type: "text" 'name: "location" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
+		       (br)
 		       (br)
 		       (input 'type: "submit" 'value: "Submit"))))))
 	 port))))]
@@ -145,6 +192,7 @@
     (define corporation    (cdr (assq 'corporation form-data)))
     (define alliance (cdr (assq 'alliance form-data)))
     (define dscan (cdr (assq 'dscan form-data)))
+    (define location (cdr (assq 'location form-data)))
 
     (define data
       (dscan-list->hash
@@ -162,8 +210,22 @@
 		   #f
 		   result))]))
 
+    (define citadelscan-result
+      (cond
+       [(or (string-empty? dscan)
+	    (false? (dscan-proximity (citadel? data))))
+	#f]
+       [else (let ([result (citadelscan data #:corporation corporation #:alliance alliance #:location location)])
+	       (if (false? result)
+		   #f
+		   result))]))
+
     (when (not (false? moonscan-result))
       (sql-moon-update-scan (list moonscan-result)))
+
+    (when (and (not (false? moonscan-result))
+	       (not (null? guess-or-location? data location)))
+      (sql-citadel-update-scan (list citadelscan-result)))
 
     (send/back
      (response/output
@@ -174,11 +236,12 @@
 	  (output:create-html-head #:title "Dashboard Scan Result" #:tablesorter #f)
 	  (body
 	   (div 'id: "content"
-		(h1 (pretty-print-location (dscan-guess-location data)))
+		(h1 (pretty-print-location (guess-or-location? data location)))
 		(b "Scan Result: ")
-		(if (false? moonscan-result)
-		    "No tower found in close proximity"
-		    (pretty-print-dscan-result data moonscan-result))
+		(cond
+		 [(not (false? moonscan-result)) (pretty-print-moon-result data moonscan-result)]
+		 [(not (false? citadelscan-result)) (pretty-print-citadel-result data citadelscan-result)]
+		 [else "No structure found in close proximity"])
 		(br)
 		(br)
 		(hr)

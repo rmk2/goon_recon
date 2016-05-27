@@ -72,6 +72,9 @@
 (define (moon? lst)
   (filter (lambda (hash) (equal? "Moon" (hash-ref hash 'type))) lst))
 
+(define (sun? lst)
+  (filter (lambda (hash) (regexp-match? #px"^(?i:sun)" (hash-ref hash 'type))) lst))
+
 (define (tower? lst)
   (filter (lambda (hash) (regexp-match? #px"(?i:control tower)" (hash-ref hash 'type))) lst))
 
@@ -103,7 +106,7 @@
        (filter-map (lambda (x) (if (dscan-proximity (x lst))
 				   (hash-ref (dscan-proximity (x lst)) 'name)
 				   #f))
-		   (list moon? planet? station?))))
+		   (list moon? planet? station? sun?))))
 
 (define (dscan-guess-location lst)
   (let ([loc (dscan-parse-location lst)])
@@ -116,19 +119,29 @@
 			  [else null]))
       set-intersect)))
 
+;; Transform guess into a consistent form
+;; (region -> constellation -> system)
+
+(define (guess->location lst)
+  (cond
+   [(null? lst) null]
+   [(= (length lst) 1)
+    (let ([lst (flatten lst)])
+      (list
+       (sixth lst)
+       (fifth lst)
+       (fourth lst)))]
+   [else
+    (list
+     (first lst)
+     (second lst)
+     (third lst))]))
+
 ;; Pretty-print location for HTML output
 
 (define (pretty-print-location lst)
   (cond
    [(null? lst) "Unknown location"]
-   [(= (length lst) 1)
-    (let ([lst (flatten lst)])
-      (string-join
-       (list
-   	(parse-region :name (sixth lst))
-   	(parse-constellation :name (fifth lst))
-   	(parse-solarsystem :name (fourth lst)))
-       " › "))]
    [else
     (string-join
      (list
