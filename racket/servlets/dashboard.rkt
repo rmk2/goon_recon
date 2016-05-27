@@ -223,9 +223,9 @@
     (when (not (false? moonscan-result))
       (sql-moon-update-scan (list moonscan-result)))
 
-    (when (and (not (false? moonscan-result))
-	       (not (null? guess-or-location? data location)))
-      (sql-citadel-update-scan (list citadelscan-result)))
+    ;; (when (and (not (false? citadelscan-result))
+    ;; 	       (not (null? guess-or-location? data location)))
+    ;;   (sql-citadel-update-scan (list citadelscan-result)))
 
     (send/back
      (response/output
