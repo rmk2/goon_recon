@@ -83,11 +83,6 @@
       #f
       query))
 
-(define (location? query)
-  (if (false? (query-maybe-row sqlc "SELECT * FROM mapDenormalize WHERE itemName = ?" query))
-      #f
-      query))
-
 ;; Pretty-print condensed d-scan result for HTML output
 
 (define (pretty-print-moon-result data result)
@@ -149,6 +144,11 @@
 (define (main req)
 
   (define location (make-parameter ""))
+
+  (define (location? query)
+    (if (false? (query-maybe-row sqlc "SELECT * FROM mapDenormalize WHERE itemName = ?" query))
+	#f
+	query))
   
   (define uri (request-uri req))
   (define path (map path/param-path (url-path uri)))    
