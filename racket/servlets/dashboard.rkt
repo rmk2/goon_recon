@@ -23,11 +23,11 @@
 (define max_distance (make-parameter 10000))
 (define webroot (make-parameter "/var/www/servers/eve.rmk2.org/pages/"))
 
+(define location (make-parameter ""))
+
 ;; Mimetype table
 
 (define system-mime-types (read-mime-types "/etc/mime.types"))
-
-(define location null)
 
 ;; d-scan -> scan data
 
@@ -103,7 +103,10 @@
 	  (if (sql-null? (seventh result))
 	      "-"
 	      (string-append
-	       (parse-corporation :name (seventh result))
+	       (let ([corporation (parse-corporation (seventh result))])
+		 (if (false? corporation)
+		     "? "
+		     (vector-ref corporation 2)))
 	       "["
 	       (seventh result)
 	       "]"))))
@@ -117,7 +120,10 @@
 	      (if (sql-null? (sixth result))
 		  "-"
 		  (string-append
-		   (parse-corporation :name (sixth result))
+		   (let ([corporation (parse-corporation (sixth result))])
+		     (if (false? corporation)
+			 "? "
+			 (vector-ref corporation 2)))
 		   "["
 		   (sixth result)
 		   "]")))
@@ -221,7 +227,7 @@
        [(or (string-empty? dscan)
 	    (false? (dscan-proximity (citadel? data))))
 	#f]
-       [else (let ([result (citadelscan data #:corporation corporation #:alliance alliance #:location location)])
+       [else (let ([result (citadelscan data #:corporation corporation #:alliance alliance #:location (location))])
 	       (if (false? result)
 		   #f
 		   result))]))
@@ -230,7 +236,7 @@
       (sql-moon-update-scan (list moonscan-result)))
 
     ;; (when (and (not (false? citadelscan-result))
-    ;; 	       (not (null? guess-or-location? data location)))
+    ;; 	       (not (null? guess-or-location? data (location))))
     ;;   (sql-citadel-update-scan (list citadelscan-result)))
 
     (send/back
@@ -242,7 +248,7 @@
 	  (output:create-html-head #:title "Dashboard Scan Result" #:tablesorter #f)
 	  (body
 	   (div 'id: "content"
-		(h1 (pretty-print-location (guess-or-location? data location)))
+		(h1 (pretty-print-location (guess-or-location? data (location))))
 		(b "Scan Result: ")
 		(cond
 		 [(not (false? moonscan-result)) (pretty-print-moon-result data moonscan-result)]
