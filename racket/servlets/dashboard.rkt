@@ -23,8 +23,6 @@
 (define max_distance (make-parameter 10000))
 (define webroot (make-parameter "/var/www/servers/eve.rmk2.org/pages/"))
 
-(define location (make-parameter ""))
-
 ;; Mimetype table
 
 (define system-mime-types (read-mime-types "/etc/mime.types"))
@@ -149,6 +147,8 @@
 ;; Servlet
 
 (define (main req)
+
+  (define location (make-parameter ""))
   
   (define uri (request-uri req))
   (define path (map path/param-path (url-path uri)))    
