@@ -51,6 +51,4 @@
 
 ;; Exec
 
-(sql-tower-create-raw)
-
 (sql-tower-update-raw (parse-tower-data pipe-input))
