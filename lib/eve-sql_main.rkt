@@ -9,5 +9,7 @@
 	       (lambda ()
 		 (mysql-connect #:user "eve"
 				#:database "eve_sde"
-				#:password "q+WK9nnGO3EWWZJQaxO8Iv55CdLRACAP"))
+				#:password (getenv "MYSQL_PASSWORD")
+                #:server (getenv "MYSQL_HOST")
+                #:port 3306))
 	       #:max-idle-connections 5)))
