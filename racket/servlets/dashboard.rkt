@@ -29,6 +29,17 @@
 
 ;; d-scan -> scan data
 
+(define (guess-or-location? lst location)
+  (let ([guess (guess->location (dscan-guess-location lst))])
+    (cond
+     [(null? guess) (if (system? location)
+			(let ([location-base (parse-solarsystem location)])
+			  (list (parse-universe :region location-base)
+				(parse-universe :constellation location-base)
+				(parse-universe :id location-base)))
+			null)]
+     [else guess])))
+
 (define (moonscan input #:corporation corporation #:alliance alliance)
   (if (< (hash-ref (dscan-proximity (moon? input)) 'distance) (max_distance))
       (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)]
@@ -50,17 +61,6 @@
 	      0))))
       #f))
 
-(define (guess-or-location? lst location)
-  (let ([guess (guess->location (dscan-guess-location lst))])
-    (cond
-     [(null? guess) (if (system? location)
-			(let ([location-base (parse-solarsystem location)])
-			  (list (parse-universe :region location-base)
-				(parse-universe :constellation location-base)
-				(parse-universe :id location-base)))
-			null)]
-     [else guess])))
-
 (define (citadelscan input #:corporation corporation #:alliance alliance #:location location)
   (if (< (hash-ref (dscan-proximity (citadel? input)) 'distance) (max_distance))
       (let ([citadel (hash-ref (dscan-proximity (citadel? input)) 'type)])
@@ -73,6 +73,8 @@
 	  (srfi-date->sql-timestamp (current-date))
 	  (parse-type :id citadel))))
       #f))
+
+;; Check if a given query string is a valid solarSystemName
 
 ;; (define (system? query) (findf (lambda (str) (equal? (string-downcase query) (string-downcase str)))
 ;; 			       (map vector->values
@@ -290,7 +292,10 @@
 	   (list (literal (style/inline 'type: "text/css" "tr > td[class=\"LOLTX\"], tr > td[class=\"OHGOD\"] { background-color: #4D6EFF; color: white; }"))
 		 (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
 		 (literal (style/inline 'type: "text/css" "td { white-space: normal; }"))
-		 (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
+		 (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))
+		 (literal (style/inline 'type: "text/css" "span { margin: 0 .25em; }"))
+		 (literal (style/inline 'type: "text/css" "tr.offline, span.offline { color: gray; }"))
+		 (literal (style/inline 'type: "text/css" "tr.rescan, span.rescan { background-color: orange; }"))))
 	  (body
 	   (div 'id: "bar"
 		(form 'name: "filter" 'method: "GET"
@@ -304,15 +309,19 @@
 		      (input 'type: "submit")))
 	   (div 'id: "content"
 		(h1 "Moon Scan Data")
-		(output:create-html-hint (format "Results filtered for: Region (~a)" (string-join (query-regions filter_region)  "|")))
+		(output:create-html-hint (output:create-html-legend))
+		(output:create-html-hint (format "Results filtered for: Region (~a)"
+						 (string-join (query-regions filter_region)  "|")))
 		(output:create-html-hint :tablesorter)
-		(output:create-html-table (cond
-					   [(not (empty? (query-regions filter_region)))
-					    (append-map (lambda (region) (sql-moon-region-towers region)) (query-regions filter_region))]
-					   [else (map vector->list (sql-moon-get-towers))])
-					  #:ticker->class #t
+		(output:create-html-table #:ticker->class #t
+					  #:drop-right 2
 					  #:head (list "Region" "Constellation" "System" "Planet" "Moon" "CT"
-						       "Alliance" "AT" "Corporation" "Date" "Tower" "Goo"))
+						       "Alliance" "AT" "Corporation" "Date" "Tower" "Goo")
+					  (cond
+					   [(not (empty? (query-regions filter_region)))
+					    (append-map (lambda (region) (sql-moon-region-towers region))
+							(query-regions filter_region))]
+					   [else (map vector->list (sql-moon-get-towers))]))
 		(output:create-html-hint :updated))))
 	 port))))]
    

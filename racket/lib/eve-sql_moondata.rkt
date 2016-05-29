@@ -55,7 +55,9 @@
 				      "mapRegions.regionName,mapConstellations.constellationName,"
 				      "mapSolarSystems.solarSystemName,scan.planet,scan.moon,scan.allianceTicker,"
 				      "customAlliances.allianceName,scan.corporationTicker,customCorporations.corporationName,"
-				      "scan.datetime,invTypes.typeName,data.moonType "
+				      "scan.datetime,invTypes.typeName,data.moonType,"
+				      "IF(scan.online = 1, 'ONLINE', 'OFFLINE') AS 'online',"
+				      "IF(towerKillRaw.datetime > scan.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus' "
 				      "FROM moonScanRaw AS scan "
 				      "LEFT JOIN mapRegions ON mapRegions.regionID = scan.regionID "
 				      "LEFT JOIN mapConstellations ON mapConstellations.constellationID = scan.constellationID "
@@ -65,4 +67,7 @@
 				      "LEFT JOIN customCorporations ON customCorporations.corporationTicker = scan.corporationTicker "
 				      "LEFT JOIN moondata AS data ON data.solarSystemName = mapSolarSystems.solarSystemName "
 				      "AND data.planet = scan.planet "
-				      "AND data.moon = scan.moon"))))
+				      "AND data.moon = scan.moon "
+				      "LEFT JOIN towerKillRaw ON scan.solarSystemID = towerKillRaw.solarSystemID "
+				      "AND scan.planet = towerKillRaw.planet "
+				      "AND scan.moon = towerKillRaw.moon"))))
