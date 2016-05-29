@@ -75,3 +75,15 @@
     ((_) (list "Legend:"
 	       (span 'class: "rescan" "Tower needs to be rescanned")
 	       (span 'class: "offline" "Tower was offline when scanned")))))
+
+(define (create-region-filter region-list)
+  (div 'id: "bar"
+       (form 'name: "filter" 'method: "GET"
+	     (label 'for: "region" "Select Region: ")
+	     (select 'name: "region"
+		     (optgroup 'label: "Show all regions" (option 'value: "" "Any"))
+		     (optgroup 'label: "K-Space"
+			       (map option (filter (lambda (x) (regexp-match "^(?![A-Z0-9]-)" x)) region-list)))
+		     (optgroup 'label: "W-Space"
+			       (map option (filter (lambda (x) (regexp-match "^[A-Z0-9]-" x)) region-list))))
+	     (input 'type: "submit"))))

@@ -26,3 +26,6 @@
 
 (define (timerboard-query)
   (map vector->list (query-rows sqlc "SELECT * FROM customTimerboard ORDER BY datetime")))
+
+(define (timerboard-query-region query)
+  (map vector->list (query-rows sqlc "SELECT * FROM customTimerboard WHERE region = ? ORDER BY datetime" query)))

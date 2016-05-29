@@ -141,6 +141,13 @@
 (define (sql-moon-get-towers)
   (query-rows sqlc "SELECT * FROM moonScanView"))
 
+(define (user-filter-regions lst #:filter-function filter-function #:function function)
+  (cond
+   [(not (empty? (query-regions lst)))
+    (append-map (lambda (region) (filter-function region))
+		(query-regions lst))]
+   [else function]))
+
 ;; Servlet
 
 (define (main req)
@@ -297,16 +304,7 @@
 		 (literal (style/inline 'type: "text/css" "tr.offline, span.offline { color: gray; }"))
 		 (literal (style/inline 'type: "text/css" "tr.rescan, span.rescan { background-color: orange; }"))))
 	  (body
-	   (div 'id: "bar"
-		(form 'name: "filter" 'method: "GET"
-		      (label 'for: "region" "Select Region: ")
-		      (select 'name: "region"
-			      (optgroup 'label: "Show all regions" (option 'value: "" "Any"))
-			      (optgroup 'label: "K-Space"
-					(map option (filter (lambda (x) (regexp-match "^(?![A-Z0-9]-)" x)) regions)))
-			      (optgroup 'label: "W-Space"
-					(map option (filter (lambda (x) (regexp-match "^[A-Z0-9]-" x)) regions))))
-		      (input 'type: "submit")))
+	   (output:create-region-filter regions)
 	   (div 'id: "content"
 		(h1 "Moon Scan Data")
 		(output:create-html-hint (output:create-html-legend))
@@ -317,14 +315,51 @@
 					  #:drop-right 2
 					  #:head (list "Region" "Constellation" "System" "Planet" "Moon" "CT"
 						       "Alliance" "AT" "Corporation" "Date" "Tower" "Goo")
-					  (cond
-					   [(not (empty? (query-regions filter_region)))
-					    (append-map (lambda (region) (sql-moon-region-towers region))
-							(query-regions filter_region))]
-					   [else (map vector->list (sql-moon-get-towers))]))
+					  (user-filter-regions filter_region
+							       #:filter-function sql-moon-region-towers
+							       #:function (map vector->list (sql-moon-get-towers))))
 		(output:create-html-hint :updated))))
 	 port))))]
-   
+
+   [(equal? page "timers")
+
+    (define (get-regions req)
+      (match
+	(bindings-assq
+	 #"region"
+	 (request-bindings/raw req))
+	[(? binding:form? b)
+	 (list
+	  (bytes->string/utf-8
+	   (binding:form-value b)))]
+	[_ null]))
+
+    (define filter_region (get-regions req))
+    
+    (send/back
+     (response/output
+      (lambda (port)
+	(output-xml (doctype 'html) port)
+	(output-xml
+	 (html
+	  (output:create-html-head #:title "Fuzzysov Timer Board" #:sort-column 5
+				   (list
+				    (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
+				    (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
+	  (body
+	   (output:create-region-filter regions)
+	   (h1 "Fuzzysov Timer Board")
+	   (output:create-html-hint "Note: Sovereignty data is updated every 10 minutes")
+	   (output:create-html-hint :tablesorter)
+	   (output:create-html-table #:id "timers"
+				     #:head (list "Alliance" "Structure" "System"
+						  "Constellation" "Region" "Date")
+				     (user-filter-regions filter_region
+							  #:filter-function timerboard-query-region
+							  #:function (timerboard-query)))
+	   (output:create-html-hint :updated)))
+	 port))))]
+
    ;; url: valid file
    [(and (not (string-empty? page))
 	 (not (equal? (filename-extension page) #"rkt"))
