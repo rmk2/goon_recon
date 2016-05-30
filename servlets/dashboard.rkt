@@ -177,7 +177,7 @@
 	(body
 	 (div 'id: "content"
 	      (h1 "Dashboard")
-	      (form 'action: (main-url exec-result) 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #t
+	      (form 'action: "result" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #t
 		    (fieldset
 		     (legend "D-Scan reporting")
 		     (br)
@@ -263,7 +263,7 @@
 	      (br)
 	      (br)
 	      (hr)
-	      (form 'action: (main-url exec-report) (input 'type: "submit" 'value: "Return to Dashboard")))))
+	      (form 'action: "report" (input 'type: "submit" 'value: "Return to Dashboard")))))
        port)))))
 
 (define (exec-moon-database req)
