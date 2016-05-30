@@ -18,9 +18,10 @@
 
 (define-values (main-dispatch main-url)
   (dispatch-rules
-   [("report") exec-report]
-   [("result") #:method "post" exec-result]
-   [("moon-database") exec-moon-database]
+   [("recon" "report") exec-report]
+   [("recon" "result") #:method "post" exec-result]
+   [("recon" "moon-database") exec-moon-database]
+   [("recon" "timers") exec-timers]
    [("timers") exec-timers]))
 
 (define (main req)
