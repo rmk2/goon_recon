@@ -5,7 +5,9 @@
 
 ;; Read from stdin
 
-(define pipe-input (cdr (append* (second (read)))))
+(define pipe-input (let ([input (second (read))])
+		     (cond [(empty? input) (exit 0)]
+			   [else (cdr (append* input))])))
 
 ;; Write to database
 

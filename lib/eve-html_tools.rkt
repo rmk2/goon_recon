@@ -57,7 +57,7 @@
        (list
 	(literal (style/inline 'type: "text/css" "th.header { background: url(\"data:image/gif;base64, R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==\") no-repeat 99% ; margin-left: -1px; background-position: center left; padding: .2em 1.33em; text-align: left; } th.headerSortUp { background: url(\"data:image/gif;base64, R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7\") no-repeat 99% ; } th.headerSortDown { background: url(\"data:image/gif;base64, R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7\") no-repeat 99% ; }"))
 	(script 'type: "text/javascript" 'src: "https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js")
-	(script 'type: "text/javascript" 'src: "https://raw.githubusercontent.com/christianbach/tablesorter/774576308e8a25aa9d68b7fe3069b79543992d7a/jquery.tablesorter.min.js")
+	(script 'type: "text/javascript" 'src: "https://eve.rmk2.org/js/jquery.tablesorter.min.js")
 	(script (literal (string-append "$(document).ready(function() { $(\"*\").tablesorter( { sortList: [["
 					(number->string sort-column)
 					",0]] } ); });"))))
