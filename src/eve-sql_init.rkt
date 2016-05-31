@@ -25,6 +25,11 @@
 (sql-moon-create-raw)
 (sql-moon-create-view)
 
+;; Create tower kill tables
+
+(sql-tower-create-raw)
+(sql-tower-create-view)
+
 ;; Create timerboard table
 
 (timerboard-prepare-table)
