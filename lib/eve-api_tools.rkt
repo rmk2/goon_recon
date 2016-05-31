@@ -120,6 +120,23 @@
 	      (map (lambda (id-list) (api-affiliation (string-join id-list ",")))
 		   (split-list (flatten lst) (chunk-size)))))
 
+;; XML APIv2: translate corporationID -> corporationSheet, output: hash
+
+(define (hash-poll-corporations lst)
+  (map (lambda (id) (make-hash
+		     (result->list
+		      (string->xexpr
+		       (xml-api (string-append api-root "/corp/CorporationSheet.xml.aspx?corporationID=" id))))))
+       lst))
+
+;; XML APIv2: extract corporationID,Ticker,corporationName from corporationSheet, output: list
+
+(define (hash-parse-corporations lst)
+  (map (lambda (corp) (list (hash-ref corp 'corporationID)
+			    (hash-ref corp 'ticker)
+			    (hash-ref corp 'corporationName)))
+       lst))
+
 ;; Run a function with rate limiting, defined by (query-limit), with x second delay
 ;; (query-limit) requests per second with (chunk-size) list items per request
 

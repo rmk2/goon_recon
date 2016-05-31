@@ -3,8 +3,15 @@
 
 (require eve)
 
-(define (query-unknown-corporations)
+;; Database
+
+(define (query-scan-unknown-corporations)
   (query-rows sqlc "SELECT allianceTicker FROM moonScanView WHERE corporationName IS NULL"))
+
+(define (query-kill-unknown-corporations)
+  (query-rows sqlc "SELECT towerKillRaw.corporationID FROM towerKillRaw LEFT JOIN customCorporations ON customCorporations.corporationID = towerKillRaw.corporationID WHERE corporationName IS NULL"))
+
+;; Extract corporationIDs from CREST allianceSheet
 
 (define (extract-corporationids v)
   (filter-map (lambda (x) (cond
@@ -19,34 +26,34 @@
 (define (parse-corporationids lst)
   (map (lambda (corp) (hash-ref corp 'id_str)) (hash-ref lst 'corporations)))
 
-(define (hash-poll-corporations lst)
-  (map (lambda (id) (make-hash
-		     (result->list
-		      (string->xexpr
-		       (xml-api (string-append api-root "/corp/CorporationSheet.xml.aspx?corporationID=" id))))))
-       lst))
+;; Update polled towers from moonScanRaw
 
-(define (hash-parse-corporations lst)
-  (map (lambda (corp) (list (hash-ref corp 'corporationID)
-			    (hash-ref corp 'ticker)
-			    (hash-ref corp 'corporationName)))
-       lst))
-
-(define (main-poll id)
+(define (scan-unknown-poll id)
   (exec-limit-api-rate #:function hash-poll-corporations
 		       #:input (parse-corporationids (crest-poll-allianceid id))
 		       #:delay 1
 		       #:digest hash-parse-corporations
 		       #:limit 30))
 
-(define (main input)
+(define (scan-unknown input)
   (for-each (lambda (alliance)
 	      (begin
 		(log-debug (format "[debug] Writing corporations for alliance ~s to database" alliance))
 		(sql-corporation-update-corporations
-		 (main-poll (parse-alliance :id alliance)))))
+		 (scan-unknown-poll (parse-alliance :id alliance)))))
 	    input))
+
+;; Update polled towers from towerKillRaw
+
+(define (tower-unknown-poll lst)
+  (exec-limit-api-rate #:function hash-poll-corporations
+		       #:input (map (lambda (x) (number->string (vector->values x))) lst)
+		       #:delay 1
+		       #:digest hash-parse-corporations
+		       #:limit 30))
 
 ;; Exec
 
-(main (remove-duplicates (extract-corporationids (query-unknown-corporations))))
+(scan-unknown (remove-duplicates (extract-corporationids (query-scan-unknown-corporations))))
+
+(sql-corporation-update-corporations (tower-unknown-poll (query-kill-unknown-corporations)))
