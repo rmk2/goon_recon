@@ -56,4 +56,4 @@
 
 (scan-unknown (remove-duplicates (extract-corporationids (query-scan-unknown-corporations))))
 
-(sql-corporation-update-corporations (tower-unknown-poll (query-kill-unknown-corporations)))
+(sql-corporation-update-corporations (tower-unknown-poll (remove-duplicates (query-kill-unknown-corporations))))
