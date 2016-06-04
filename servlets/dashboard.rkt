@@ -38,50 +38,24 @@
 
 ;; d-scan -> scan data
 
-(define (guess-or-location? lst location)
-  (let ([guess (guess->location (dscan-guess-location lst))])
-    (cond
-     [(null? guess) (if (system? location)
-			(let ([location-base (parse-solarsystem location)])
-			  (list (parse-universe :region location-base)
-				(parse-universe :constellation location-base)
-				(parse-universe :id location-base)))
-			null)]
-     [else guess])))
-
 (define (moonscan input #:corporation corporation #:alliance alliance)
-  (if (< (hash-ref (dscan-proximity (moon? input)) 'distance) (max_distance))
-      (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)]
-	    [tower (hash-ref (dscan-proximity (tower? input)) 'type)])
-	(flatten
-	 (list
-	  (parse-map :region moon)
-	  (parse-map :constellation moon)
-	  (parse-map :system moon)
-	  (cdr (split-moon-display moon))
-	  (fill-alliance (list alliance) (list corporation))
-	  ;;	  (if (string-empty? alliance) sql-null (string-upcase alliance))
-	  (if (string-empty? corporation) sql-null (string-upcase corporation))
-	  (srfi-date->sql-timestamp (current-date))
-	  (parse-type :id tower)
-	  (if (and (dscan-proximity (forcefield? input))
-		   (< (hash-ref (dscan-proximity (forcefield? input)) 'distance) (max_distance)))
-	      1
-	      0))))
-      #f))
-
-(define (citadelscan input #:corporation corporation #:alliance alliance #:location location)
-  (if (< (hash-ref (dscan-proximity (citadel? input)) 'distance) (max_distance))
-      (let ([citadel (hash-ref (dscan-proximity (citadel? input)) 'type)])
-	(flatten
-	 (list
-	  (guess-or-location? input location)
-	  "locationid"
-	  (fill-alliance (list alliance) (list corporation))
-	  (if (string-empty? corporation) sql-null (string-upcase corporation))
-	  (srfi-date->sql-timestamp (current-date))
-	  (parse-type :id citadel))))
-      #f))
+  (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)]
+	[tower (hash-ref (dscan-proximity (tower? input)) 'type)])
+    (flatten
+     (list
+      (parse-map :region moon)
+      (parse-map :constellation moon)
+      (parse-map :system moon)
+      (cdr (split-moon-display moon))
+      (fill-alliance (list alliance) (list corporation))
+      ;;	  (if (string-empty? alliance) sql-null (string-upcase alliance))
+      (if (string-empty? corporation) sql-null (string-upcase corporation))
+      (srfi-date->sql-timestamp (current-date))
+      (parse-type :id tower)
+      (if (and (dscan-proximity (forcefield? input))
+	       (< (hash-ref (dscan-proximity (forcefield? input)) 'distance) (max_distance)))
+	  1
+	  0)))))
 
 ;; Check if a given query string is a valid solarSystemName
 
@@ -115,31 +89,6 @@
 	       (seventh result)
 	       "]"))))
 
-(define (pretty-print-citadel-result data result)
-  (if (= (length result) 8)
-      (format "~a: ~a @ ~akm, belonging to ~a"
-	      (parse-solarsystem :name (third result))
-	      (hash-ref (dscan-proximity (citadel? data)) 'type)
-	      (hash-ref (dscan-proximity (citadel? data)) 'distance)
-	      (if (sql-null? (sixth result))
-		  "-"
-		  (string-append
-		   (let ([corporation (parse-corporation (sixth result))])
-		     (if (false? corporation)
-			 "? "
-			 (vector-ref corporation 2)))
-		   "["
-		   (sixth result)
-		   "]")))
-      "No valid location found"))
-
-(define location (make-parameter ""))
-
-(define (location? query)
-  (if (false? (query-maybe-row sqlc "SELECT * FROM mapDenormalize WHERE itemName = ?" query))
-      #f
-      query))
-
 ;; Moon database
 
 (define regions
@@ -164,54 +113,86 @@
 		(query-regions lst))]
    [else function]))
 
+(define (get-regions req)
+  (match
+    (bindings-assq
+     #"region"
+     (request-bindings/raw req))
+    [(? binding:form? b)
+     (list
+      (bytes->string/utf-8
+       (binding:form-value b)))]
+    [_ null]))
+
 ;; Servlet
 
 (define (exec-report req)
-  (send/back
-   (response/output
-    (lambda (port)
-      (output-xml (doctype 'html) port)
-      (output-xml
-       (html
-	(output:create-html-head #:title "Dashboard" #:tablesorter #f)
-	(body
-	 (div 'id: "content"
-	      (h1 "Dashboard")
-	      (form 'action: "result" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #t
-		    (fieldset
-		     (legend "D-Scan reporting")
-		     (br)
-		     "Corporation Ticker: "
-		     (input 'type: "text" 'name: "corporation" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
-		     "Alliance Ticker: "
-		     (input 'type: "text" 'name: "alliance" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on")
-		     (br)
-		     (br)
-		     (textarea 'name: "dscan" 'rows: "20" 'cols: "50")
-		     (br)
-		     (br)
-		     (input 'type: "checkbox" 'name: "checkbox" 'value: "chechbox" "Checkbox")
-		     (br)
-		     ;; (input 'type: "checkbox" 'name: "empty" 'value: "empty" "Empty (no tower)")
-		     ;; (br)
-		     ;; (p "Note: only enter a location if no celestial appears on D-Scan")
-		     ;; "Location: "
-		     ;; (input 'type: "text" 'name: "location" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
-		     ;; (br)
-		     (br)
-		     (input 'type: "submit" 'value: "Submit"))))))
-       port)))))
+  (define (response-generator k-url)
+    (response/output
+     (lambda (port)
+       (output-xml (doctype 'html) port)
+       (output-xml
+	(html
+	 (output:create-html-head #:title "Dashboard" #:tablesorter #f)
+	 (body
+	  (div 'id: "content"
+	       (h1 "Dashboard")
+	       (form 'action: "result" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #t
+		     (fieldset
+		      (legend "D-Scan reporting")
+		      (br)
+		      "Corporation Ticker: "
+		      (input 'type: "text" 'name: "corporation" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
+		      "Alliance Ticker: "
+		      (input 'type: "text" 'name: "alliance" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on")
+		      (br)
+		      (br)
+		      (textarea 'name: "dscan" 'rows: "20" 'cols: "50")
+		      (br)
+		      (br)
+		      (input 'type: "checkbox" 'name: "checkbox" 'value: "chechbox" "Checkbox")
+		      (br)
+		      ;; (input 'type: "checkbox" 'name: "empty" 'value: "empty" "Empty (no tower)")
+		      ;; (br)
+		      ;; (p "Note: only enter a location if no celestial appears on D-Scan")
+		      ;; "Location: "
+		      ;; (input 'type: "text" 'name: "location" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
+		      ;; (br)
+		      (br)
+		      (input 'type: "submit" 'value: "Submit"))))))
+	port))))
+  (send/forward response-generator))
 
 
-(define (exec-result req) 
+(define (exec-result req)
+  (define (response-generator k-url)
+    (response/output
+     (lambda (port)
+       (output-xml (doctype 'html) port)
+       (output-xml
+	(html
+	 (output:create-html-head #:title "Dashboard Scan Result" #:tablesorter #f)
+	 (body
+	  (div 'id: "content"
+	       (h1 (pretty-print-location (guess->location (dscan-guess-location data))))
+	       (b "Scan Result: ")
+	       (cond
+		[(not (false? moonscan-result)) (pretty-print-moon-result data moonscan-result)]
+		[else "No structure found in close proximity"])
+	       (br)
+	       (br)
+	       (hr)
+	       (form 'action: "report" (input 'type: "submit" 'value: "Return to Dashboard")))))
+	port))))
+  
   (define post-data (bytes->string/utf-8 (request-post-data/raw req)))
   (define form-data (form-urlencoded->alist post-data))
 
-  (define corporation    (cdr (assq 'corporation form-data)))
-  (define alliance (cdr (assq 'alliance form-data)))
-  (define dscan (cdr (assq 'dscan form-data)))
-  ;; (define location (cdr (assq 'location form-data)))
-
+  (define-values (corporation alliance dscan)
+    (vector->values
+     (list->vector
+      (map cdr (form-urlencoded->alist post-data)))))
+  
   (define data
     (dscan-list->hash
      (dscan-normalise-distance
@@ -221,138 +202,84 @@
     (cond
      [(or (string-empty? dscan)
 	  (false? (dscan-proximity (tower? data)))
-	  (false? (dscan-proximity (moon? data))))
+	  (false? (dscan-proximity (moon? data)))
+	  (> (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance)))
       #f]
-     [else (let ([result (moonscan data #:corporation corporation #:alliance alliance)])
-	     (if (false? result)
-		 #f
-		 result))]))
-
-  (define citadelscan-result
-    (cond
-     [(or (string-empty? dscan)
-	  (false? (dscan-proximity (citadel? data))))
-      #f]
-     [else (let ([result (citadelscan data #:corporation corporation #:alliance alliance #:location (location))])
-	     (if (false? result)
-		 #f
-		 result))]))
+     [else (moonscan data #:corporation corporation #:alliance alliance)]))
 
   (when (not (false? moonscan-result))
     (sql-moon-update-scan (list moonscan-result)))
 
-  ;; (when (and (not (false? citadelscan-result))
-  ;; 	       (not (null? guess-or-location? data (location))))
-  ;;   (sql-citadel-update-scan (list citadelscan-result)))
-
-  (send/back
-   (response/output
-    (lambda (port)
-      (output-xml (doctype 'html) port)
-      (output-xml
-       (html
-	(output:create-html-head #:title "Dashboard Scan Result" #:tablesorter #f)
-	(body
-	 (div 'id: "content"
-	      (h1 (pretty-print-location (guess-or-location? data (location))))
-	      (b "Scan Result: ")
-	      (cond
-	       [(not (false? moonscan-result)) (pretty-print-moon-result data moonscan-result)]
-	       [(not (false? citadelscan-result)) (pretty-print-citadel-result data citadelscan-result)]
-	       [else "No structure found in close proximity"])
-	      (br)
-	      (br)
-	      (hr)
-	      (form 'action: "report" (input 'type: "submit" 'value: "Return to Dashboard")))))
-       port)))))
+  (send/forward response-generator))
 
 (define (exec-moon-database req)
-  (define (get-regions req)
-    (match
-      (bindings-assq
-       #"region"
-       (request-bindings/raw req))
-      [(? binding:form? b)
-       (list
-	(bytes->string/utf-8
-	 (binding:form-value b)))]
-      [_ null]))
+  (define (response-generator k-url)
+    (response/output
+     (lambda (port)
+       (output-xml (doctype 'html) port)
+       (output-xml
+	(html
+	 (output:create-html-head
+	  #:title "Moon Scan Data"
+	  #:tablesorter #t
+	  #:sort-column 0
+	  (list (literal (style/inline 'type: "text/css" "tr > td[class=\"LOLTX\"], tr > td[class=\"OHGOD\"] { background-color: #4D6EFF; color: white; }"))
+		(literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
+		(literal (style/inline 'type: "text/css" "td { white-space: normal; }"))
+		(literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))
+		(literal (style/inline 'type: "text/css" "span { margin: 0 .25em; }"))
+		(literal (style/inline 'type: "text/css" "tr.offline, span.offline { color: gray; }"))
+		(literal (style/inline 'type: "text/css" "tr.rescan, span.rescan { background-color: orange; }"))))
+	 (body
+	  (output:create-region-filter regions)
+	  (div 'id: "content"
+	       (h1 "Moon Scan Data")
+	       (output:create-html-hint (output:create-html-legend))
+	       (output:create-html-hint (format "Results filtered for: Region (~a)"
+						(string-join (query-regions filter_region)  "|")))
+	       (output:create-html-hint :tablesorter)
+	       (output:create-html-table #:ticker->class #t
+					 #:drop-right 2
+					 #:head (list "Region" "Constellation" "System" "Planet" "Moon" "CT"
+						      "Alliance" "AT" "Corporation" "Date" "Tower" "Goo")
+					 (user-filter-regions filter_region
+							      #:filter-function sql-moon-region-towers
+							      #:function (map vector->list (sql-moon-get-towers))))
+	       (output:create-html-hint :updated))))
+	port))))
 
   (define filter_region (get-regions req))
 
-  (send/back
-   (response/output
-    (lambda (port)
-      (output-xml (doctype 'html) port)
-      (output-xml
-       (html
-	(output:create-html-head
-	 #:title "Moon Scan Data"
-	 #:tablesorter #t
-	 #:sort-column 0
-	 (list (literal (style/inline 'type: "text/css" "tr > td[class=\"LOLTX\"], tr > td[class=\"OHGOD\"] { background-color: #4D6EFF; color: white; }"))
-	       (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
-	       (literal (style/inline 'type: "text/css" "td { white-space: normal; }"))
-	       (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))
-	       (literal (style/inline 'type: "text/css" "span { margin: 0 .25em; }"))
-	       (literal (style/inline 'type: "text/css" "tr.offline, span.offline { color: gray; }"))
-	       (literal (style/inline 'type: "text/css" "tr.rescan, span.rescan { background-color: orange; }"))))
-	(body
-	 (output:create-region-filter regions)
-	 (div 'id: "content"
-	      (h1 "Moon Scan Data")
-	      (output:create-html-hint (output:create-html-legend))
-	      (output:create-html-hint (format "Results filtered for: Region (~a)"
-					       (string-join (query-regions filter_region)  "|")))
-	      (output:create-html-hint :tablesorter)
-	      (output:create-html-table #:ticker->class #t
-					#:drop-right 2
-					#:head (list "Region" "Constellation" "System" "Planet" "Moon" "CT"
-						     "Alliance" "AT" "Corporation" "Date" "Tower" "Goo")
-					(user-filter-regions filter_region
-							     #:filter-function sql-moon-region-towers
-							     #:function (map vector->list (sql-moon-get-towers))))
-	      (output:create-html-hint :updated))))
-       port)))))
+  (send/forward response-generator))
 
 (define (exec-timers req)
-  
-  (define (get-regions req)
-    (match
-      (bindings-assq
-       #"region"
-       (request-bindings/raw req))
-      [(? binding:form? b)
-       (list
-	(bytes->string/utf-8
-	 (binding:form-value b)))]
-      [_ null]))
+  (define (response-generator k-url)
+    (response/output
+     (lambda (port)
+       (output-xml (doctype 'html) port)
+       (output-xml
+	(html
+	 (output:create-html-head #:title "Fuzzysov Timer Board" #:sort-column 5
+				  (list
+				   (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
+				   (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
+	 (body
+	  (output:create-region-filter regions)
+	  (h1 "Fuzzysov Timer Board")
+	  (output:create-html-hint "Note: Sovereignty data is updated every 10 minutes")
+	  (output:create-html-hint :tablesorter)
+	  (output:create-html-table #:id "timers"
+				    #:head (list "Alliance" "Structure" "System"
+						 "Constellation" "Region" "Date")
+				    (user-filter-regions filter_region
+							 #:filter-function timerboard-query-region
+							 #:function (timerboard-query)))
+	  (output:create-html-hint :updated)))
+	port))))
 
   (define filter_region (get-regions req))
-  
-  (send/back
-   (response/output
-    (lambda (port)
-      (output-xml (doctype 'html) port)
-      (output-xml
-       (html
-	(output:create-html-head #:title "Fuzzysov Timer Board" #:sort-column 5
-				 (list
-				  (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
-				  (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
-	(body
-	 (output:create-region-filter regions)
-	 (h1 "Fuzzysov Timer Board")
-	 (output:create-html-hint "Note: Sovereignty data is updated every 10 minutes")
-	 (output:create-html-hint :tablesorter)
-	 (output:create-html-table #:id "timers"
-				   #:head (list "Alliance" "Structure" "System"
-						"Constellation" "Region" "Date")
-				   (user-filter-regions filter_region
-							#:filter-function timerboard-query-region
-							#:function (timerboard-query)))
-	 (output:create-html-hint :updated)))
-       port)))))
+
+  (send/forward response-generator))
 
 (serve/servlet main
 	       #:stateless? #t
