@@ -19,8 +19,8 @@ racket servlets/dashboard.rkt
 
 ## Partial database setup
 
-Running `eve-sql_init.rkt` will all necessary database tables *that do not
-require to be bootstrapped*. This script will also query CCP's XML APIv2
+Running `eve-sql_init.rkt` will create all necessary database tables *that do
+not require to be bootstrapped*. This script will also query CCP's XML APIv2
 alliance endpoint for a current list of all existing alliances; it is safe to
 re-run this script, as it will not overwrite any data other than alliances in
 `customAlliances`. Due to limitations in data that is publicly obtainable, it
@@ -38,7 +38,7 @@ mapRegions
 mapSolarSystems
 ```
 
-Eve player Steve Ronuken (CSM 9 & 10 Member) hosts individual tables as well
+EVE player Steve Ronuken (CSM 9 & 10 Member) hosts individual tables as well
 as full conversions to a number of formats, including mySQL, on his website,
 which is recommend especially since CCP started shipping the SDE as YAML
 files, rather than direct SQL exports as they used to in the past. Tables can
@@ -108,4 +108,4 @@ Run (or schedule) `eve-api_corporations.rkt` periodically, which tries to
 resolve unknown corporations if we either have a valid alliance for them (in
 the case of partially entered data from a moon scan) or, ideally, if we simply
 have a corporationID, as is the case with automatically retrieved from
-zkillboard.com
+zkillboard.com.
