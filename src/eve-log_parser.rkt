@@ -77,7 +77,7 @@
 (define (cartesian-distance origin target)
   (sqrt (apply + (map (lambda (i n) (expt (- i n) 2)) origin target))))
 
-(define (parse-nearest-celestial #:solarSystemID id #:anomaly anom)
+(define (parse-nearest-celestial #:systemid id #:anomaly anom)
   (let ([anomaly-coord (list (anomaly-x anom) (anomaly-y anom) (anomaly-z anom))])
     (caar
      (sort
@@ -104,7 +104,7 @@
 				  (ccm-string->hash ccm-test)))])
   (list
    (anomaly-itemID citadel)
-   (parse-nearest-celestial #:solarSystemID system #:anomaly citadel)
+   (parse-nearest-celestial #:systemid system #:anomaly citadel)
    (hash-ref citadel-data 'typeID)
    (hash-ref citadel-data 'corpID)
    (hash-ref citadel-data 'allianceID)
