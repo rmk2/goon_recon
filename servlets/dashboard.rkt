@@ -47,9 +47,8 @@
       (parse-map :constellation moon)
       (parse-map :system moon)
       (cdr (split-moon-display moon))
-      (fill-alliance (list alliance) (list corporation))
-      ;;	  (if (string-empty? alliance) sql-null (string-upcase alliance))
-      (if (string-empty? corporation) sql-null (string-upcase corporation))
+      (fill-alliance #:alliance alliance #:corporation corporation)
+      (if (string-empty? corporation) "" (string-upcase corporation))
       (srfi-date->sql-timestamp (current-date))
       (parse-type :id tower)
       (if (and (dscan-proximity (forcefield? input))
@@ -142,7 +141,7 @@
 		      (legend "D-Scan reporting")
 		      (br)
 		      "Corporation Ticker: "
-		      (input 'type: "text" 'name: "corporation" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
+		      (input 'type: "text" 'name: "corporation" 'maxlength: "5" 'size: "5" 'required: #t 'autocomplete: "on" 'style: "margin-right:1em;")
 		      "Alliance Ticker: "
 		      (input 'type: "text" 'name: "alliance" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on")
 		      (br)
@@ -240,8 +239,8 @@
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table #:ticker->class #t
 					 #:drop-right 2
-					 #:head (list "Region" "Constellation" "System" "Planet" "Moon" "CT"
-						      "Alliance" "AT" "Corporation" "Date" "Tower" "Goo")
+					 #:head (list "Region" "Constellation" "System" "Planet" "Moon" "AT"
+						      "Alliance" "CT" "Corporation" "Date" "Tower" "Goo")
 					 (user-filter-regions filter_region
 							      #:filter-function sql-moon-region-towers
 							      #:function (map vector->list (sql-moon-get-towers))))

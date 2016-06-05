@@ -21,17 +21,16 @@
 			  "/corp/CorporationSheet.xml.aspx?corporationID="
 			  (number->string id))))))))
 
-(define (fill-alliance alliance corporation)
-  (let ([try-corp (if (parse-corporation (car corporation))
-		      (corporation-to-alliance (parse-corporation :id (car corporation)))
+(define (fill-alliance #:alliance alliance #:corporation corporation)
+  (let ([try-corp (if (parse-corporation corporation)
+		      (corporation-to-alliance (parse-corporation :id corporation))
 		      "0")])		      
     (cond
-     [(not (string-empty? (car alliance))) (map string-upcase alliance)]
-     [(and (string-empty? (car alliance)) (list? corporation))
-      (if (or (false? try-corp) (zero? (string->number try-corp)))
-	  sql-null
-	  (parse-alliance :ticker try-corp))]
-     [else sql-null])))
+     [(not (string-empty? alliance)) (string-upcase alliance)]
+     [(and (string-empty? alliance) (string? corporation)
+	   (not (false? try-corp)) (not (zero? (string->number try-corp))))
+      (parse-alliance :ticker try-corp)]
+     [else ""])))
 
 ;; D-Scan munching
 
