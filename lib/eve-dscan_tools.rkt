@@ -22,7 +22,8 @@
 			  (number->string id))))))))
 
 (define (fill-alliance #:alliance alliance #:corporation corporation)
-  (let ([try-corp (if (parse-corporation corporation)
+  (let* ([corporation (if (string? corporation) (string-upcase corporation) "")]
+	 [try-corp (if (parse-corporation corporation)
 		      (corporation-to-alliance (parse-corporation :id corporation))
 		      "0")])		      
     (cond
