@@ -22,10 +22,10 @@
 
 (define (simplify-moon-display str)
   (cond [(regexp-match? #px"[A-Za-z0-9-]+\\s\\w+\\s[IVXL]+[ -]{3}\\w+\\s(\\d)" str)
-	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+\\s\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d)" str)])
+	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+\\s\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d+)" str)])
 	   (format "~a ~a-~a" (second lst) (roman->int (third lst)) (fourth lst)))]
 	[(regexp-match? #px"([A-Za-z0-9-]+)\\s([IVXL]+[ -]{3}\\w+\\s(\\d))" str)
-	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d)" str)])
+	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d+)" str)])
 	   (format "~a ~a-~a" (second lst) (roman->int (third lst)) (fourth lst)))]
 	[else str]))
 
@@ -34,10 +34,10 @@
 
 (define (split-moon-display str)
   (cond [(regexp-match? #px"[A-Za-z0-9-]+\\s\\w+\\s[IVXL]+[ -]{3}\\w+\\s(\\d)" str)
-	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+\\s\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d)" str)])
+	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+\\s\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d+)" str)])
 	   (list (second lst) (roman->int (third lst)) (string->number (fourth lst))))]
 	[(regexp-match? #px"([A-Za-z0-9-]+)\\s([IVXL]+[ -]{3}\\w+\\s(\\d))" str)
-	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d)" str)])
+	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d+)" str)])
 	   (list (second lst) (roman->int (third lst)) (string->number (fourth lst))))]))
 
 ;; Translate
