@@ -130,7 +130,7 @@
 	 (body
 	  (div 'id: "content"
 	       (h1 "Dashboard")
-	       (form 'action: "result" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #t
+	       (form 'action: "result" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
 		     (fieldset
 		      (legend "D-Scan reporting")
 		      (br)
@@ -140,7 +140,7 @@
 		      (input 'type: "text" 'name: "alliance" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on")
 		      (br)
 		      (br)
-		      (textarea 'name: "dscan" 'rows: "20" 'cols: "50")
+		      (textarea 'name: "dscan" 'rows: "20" 'cols: "50" 'required: #t)
 		      (br)
 		      (br)
 		      (input 'type: "checkbox" 'name: "checkbox" 'value: "chechbox" "Checkbox")
