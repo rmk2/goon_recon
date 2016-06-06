@@ -27,7 +27,7 @@
 	    lst))
 
 (define (sql-query-alliances)
-  (map vector->list (query-rows sqlc "SELECT * FROM customAlliances")))
+  (map vector->list (query-rows sqlc "SELECT allianceID,allianceName,allianceTicker FROM customAlliances")))
 
 (define (sql-alliance-get-allianceids)
   (query-rows sqlc "SELECT allianceID FROM customAlliances"))

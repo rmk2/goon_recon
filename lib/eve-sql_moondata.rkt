@@ -71,3 +71,9 @@
 				      "LEFT JOIN towerKillRaw ON scan.solarSystemID = towerKillRaw.solarSystemID "
 				      "AND scan.planet = towerKillRaw.planet "
 				      "AND scan.moon = towerKillRaw.moon"))))
+
+(define (sql-moon-region-towers param)
+  (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus FROM moonScanView WHERE regionName LIKE ?" param)))
+
+(define (sql-moon-get-towers)
+  (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus FROM moonScanView"))

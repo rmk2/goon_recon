@@ -99,12 +99,6 @@
 				  [(and (not (empty? lst)) (string-empty? (car lst))) null]
 				  [else (filter-map region? (string-split (car lst) ","))]))
 
-(define (sql-moon-region-towers param)
-  (map vector->list (query-rows sqlc "SELECT * FROM moonScanView WHERE regionName LIKE ?" param)))
-
-(define (sql-moon-get-towers)
-  (query-rows sqlc "SELECT * FROM moonScanView"))
-
 (define (user-filter-regions lst #:filter-function filter-function #:function function)
   (cond
    [(not (empty? (query-regions lst)))
