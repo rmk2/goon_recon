@@ -143,7 +143,7 @@
 		      (textarea 'name: "dscan" 'rows: "20" 'cols: "50" 'required: #t)
 		      (br)
 		      (br)
-		      (input 'type: "checkbox" 'name: "checkbox" 'value: "chechbox" "Checkbox")
+		      (input 'type: "checkbox" "Checkbox")
 		      (br)
 		      ;; (input 'type: "checkbox" 'name: "empty" 'value: "empty" "Empty (no tower)")
 		      ;; (br)
