@@ -126,7 +126,7 @@
 ;; Servlet
 
 (define (exec-report req)
-  (define (response-generator k-url)
+  (define response-generator
     (response/output
      (lambda (port)
        (output-xml (doctype 'html) port)
@@ -160,11 +160,11 @@
 		      (br)
 		      (input 'type: "submit" 'value: "Submit"))))))
 	port))))
-  (send/forward response-generator))
+  (send/back response-generator))
 
 
 (define (exec-result req)
-  (define (response-generator k-url)
+  (define response-generator
     (response/output
      (lambda (port)
        (output-xml (doctype 'html) port)
@@ -209,10 +209,10 @@
   (when (not (false? moonscan-result))
     (sql-moon-update-scan (list moonscan-result)))
 
-  (send/forward response-generator))
+  (send/back response-generator))
 
 (define (exec-moon-database req)
-  (define (response-generator k-url)
+  (define response-generator
     (response/output
      (lambda (port)
        (output-xml (doctype 'html) port)
@@ -249,10 +249,10 @@
 
   (define filter_region (get-regions req))
 
-  (send/forward response-generator))
+  (send/back response-generator))
 
 (define (exec-timers req)
-  (define (response-generator k-url)
+  (define response-generator
     (response/output
      (lambda (port)
        (output-xml (doctype 'html) port)
@@ -278,7 +278,7 @@
 
   (define filter_region (get-regions req))
 
-  (send/forward response-generator))
+  (send/back response-generator))
 
 (serve/servlet main
 	       #:stateless? #t
