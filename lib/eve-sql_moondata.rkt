@@ -81,9 +81,9 @@
 (define (sql-goo-create-guess)
   (if (table-exists? sqlc "moonGooGuess")
       #t
-      (query sqlc "CREATE TABLE moonGooGuess (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL,moonType INT, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
+      (query-exec sqlc "CREATE TABLE moonGooGuess (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL,moonType INT, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
 
 (define (sql-goo-create-raw)
   (if (table-exists? sqlc "moonGooRaw")
       #t
-      (query sqlc "CREATE TABLE moonGooRaw (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL,moonType INT, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
+      (query-exec sqlc "CREATE TABLE moonGooRaw (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL,moonType INT, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
