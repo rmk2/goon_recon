@@ -78,6 +78,11 @@
 (define (sql-moon-get-towers)
   (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus FROM moonScanView"))
 
+(define (sql-moon-create-tasks)
+  (if (table-exists? sqlc "moonScanTasks")
+      #t
+      (query-exec sqlc "CREATE VIEW moonScanTasks AS SELECT regionName,constellationName, solarSystemName , planet , moon, allianceTicker, corporationTicker, datetime FROM moonScanView WHERE checkStatus = 'RESCAN'")))
+
 (define (sql-goo-create-guess)
   (if (table-exists? sqlc "moonGooGuess")
       #t
