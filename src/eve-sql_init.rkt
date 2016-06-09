@@ -23,7 +23,10 @@
 ;; Create moon scan tables
 
 (sql-moon-create-raw)
+(sql-moon-create-pseudomaterialized-view)
 (sql-moon-create-view)
+
+(sql-moon-create-triggers)
 
 ;; Create tower kill tables
 
