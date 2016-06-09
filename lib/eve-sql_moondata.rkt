@@ -126,7 +126,9 @@
 		    "LEFT JOIN towerKillRaw ON NEW.solarSystemID = towerKillRaw.solarSystemID "
 		    "AND NEW.planet = towerKillRaw.planet "
 		    "AND NEW.moon = towerKillRaw.moon "
-		    "WHERE solarSystemID=NEW.solarSystemID AND planet=NEW.planet AND moon=NEW.moon; "
+		    "WHERE moonScanRaw.solarSystemID=NEW.solarSystemID "
+		    "AND moonScanRaw.planet=NEW.planet "
+		    "AND moonScanRaw.moon=NEW.moon; "
 		    "END;")))
 
 (define (sql-moon-create-trigger-delete)
