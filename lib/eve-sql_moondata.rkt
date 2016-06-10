@@ -92,7 +92,7 @@
   (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,allianceTicker,corporationTicker,datetime,typeName FROM moonScanTasks"))
 
 (define (sql-moon-region-tasks param)
-  (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,allianceTicker,corporationTicker,datetime,typeName FROM moonScanTasks WHERE regionName LIKE ?" param))
+  (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,allianceTicker,corporationTicker,datetime,typeName FROM moonScanTasks WHERE regionName LIKE ?" param)))
 
 (define (sql-goo-create-guess)
   (if (table-exists? sqlc "moonGooGuess")
