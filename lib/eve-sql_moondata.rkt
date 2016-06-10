@@ -86,7 +86,13 @@
 (define (sql-moon-create-tasks)
   (if (table-exists? sqlc "moonScanTasks")
       #t
-      (query-exec sqlc "CREATE VIEW moonScanTasks AS SELECT regionName,constellationName, solarSystemName , planet , moon, allianceTicker, corporationTicker, datetime FROM moonScanMV WHERE checkStatus = 'RESCAN'")))
+      (query-exec sqlc "CREATE VIEW moonScanTasks AS SELECT regionName,constellationName,solarSystemName,planet,moon,allianceTicker,corporationTicker,datetime,typeName FROM moonScanMV WHERE checkStatus = 'RESCAN'")))
+
+(define (sql-moon-get-tasks)
+  (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,allianceTicker,corporationTicker,datetime,typeName FROM moonScanTasks"))
+
+(define (sql-moon-region-tasks param)
+  (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,allianceTicker,corporationTicker,datetime,typeName FROM moonScanTasks WHERE regionName LIKE ?" param))
 
 (define (sql-goo-create-guess)
   (if (table-exists? sqlc "moonGooGuess")

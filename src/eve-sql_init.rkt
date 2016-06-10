@@ -25,6 +25,7 @@
 (sql-moon-create-raw)
 (sql-moon-create-pseudomaterialized-view)
 (sql-moon-create-view)
+(sql-moon-create-tasks)
 
 (sql-moon-create-triggers)
 
