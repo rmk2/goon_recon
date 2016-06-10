@@ -271,7 +271,7 @@
 	       (output:create-html-table #:ticker->class #t
 					 #:drop-right 0
 					 #:head (list "Region" "Constellation" "System" "Planet" "Moon"
-						      "Alliance" "Corporation" "Date" "Tower")
+						      "A-T" "C-T" "Date" "Tower")
 					 (user-filter-regions filter_region
 							      #:filter-function sql-moon-region-tasks
 							      #:function (map vector->list (sql-moon-get-tasks))))
