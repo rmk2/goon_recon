@@ -21,11 +21,8 @@
 ;; (System Planet-Moon), outputting a string as result
 
 (define (simplify-moon-display str)
-  (cond [(regexp-match? #px"[A-Za-z0-9-]+\\s\\w+\\s[IVXL]+[ -]{3}\\w+\\s(\\d)" str)
-	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+\\s\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d+)" str)])
-	   (format "~a ~a-~a" (second lst) (roman->int (third lst)) (fourth lst)))]
-	[(regexp-match? #px"([A-Za-z0-9-]+)\\s([IVXL]+[ -]{3}\\w+\\s(\\d))" str)
-	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d+)" str)])
+  (cond [(regexp-match? #px"([A-Za-z0-9-]+\\s{0,1}\\w*)\\s([IVXL]+)\\s{0,1}[A-Za-z\\(\\)]*[ -]{3}\\w+\\s(\\d)" str)
+	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+\\s{0,1}\\w*)\\s([IVXL]+)\\s{0,1}[A-Za-z\\(\\)]*[ -]{3}\\w+\\s(\\d)" str)])
 	   (format "~a ~a-~a" (second lst) (roman->int (third lst)) (fourth lst)))]
 	[else str]))
 
@@ -33,11 +30,8 @@
 ;; Moon[INT]), which is useful if they are to end up in an sql table
 
 (define (split-moon-display str)
-  (cond [(regexp-match? #px"[A-Za-z0-9-]+\\s\\w+\\s[IVXL]+[ -]{3}\\w+\\s(\\d)" str)
-	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+\\s\\w+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d+)" str)])
-	   (list (second lst) (roman->int (third lst)) (string->number (fourth lst))))]
-	[(regexp-match? #px"([A-Za-z0-9-]+)\\s([IVXL]+[ -]{3}\\w+\\s(\\d))" str)
-	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+)\\s([IVXL]+)[ -]{3}\\w+\\s(\\d+)" str)])
+  (cond [(regexp-match? #px"([A-Za-z0-9-]+\\s{0,1}\\w*)\\s([IVXL]+)\\s{0,1}[A-Za-z\\(\\)]*[ -]{3}\\w+\\s(\\d)" str)
+	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+\\s{0,1}\\w*)\\s([IVXL]+)\\s{0,1}[A-Za-z\\(\\)]*[ -]{3}\\w+\\s(\\d)" str)])
 	   (list (second lst) (roman->int (third lst)) (string->number (fourth lst))))]))
 
 ;; Translate
