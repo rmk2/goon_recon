@@ -106,5 +106,5 @@ current corporation and alliance at the time of the poll.
 Run (or schedule) `eve-api_corporations.rkt` periodically, which tries to
 resolve unknown corporations if we either have a valid alliance for them (in
 the case of partially entered data from a moon scan) or, ideally, if we simply
-have a corporationID, as is the case with automatically retrieved from
+have a corporationID, as is the case with data automatically retrieved from
 zkillboard.com.
