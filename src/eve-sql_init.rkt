@@ -34,6 +34,8 @@
 (sql-tower-create-raw)
 (sql-tower-create-view)
 
+(sql-tower-create-triggers)
+
 ;; Create timerboard table
 
 (timerboard-prepare-table)

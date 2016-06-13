@@ -41,3 +41,48 @@
 				      "LEFT JOIN mapSolarSystems ON towerKillRaw.solarSystemID = mapSolarSystems.solarSystemID "
 				      "LEFT JOIN customCorporations ON customCorporations.corporationID = towerKillRaw.corporationID "
 				      "LEFT JOIN customAlliances ON customAlliances.allianceID = towerKillRaw.allianceID"))))
+
+;; Define triggers to update the pseudo-materialized table we created for
+;; moonScanRaw when towerKillRaw changes
+
+(define (sql-tower-trigger-insert)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER insert_towerKillRaw AFTER INSERT ON towerKillRaw "
+		    "FOR EACH ROW BEGIN "
+		    "UPDATE moonScanMV AS mv "
+		    "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemName = mv.solarSystemName "
+		    "SET "
+		    "mv.checkStatus=IF(NEW.datetime > mv.datetime, 'RESCAN', 'SCANNED')"
+		    "WHERE mapSolarSystems.solarSystemID=NEW.solarSystemID AND mv.planet=NEW.planet AND mv.moon=NEW.moon; "
+		    "END;")))
+
+(define (sql-tower-trigger-update)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER update_towerKillRaw AFTER UPDATE ON towerKillRaw "
+		    "FOR EACH ROW BEGIN "
+		    "UPDATE moonScanMV AS mv "
+		    "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemName = mv.solarSystemName "
+		    "SET "
+		    "mv.checkStatus=IF(NEW.datetime > mv.datetime, 'RESCAN', 'SCANNED')"
+		    "WHERE mapSolarSystems.solarSystemID=NEW.solarSystemID AND mv.planet=NEW.planet AND mv.moon=NEW.moon; "
+		    "END;")))
+
+(define (sql-tower-trigger-delete)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER delete_towerKillRaw AFTER DELETE ON towerKillRaw "
+		    "FOR EACH ROW BEGIN "
+		    "UPDATE moonScanMV AS mv "
+		    "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemName = mv.solarSystemName "
+		    "SET "
+		    "mv.checkStatus='SCANNED' "
+		    "WHERE mapSolarSystems.solarSystemID=OLD.solarSystemID AND mv.planet=OLD.planet AND mv.moon=OLD.moon; "
+		    "END;")))
+
+(define (sql-tower-create-triggers)
+  (begin
+    (query-exec sqlc "DROP TRIGGER IF EXISTS insert_towerKillRaw")
+    (sql-tower-trigger-insert)
+    (query-exec sqlc "DROP TRIGGER IF EXISTS update_towerKillRaw")
+    (sql-tower-trigger-update)
+    (query-exec sqlc "DROP TRIGGER IF EXISTS delete_towerKillRaw")
+    (sql-tower-trigger-delete)))
