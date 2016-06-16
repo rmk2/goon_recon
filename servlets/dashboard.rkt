@@ -37,7 +37,7 @@
 
 (define system-mime-types (read-mime-types "/etc/mime.types"))
 
-;; d-scan -> scan data
+;; d-scan -> scan data (using the sql-moon struct)
 
 (define (moon-parse-scan input #:corporation corporation #:alliance alliance)
   (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)]
@@ -255,7 +255,9 @@
 		(literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))
 		(literal (style/inline 'type: "text/css" "span { margin: 0 .25em; }"))
 		(literal (style/inline 'type: "text/css" "tr.offline, span.offline { color: gray; }"))
-		(literal (style/inline 'type: "text/css" "tr.rescan, span.rescan { background-color: orange; }"))))
+		(literal (style/inline 'type: "text/css" "tr.rescan, span.rescan { background-color: orange; }"))
+		(literal (style/inline 'type: "text/css" "tr.empty, span.empty { background-color: gray; }"))
+		(literal (style/inline 'type: "text/css" "tr.empty.rescan { background-color: gray; color: orange; }"))))
 	 (body
 	  (output:create-region-filter regions)
 	  (div 'id: "content"

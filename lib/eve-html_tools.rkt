@@ -25,8 +25,10 @@
 			     'tr
 			     (cond
 			      [(and (member "OFFLINE" row) (member "RESCAN" row)) (list (cons 'class "offline rescan"))]
+			      [(and (member "EMPTY" row) (member "RESCAN" row)) (list (cons 'class "empty rescan"))]
 			      [(member "OFFLINE" row) (list (cons 'class "offline"))]
 			      [(member "RESCAN" row) (list (cons 'class "rescan"))]
+			      [(member "EMPTY" row) (list (cons 'class "empty"))]
 			      [else null])
 			     (map (lambda (str)
 				    (if (and (string? str) (regexp-match? #px"^[A-Z0-9. -_]{1,5}$" str) ticker->class?)
@@ -74,7 +76,8 @@
   (syntax-rules ()
     ((_) (list "Legend:"
 	       (span 'class: "rescan" "Tower needs to be rescanned")
-	       (span 'class: "offline" "Tower was offline when scanned")))))
+	       (span 'class: "offline" "Tower was offline when scanned")
+	       (span 'class: "empty" "Moon was empty when scanned")))))
 
 (define (create-region-filter region-list)
   (div 'id: "bar"
