@@ -42,20 +42,23 @@
 (define (moon-parse-scan input #:corporation corporation #:alliance alliance)
   (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)]
 	[tower (hash-ref (dscan-proximity (tower? input)) 'type)])
-    (flatten
-     (list
-      (parse-map :region moon)
-      (parse-map :constellation moon)
-      (parse-map :system moon)
-      (cdr (split-moon-display moon))
-      (fill-alliance #:alliance alliance #:corporation corporation)
-      (if (string-empty? corporation) "" (string-upcase corporation))
-      (srfi-date->sql-timestamp (current-date))
-      (parse-type :id tower)
-      (if (and (dscan-proximity (forcefield? input))
-	       (< (hash-ref (dscan-proximity (forcefield? input)) 'distance) (max_distance)))
-	  1
-	  0)))))
+    (call-with-values
+	(lambda ()
+	  (values
+	   (parse-map :region moon)
+	   (parse-map :constellation moon)
+	   (parse-map :system moon)
+	   (first (cdr (split-moon-display moon)))
+	   (second (cdr (split-moon-display moon)))
+	   (fill-alliance #:alliance alliance #:corporation corporation)
+	   (if (string-empty? corporation) "" (string-upcase corporation))
+	   (srfi-date->sql-timestamp (current-date))
+	   (parse-type :id tower)
+	   (if (and (dscan-proximity (forcefield? input))
+		    (< (hash-ref (dscan-proximity (forcefield? input)) 'distance) (max_distance)))
+	       1
+	       0)))
+      sql-moon)))
 
 (define (moon-parse-empty input)
   (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)])
@@ -91,19 +94,19 @@
   (format "~a: ~a~a @ ~akm, belonging to ~a"
 	  (hash-ref (dscan-proximity (moon? data)) 'name)
 	  (hash-ref (dscan-proximity (tower? data)) 'type)
-	  (if (zero? (tenth result))
+	  (if (zero? (sql-moon-online result))
 	      " (offline) "
 	      " (online) ")
 	  (hash-ref (dscan-proximity (tower? data)) 'distance)
-	  (if (sql-null? (seventh result))
+	  (if (sql-null? (sql-moon-corporation result))
 	      "-"
 	      (string-append
-	       (let ([corporation (parse-corporation (seventh result))])
+	       (let ([corporation (parse-corporation (sql-moon-corporation result))])
 		 (if (false? corporation)
 		     "? "
 		     (vector-ref corporation 2)))
 	       "["
-	       (seventh result)
+	       (sql-moon-corporation result)
 	       "]"))))
 
 ;; Moon database
