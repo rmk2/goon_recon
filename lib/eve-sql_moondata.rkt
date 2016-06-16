@@ -4,6 +4,7 @@
 
 (require "eve-sql_main.rkt")
 (require "eve-string_tools.rkt")
+(require "eve-sql_structs.rkt")
 
 (provide (all-defined-out))
 
@@ -47,6 +48,17 @@
 		     (tenth x)))
 	    lst))
 
+(define (sql-moon-update-empty lst)
+  (for-each (lambda (x)
+	      (query sqlc (string-append "UPDATE moonScanRaw "
+					 "SET datetime=?,typeID=NULL,online=NULL "
+					 "WHERE solarSystemID = ? AND planet = ? AND moon = ?")
+		     (sql-moon-datetime x)
+		     (sql-moon-system x)
+		     (sql-moon-planet x)
+		     (sql-moon-moon x)))
+	    lst))
+
 (define (sql-moon-create-pseudomaterialized-view)
   (if (table-exists? sqlc "moonScanMV")
       #t
@@ -56,7 +68,7 @@
 				      "mapSolarSystems.solarSystemName,scan.planet,scan.moon,scan.allianceTicker,"
 				      "customAlliances.allianceName,scan.corporationTicker,customCorporations.corporationName,"
 				      "scan.datetime,invTypes.typeName,data.moonType,"
-				      "IF(scan.online = 1, 'ONLINE', 'OFFLINE') AS 'online',"
+				      "CASE scan.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END AS 'online', "
 				      "IF(towerKillRaw.datetime > scan.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus' "
 				      "FROM moonScanRaw AS scan "
 				      "LEFT JOIN mapRegions ON mapRegions.regionID = scan.regionID "
@@ -117,7 +129,7 @@
 		    "mapSolarSystems.solarSystemName,NEW.planet,NEW.moon,NEW.allianceTicker,"
 		    "customAlliances.allianceName,NEW.corporationTicker,customCorporations.corporationName,"
 		    "NEW.datetime,invTypes.typeName,data.moonType,"
-		    "IF(NEW.online = 1, 'ONLINE', 'OFFLINE') AS 'online',"
+		    "CASE NEW.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END AS 'online', "
 		    "IF(towerKillRaw.datetime > NEW.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus' "
 		    "FROM moonScanRaw "
 		    "LEFT JOIN mapRegions ON mapRegions.regionID = NEW.regionID "
@@ -162,7 +174,7 @@
 		    "mv.corporationName=customCorporations.corporationName,"
 		    "mv.datetime=NEW.datetime,"
 		    "mv.typeName=invTypes.typeName,"
-		    "mv.online=IF(NEW.online = 1, 'ONLINE', 'OFFLINE') "
+		    "mv.online=CASE NEW.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END "
 		    "WHERE mapSolarSystems.solarSystemID=OLD.solarSystemID AND mv.planet=OLD.planet AND mv.moon=OLD.moon; "
 		    "END;")))
 

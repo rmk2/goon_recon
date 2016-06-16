@@ -39,7 +39,7 @@
 
 ;; d-scan -> scan data
 
-(define (moonscan input #:corporation corporation #:alliance alliance)
+(define (moon-parse-scan input #:corporation corporation #:alliance alliance)
   (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)]
 	[tower (hash-ref (dscan-proximity (tower? input)) 'type)])
     (flatten
@@ -56,6 +56,23 @@
 	       (< (hash-ref (dscan-proximity (forcefield? input)) 'distance) (max_distance)))
 	  1
 	  0)))))
+
+(define (moon-parse-empty input)
+  (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)])
+    (call-with-values
+	(lambda ()
+	  (values
+	   (parse-map :region moon)
+	   (parse-map :constellation moon)
+	   (parse-map :system moon)
+	   (first (cdr (split-moon-display moon)))
+	   (second (cdr (split-moon-display moon)))
+	   null
+	   null
+	   (srfi-date->sql-timestamp (current-date))
+	   null
+	   null))
+      sql-moon)))
 
 ;; Check if a given query string is a valid solarSystemName
 
@@ -136,7 +153,7 @@
 		      (legend "D-Scan reporting")
 		      (br)
 		      "Corporation Ticker: "
-		      (input 'type: "text" 'name: "corporation" 'maxlength: "5" 'size: "5" 'required: #t 'autocomplete: "on" 'style: "margin-right:1em;")
+		      (input 'type: "text" 'name: "corporation" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
 		      "Alliance Ticker: "
 		      (input 'type: "text" 'name: "alliance" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on")
 		      (br)
@@ -146,7 +163,7 @@
 		      (br)
 		      (input 'type: "checkbox" "Checkbox")
 		      (br)
-		      ;; (input 'type: "checkbox" 'name: "empty" 'value: "empty" "Empty (no tower)")
+		      ;; (input 'type: "checkbox" 'name: "empty" 'value: "empty" "Empty moon (no tower)")
 		      ;; (br)
 		      ;; (p "Note: only enter a location if no celestial appears on D-Scan")
 		      ;; "Location: "
@@ -171,7 +188,7 @@
 	       (h1 (pretty-print-location (guess->location (dscan-guess-location data))))
 	       (b "Scan Result: ")
 	       (cond
-		[(not (false? moonscan-result)) (pretty-print-moon-result data moonscan-result)]
+		[(not (false? moon-scan-result)) (pretty-print-moon-result data moon-scan-result)]
 		[else "No structure found in close proximity"])
 	       (br)
 	       (br)
@@ -192,17 +209,29 @@
      (dscan-normalise-distance
       (dscan-raw->list dscan))))
 
-  (define moonscan-result
+  (define moon-scan-result
     (cond
      [(or (string-empty? dscan)
 	  (false? (dscan-proximity (tower? data)))
 	  (false? (dscan-proximity (moon? data)))
 	  (> (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance)))
       #f]
-     [else (moonscan data #:corporation corporation #:alliance alliance)]))
+     [else (moon-parse-scan data #:corporation corporation #:alliance alliance)]))
 
-  (when (not (false? moonscan-result))
-    (sql-moon-update-scan (list moonscan-result)))
+  (define moon-empty-result
+    (cond
+     [(or (string-empty? dscan)
+	  (dscan-proximity (tower? data))
+	  (false? (dscan-proximity (moon? data)))
+	  (> (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance)))
+      #f]
+     [else (moon-parse-empty data)]))
+
+  (cond
+   [(not (false? moon-scan-result))
+    (sql-moon-update-scan (list moon-scan-result))]
+   [(not (false? moon-empty-result))
+    (sql-moon-update-empty (list moon-empty-result))])
 
   (send/back response-generator))
 
