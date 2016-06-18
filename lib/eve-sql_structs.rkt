@@ -35,5 +35,5 @@
 ;; parse-map
 (struct mapDenormalize (id type group system constellation region name) #:transparent)
 
-;; sql-moon
+;; sql-moon-update-scan & sql-moon-update-empty
 (struct sql-moon (region constellation system planet moon alliance corporation datetime type online) #:transparent)
