@@ -9,15 +9,17 @@
 
 ;; Read from stdin
 
-(define pipe-input (cdr (append* (second (read)))))
+(define pipe-input (let ([input (second (read))])
+		     (cond [(empty? input) (exit 0)]
+			   [else (filter sql-killmail? (car input))])))
 
-;; Ony show us (known) money moons, append their type to the killmail data
+;; Only show us (known) money moons, cons their type to the killmail data
 
-(define (query-money-moons [input-list pipe-input])
+(define (query-money-moons input-list)
   (filter-map (lambda (x)
-		(let ([moon (vector-ref (parse-moon (list-ref x 7)) 0)])
+		(let ([moon (parse-moon :name (sql-killmail-location x))])
 		  (if (money-moon? moon)
-		      (flatten (append x (last (vector->list (parse-moondata (split-moon-display moon))))))
+		      (cons x (last (vector->list (parse-moondata (split-moon-display moon)))))
 		      #f)))
 	      input-list))
 
@@ -26,20 +28,26 @@
 (define (filter-unique lst)
   (reverse
    (remove-duplicates (reverse lst)
-		      #:key (lambda (x) (eighth x)))))
+		      #:key (lambda (x) (sql-killmail-location (car x))))))
 
 ;; Parse typeIDs
 
 (define (parse-money-moons input-list)
-  (map (lambda (kill) (list
-		       (parse-type :name (list-ref kill 0))
-		       (list-ref kill 4)
-		       (list-ref kill 6)
-		       (simplify-moon-display (parse-moon :name (list-ref kill 7)))
-		       (parse-region :name (list-ref kill 9))
-		       (list-ref kill 10)
-		       (last kill)
-		       (string-append "https://zkillboard.com/kill/" (number->string (list-ref kill 11)))))
+  (map (lambda (goo-list)
+	 (let ([km (car goo-list)] [goo (cdr goo-list)])
+	   (if (positive? (sql-killmail-location km))
+	       (let ([location (sql-parse->struct (parse-map (sql-killmail-location km))
+						  #:struct mapDenormalize)])
+		 (list
+		  (parse-type :name (sql-killmail-shiptype km))
+		  (sql-killmail-corporationname km)
+		  (sql-killmail-alliancename km)
+		  (simplify-moon-display (mapDenormalize-name location))
+		  (parse-region :name (sql-killmail-region km))
+		  (sql-killmail-datetime km)
+		  goo
+		  (string-append "https://zkillboard.com/kill/" (number->string (sql-killmail-killid km)))))
+	       #f)))
        input-list))
 
 ;; HTML Output
@@ -61,4 +69,4 @@
 
 ;; Exec
 
-(output-html (parse-money-moons (filter-unique (query-money-moons))))
+(output-html (parse-money-moons (filter-unique (query-money-moons pipe-input))))

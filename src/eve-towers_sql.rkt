@@ -7,23 +7,26 @@
 
 (define pipe-input (let ([input (second (read))])
 		     (cond [(empty? input) (exit 0)]
-			   [else (cdr (append* input))])))
+			   [else (filter sql-killmail? (car input))])))
 
 ;; Parse data into sql ready format
 
 (define (parse-tower-data lst)
-  (map (lambda (km) (let ([location (parse-map (list-ref km 7))])
-		      (flatten
-		       (list
-			(list-ref km 9)
-			(vector-ref location 3)
-			(cdr (split-moon-display (vector-ref location 6)))
-			(list-ref km 3)
-			(list-ref km 5)
-			(list-ref km 10)
-			(list-ref km 0)
-			(list-ref km 11)))))
-       lst))
+  (filter-map (lambda (km) (if (positive? (sql-killmail-location km))
+			       (let ([location (sql-parse->struct (parse-map (sql-killmail-location km))
+								  #:struct mapDenormalize)])
+				 (flatten
+				  (list
+				   (sql-killmail-region km)
+				   (mapDenormalize-system location)
+				   (cdr (split-moon-display (mapDenormalize-name location)))
+				   (sql-killmail-corporationid km)
+				   (sql-killmail-allianceid km)
+				   (sql-killmail-datetime km)
+				   (sql-killmail-shiptype km)
+				   (sql-killmail-killid km))))
+			       #f))
+	      lst))
 
 ;; Exec
 

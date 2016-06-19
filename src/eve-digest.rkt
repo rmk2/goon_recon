@@ -247,7 +247,12 @@
 			[attackers (hash-ref km-list 'attackers)]
 			[id (hash-ref km-list 'killID)])
 		    (filter-map (lambda (a) (if (cl-raw)
-						(parse-helper-raw a location moonid locationid date id victim)
+						(call-with-values
+						    (lambda ()
+						      (vector->values
+						       (list->vector
+							(parse-helper-raw a location moonid locationid date id victim))))
+						  sql-killmail)
 						(parse-helper a location moonid locationid date id)))
 				(if run-attackers?
 				    (concat-data :check attackers)
@@ -374,8 +379,8 @@
   (cond
    [(cl-html) (output-html data)]
    [(cl-csv) (print-csv (output-csv data))]
-   [(cl-sql) (super-replace-killmails
+   [(cl-sql) (sql-super-insert-killmails
 	      (append
-	       (map (lambda (x) (flatten (append x "Kill"))) (future-wrapper :touch cache-kills))
-	       (map (lambda (x) (flatten (append x "Loss"))) (future-wrapper :touch cache-losses))))]
+	       (map (lambda (x) (begin (set-sql-killmail-eventtype! x "Kill") x)) (future-wrapper :touch cache-kills))
+	       (map (lambda (x) (begin (set-sql-killmail-eventtype! x "Loss") x)) (future-wrapper :touch cache-losses))))]
    [else data]))

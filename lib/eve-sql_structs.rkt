@@ -37,3 +37,7 @@
 
 ;; sql-moon-update-scan & sql-moon-update-empty
 (struct sql-moon (region constellation system planet moon alliance corporation datetime type online) #:transparent)
+
+;; sql-killmail (supers + towers)
+(struct sql-killmail (shiptype characterid charactername corporationid corporationname allianceid alliancename location system region datetime killid victimtype [eventtype #:auto #:mutable]) #:auto-value "" #:prefab)
+
