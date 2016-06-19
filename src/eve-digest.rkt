@@ -100,7 +100,7 @@
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
    [("-L" "--losses") "Show losses by <groupid>, default: false" (begin (cl-losses #t) (cl-kills #f))]
    [("-X" "--cron" "--intel") "Shortcut for collecting super killmails via cron, setting all appropriate options"
-    (begin (cl-raw #t) (cl-sql #t) (cl-losses #t) (cl-kills #t) (cl-date null) (cl-groups '("30" "659" "1653"))
+    (begin (cl-raw #t) (cl-sql #t) (cl-losses #t) (cl-kills #t) (cl-date null) (cl-groups '("30" "659"))
 	   (cl-id (sql-super-latest-killid)))]))
 
 ;; Parse zkillboard data
