@@ -167,6 +167,9 @@
 		    "LEFT JOIN customCorporations ON customCorporations.corporationTicker = NEW.corporationTicker "
 		    "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = NEW.solarSystemID "
 		    "LEFT JOIN invTypes ON invTypes.typeID = NEW.typeID "
+		    "LEFT JOIN towerKillRaw ON NEW.solarSystemID = towerKillRaw.solarSystemID "
+		    "AND NEW.planet = towerKillRaw.planet "
+		    "AND NEW.moon = towerKillRaw.moon "
 		    "SET "
 		    "mv.allianceTicker=NEW.allianceTicker,"
 		    "mv.allianceName=customAlliances.allianceName,"
@@ -174,7 +177,8 @@
 		    "mv.corporationName=customCorporations.corporationName,"
 		    "mv.datetime=NEW.datetime,"
 		    "mv.typeName=invTypes.typeName,"
-		    "mv.online=CASE NEW.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END "
+		    "mv.online=CASE NEW.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END, "
+		    "mv.checkStatus=IF(towerKillRaw.datetime > NEW.datetime, 'RESCAN', 'SCANNED') "
 		    "WHERE mapSolarSystems.solarSystemID=OLD.solarSystemID AND mv.planet=OLD.planet AND mv.moon=OLD.moon; "
 		    "END;")))
 
