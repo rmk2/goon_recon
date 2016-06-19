@@ -12,6 +12,8 @@
 
 (sql-corporation-create-affiliations)
 
+(sql-corporation-create-triggers)
+
 ;; Create super tracking/watchlist tables
 
 (sql-super-create-affiliations)

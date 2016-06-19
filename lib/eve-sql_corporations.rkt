@@ -6,11 +6,18 @@
 
 (provide (all-defined-out))
 
+(define (sql-corporation-create-raw)
+  (if (table-exists? sqlc "customCorporations")
+      #t
+      (query-exec sqlc "CREATE TABLE customCorporations ( corporationID INT NOT NULL, corporationTicker VARCHAR(5) NOT NULL, corporationName VARCHAR(255) NOT NULL, PRIMARY KEY ( corporationID ), UNIQUE KEY ( corporationTicker ) )")))
+
 (define (sql-corporation-update-corporations lst)
   (for-each (lambda (x)
-	      (query sqlc "INSERT IGNORE customCorporations VALUES (?, ?, ?)"
+	      (query sqlc "INSERT customCorporations VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE corporationID=?,corporationName=?"
 		     (first x)
 		     (second x)
+		     (third x)
+		     (first x)
 		     (third x)))
 	    lst))
 
@@ -35,3 +42,68 @@
 				  "LEFT JOIN customCorporations AS c ON main.corporationID = c.corporationID "
 				  "LEFT JOIN customAlliances AS a ON main.allianceID = a.allianceID "
 				  "ORDER BY allianceName")))
+
+;; Update moonScanMV for newly added corporations (from customCorporations)
+
+(define (sql-corporation-create-trigger-insert)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER insert_customCorporations AFTER INSERT ON customCorporations "
+		    "FOR EACH ROW BEGIN "
+		    "UPDATE moonScanMV AS mv "
+		    "SET "
+		    "mv.corporationTicker=NEW.corporationTicker,"
+		    "mv.corporationName=NEW.corporationName "
+		    "WHERE mv.corporationTicker=NEW.corporationTicker; "
+		    "END;")))
+
+;; Update moonScanMV for newly added corporation affiliations (from customCorporationAffiliations)
+
+(define (sql-affiliation-create-trigger-insert)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER insert_customCorporationAffiliations AFTER INSERT ON customCorporationAffiliations "
+		    "FOR EACH ROW BEGIN "
+		    "UPDATE moonScanMV AS mv "
+		    "LEFT JOIN customAlliances ON customAlliances.allianceID = NEW.allianceID "
+		    "LEFT JOIN customCorporations ON customCorporations.corporationID = NEW.corporationID "
+		    "SET "
+		    "mv.allianceTicker=customAlliances.allianceTicker,"
+		    "mv.allianceName=customAlliances.allianceName "
+		    "WHERE mv.corporationTicker=customCorporations.corporationTicker; "
+		    "END;")))
+
+(define (sql-affiliation-create-trigger-update)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER update_customCorporationAffiliations AFTER UPDATE ON customCorporationAffiliations "
+		    "FOR EACH ROW BEGIN "
+		    "UPDATE moonScanMV AS mv "
+		    "LEFT JOIN customAlliances ON customAlliances.allianceID = NEW.allianceID "
+		    "LEFT JOIN customCorporations ON customCorporations.corporationID = NEW.corporationID "
+		    "SET "
+		    "mv.allianceTicker=customAlliances.allianceTicker,"
+		    "mv.allianceName=customAlliances.allianceName "
+		    "WHERE mv.corporationTicker=customCorporations.corporationTicker; "
+		    "END;")))
+
+(define (sql-affiliation-create-trigger-delete)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER delete_customCorporationAffiliations AFTER DELETE ON customCorporationAffiliations "
+		    "FOR EACH ROW BEGIN "
+		    "UPDATE moonScanMV AS mv "
+		    "LEFT JOIN customAlliances ON customAlliances.allianceID = OLD.allianceID "
+		    "LEFT JOIN customCorporations ON customCorporations.corporationID = OLD.corporationID "
+		    "SET "
+		    "mv.allianceTicker=NULL,"
+		    "mv.allianceName=NULL "
+		    "WHERE mv.corporationTicker=customCorporations.corporationTicker; "
+		    "END;")))
+
+(define (sql-corporation-create-triggers)
+  (begin
+    (query-exec sqlc "DROP TRIGGER IF EXISTS insert_customCorporations")
+    (sql-corporation-create-trigger-insert)
+    (query-exec sqlc "DROP TRIGGER IF EXISTS insert_customCorporationAffiliations")
+    (sql-affiliation-create-trigger-insert)
+    (query-exec sqlc "DROP TRIGGER IF EXISTS update_customCorporationAffiliations")
+    (sql-affiliation-create-trigger-update)
+    (query-exec sqlc "DROP TRIGGER IF EXISTS delete_customCorporationAffiliations")
+    (sql-affiliation-create-trigger-delete)))
