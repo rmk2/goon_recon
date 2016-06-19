@@ -62,8 +62,9 @@
 (define (sql-moon-create-pseudomaterialized-view)
   (if (table-exists? sqlc "moonScanMV")
       #t
-      (query-exec sqlc (string-append "CREATE TABLE moonScanMV AS "
-				      "SELECT "
+      (query-exec sqlc (string-append "CREATE TABLE moonScanMV "
+				      "( UNIQUE KEY (solarSystemName, planet, moon) ) "
+				      "AS SELECT "
 				      "mapRegions.regionName,mapConstellations.constellationName,"
 				      "mapSolarSystems.solarSystemName,scan.planet,scan.moon,scan.allianceTicker,"
 				      "customAlliances.allianceName,scan.corporationTicker,customCorporations.corporationName,"
@@ -179,7 +180,7 @@
 		    "mv.typeName=invTypes.typeName,"
 		    "mv.online=CASE NEW.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END, "
 		    "mv.checkStatus=IF(towerKillRaw.datetime > NEW.datetime, 'RESCAN', 'SCANNED') "
-		    "WHERE mapSolarSystems.solarSystemID=OLD.solarSystemID AND mv.planet=OLD.planet AND mv.moon=OLD.moon; "
+		    "WHERE mv.solarSystemName=mapSolarSystems.SolarSystemName AND mv.planet=OLD.planet AND mv.moon=OLD.moon; "
 		    "END;")))
 
 (define (sql-moon-create-triggers)
