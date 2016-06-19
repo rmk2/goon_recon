@@ -17,11 +17,13 @@
   (filter-map (lambda (x) (cond
 			   [(sql-null? x) #f]
 			   [(eq? "-" x) #f]
+			   [(string-empty? x) #f]
 			   [else x]))
 	      (append-map vector->list v)))
 
 (define (crest-poll-allianceid id)
-  (json-api (string-append crest-root "/alliances/" (number->string id) "/")))
+  (cond [(string-empty? id) null]
+	[else (json-api (string-append crest-root "/alliances/" (number->string id) "/"))]))
 
 (define (parse-corporationids lst)
   (map (lambda (corp) (hash-ref corp 'id_str)) (hash-ref lst 'corporations)))
