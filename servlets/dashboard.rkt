@@ -299,13 +299,14 @@
 	  (output:create-region-filter regions)
 	  (div 'id: "content"
 	       (h1 "Recon Moon Scanning Tasks")
+	       (output:create-html-hint "Note: All towers below have been killed since their respective last scan. Fields marked with a \"*\" stem from the most recent scan prior to their death.")
 	       (output:create-html-hint (format "Results filtered for: Region (~a)"
 						(string-join (query-regions filter_region)  "|")))
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table #:ticker->class #t
 					 #:drop-right 0
 					 #:head (list "Region" "Constellation" "System" "Planet" "Moon"
-						      "A-T" "C-T" "Date" "Tower")
+						      "A-T*" "C-T*" "Date*" "Tower*")
 					 (user-filter-regions filter_region
 							      #:filter-function sql-moon-region-tasks
 							      #:function (map vector->list (sql-moon-get-tasks))))
