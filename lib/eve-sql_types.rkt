@@ -20,6 +20,17 @@
     ((_ :group arg) (vector-ref (parse-type arg) 1))
     ((_ :name arg) (vector-ref (parse-type arg) 2))))
 
+(define-syntax parse-tower
+  (syntax-rules (:id :group :name)
+    ((_ arg) (cond
+	      [(number? arg)
+	       (query-row sqlc "SELECT typeID,groupID,typeName FROM invTypes WHERE typeID LIKE ? AND groupID = 365")]
+	      [(string? arg)
+	       (query-row sqlc "SELECT typeID,groupID,typeName FROM invTypes WHERE typeName LIKE ? AND groupID = 365" arg)]))
+    ((_ :id arg) (vector-ref (parse-tower arg) 0))
+    ((_ :group arg) (vector-ref (parse-tower arg) 1))
+    ((_ :name arg) (vector-ref (parse-tower arg) 2))))
+
 (define-syntax parse-group
   (syntax-rules (:id :name)
     ((_ arg) (cond

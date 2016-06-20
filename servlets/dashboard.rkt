@@ -53,7 +53,7 @@
 	   (fill-alliance #:alliance alliance #:corporation corporation)
 	   (if (string-empty? corporation) "" (string-upcase corporation))
 	   (srfi-date->sql-timestamp (current-date))
-	   (parse-type :id tower)
+	   (parse-tower :id tower)
 	   (if (and (dscan-proximity (forcefield? input))
 		    (< (hash-ref (dscan-proximity (forcefield? input)) 'distance) (max_distance)))
 	       1
