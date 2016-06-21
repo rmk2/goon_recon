@@ -330,16 +330,17 @@
 				   (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
 	 (body
 	  (output:create-region-filter regions)
-	  (h1 "Fuzzysov Timer Board")
-	  (output:create-html-hint "Note: Sovereignty data is updated every 10 minutes")
-	  (output:create-html-hint :tablesorter)
-	  (output:create-html-table #:id "timers"
-				    #:head (list "Alliance" "Structure" "System"
-						 "Constellation" "Region" "Date")
-				    (user-filter-regions filter_region
-							 #:filter-function timerboard-query-region
-							 #:function (timerboard-query)))
-	  (output:create-html-hint :updated)))
+	  (div 'id: "content"
+	       (h1 "Fuzzysov Timer Board")
+	       (output:create-html-hint "Note: Sovereignty data is updated every 10 minutes")
+	       (output:create-html-hint :tablesorter)
+	       (output:create-html-table #:id "timers"
+					 #:head (list "Alliance" "Structure" "System"
+						      "Constellation" "Region" "Date")
+					 (user-filter-regions filter_region
+							      #:filter-function timerboard-query-region
+							      #:function (timerboard-query)))
+	       (output:create-html-hint :updated))))
 	port))))
 
   (define filter_region (get-regions req))
