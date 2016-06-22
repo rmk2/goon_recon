@@ -149,7 +149,7 @@
 	(html
 	 (output:create-html-head #:title "Dashboard" #:tablesorter #f #:navigation #t)
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon")
+	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "report")
 	  (div 'id: "content"
 	       (h1 "Dashboard")
 	       (form 'action: "result" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
@@ -299,7 +299,7 @@
 		(literal (style/inline 'type: "text/css" "td { white-space: normal; }"))
 		(literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon")
+	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "tasks")
 	  (output:create-region-filter regions)
 	  (div 'id: "content"
 	       (h1 "Recon Moon Scanning Tasks")
@@ -333,7 +333,7 @@
 				   (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
 				   (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon")
+	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "timers")
 	  (output:create-region-filter regions)
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Timer Board")

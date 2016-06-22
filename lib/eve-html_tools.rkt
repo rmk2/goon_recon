@@ -72,14 +72,15 @@
 (define (create-html-head-navigation)
   (list
    (style/inline 'type: "text/css" "body { margin: 0; }")
-   (style/inline 'type: "text/css" "#nav { width: 100%; display: inline-block; border-bottom: 1px solid black; }")
+   (style/inline 'type: "text/css" "#nav { width: 100%; display: inline-block; border-bottom: 1px solid indianred; }")
    (style/inline 'type: "text/css" "#content { margin: 0.5em; clear: left; }")
-   (style/inline 'type: "text/css" ".nav-title { font-weight: bold; padding: 0.75em; }")
+   (style/inline 'type: "text/css" ".active { background: lightgray; }")
+   (style/inline 'type: "text/css" ".nav-title { font-weight: bold; padding: 0.75em; color: indianred; }")
    (style/inline 'type: "text/css" "ul { list-style-type: none; margin: 0; padding: 0; }")
    (style/inline 'type: "text/css" "li { float: left; }")
    (style/inline 'type: "text/css" "li:first-child { margin-right: 4em; }")
    (style/inline 'type: "text/css" "li a { display: block; padding: 0.75em; text-decoration: none; color: black; }")
-   (style/inline 'type: "text/css" "li a:hover { background-color: lightgray; }")))
+   (style/inline 'type: "text/css" "li a:hover { background-color: indianred; }")))
 
 (define-syntax create-html-hint
   (syntax-rules (:tablesorter :updated)
@@ -109,8 +110,12 @@
 (define (create-html-navigation #:title [nav-title "GoonSwarm Recon"]
 				#:links [nav-list '(("Dashboard" . "report")
 						    ("Tasks" . "tasks")
-						    ("Timerboard" . "timers"))])
+						    ("Timerboard" . "timers"))]
+				#:active [active-url null])
   (div 'id: "nav"
        (ul (li 'class: "nav-title" nav-title)
-	   (map (lambda (x) (li (a 'href: (cdr x) (car x))))
+	   (map (lambda (x) (make-element
+			     'li
+			     (if (equal? active-url (cdr x)) (list (cons 'class "active")) null)
+			     (a 'href: (cdr x) (car x))))
 		nav-list))))
