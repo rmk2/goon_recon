@@ -116,6 +116,9 @@
 
 (define (region? query) (findf (lambda (str) (equal? (string-downcase query) (string-downcase str))) regions))
 
+(define (sql-get-scanned-regions table)
+  (map vector->values (query-rows sqlc (string-append "SELECT DISTINCT regionName FROM " table " ORDER BY regionName"))))
+
 (define (query-regions lst) (cond [(empty? lst) null]
 				  [(and (not (empty? lst)) (string-empty? (car lst))) null]
 				  [else (filter-map region? (string-split (car lst) ","))]))
@@ -261,7 +264,7 @@
 		(literal (style/inline 'type: "text/css" "tr.empty, span.empty { background-color: gray; }"))
 		(literal (style/inline 'type: "text/css" "tr.empty.rescan { background-color: gray; color: orange; }"))))
 	 (body
-	  (output:create-region-filter regions)
+	  (output:create-region-filter (sql-get-scanned-regions "moonScanView"))
 	  (div 'id: "content"
 	       (h1 "Moon Scan Data")
 	       (output:create-html-hint (output:create-html-legend))
@@ -300,7 +303,7 @@
 		(literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
 	 (body
 	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "tasks")
-	  (output:create-region-filter regions)
+	  (output:create-region-filter (sql-get-scanned-regions "moonScanTasks"))
 	  (div 'id: "content"
 	       (h1 "Recon Moon Scanning Tasks")
 	       (output:create-html-hint "Note: All towers below have been killed since their respective last scan. Fields marked with a \"*\" stem from the most recent scan prior to their death.")
@@ -334,7 +337,7 @@
 				   (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
 	 (body
 	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "timers")
-	  (output:create-region-filter regions)
+	  (output:create-region-filter (sql-get-scanned-regions "customTimerboard"))
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Timer Board")
 	       (output:create-html-hint "Note: Sovereignty data is updated every 10 minutes")
