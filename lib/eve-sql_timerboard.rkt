@@ -11,7 +11,7 @@
 (define (timerboard-prepare-table)
   (if (table-exists? sqlc "customTimerboard")
       (query-exec sqlc "TRUNCATE TABLE customTimerboard")
-      (query-exec sqlc "CREATE TABLE customTimerboard ( allianceName VARCHAR(255) NOT NULL, type VARCHAR(50) NOT NULL, system VARCHAR(255) NOT NULL, constellation VARCHAR(255), region VARCHAR(255), datetime DATETIME )")))
+      (query-exec sqlc "CREATE TABLE customTimerboard ( allianceName VARCHAR(255) NOT NULL, structureType VARCHAR(50) NOT NULL, solarSystemName VARCHAR(255) NOT NULL, constellationName VARCHAR(255), regionName VARCHAR(255), datetime DATETIME )")))
 
 (define (timerboard-replace lst)
   (for-each (lambda (x)
@@ -25,7 +25,7 @@
 	    lst))
 
 (define (timerboard-query)
-  (map vector->list (query-rows sqlc "SELECT allianceName,type,system,constellation,region,datetime FROM customTimerboard ORDER BY datetime")))
+  (map vector->list (query-rows sqlc "SELECT allianceName,structureType,solarSystemName,constellationName,regionName,datetime FROM customTimerboard ORDER BY datetime")))
 
 (define (timerboard-query-region query)
-  (map vector->list (query-rows sqlc "SELECT allianceName,type,system,constellation,region,datetime FROM customTimerboard WHERE region = ? ORDER BY datetime" query)))
+  (map vector->list (query-rows sqlc "SELECT allianceName,structureType,solarSystemName,constellationName,regionName,datetime FROM customTimerboard WHERE regionName = ? ORDER BY datetime" query)))
