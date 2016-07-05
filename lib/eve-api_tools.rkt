@@ -129,6 +129,18 @@
 		       (xml-api (string-append api-root "/corp/CorporationSheet.xml.aspx?corporationID=" id))))))
        lst))
 
+;; XML APIv2: extract characterID/Name,corporationID/Name,allianceID/Name, output: list
+
+(define (map-hash-parse-affiliation lst)
+  (map (lambda (hash) (list
+		       (hash-ref hash 'characterID)
+		       (hash-ref hash 'characterName)
+		       (hash-ref hash 'corporationID)
+		       (hash-ref hash 'corporationName)
+		       (hash-ref hash 'allianceID)
+		       (hash-ref hash 'allianceName)))
+       lst))
+
 ;; XML APIv2: extract corporationID,Ticker,corporationName from corporationSheet, output: list
 
 (define (hash-parse-corporations lst)

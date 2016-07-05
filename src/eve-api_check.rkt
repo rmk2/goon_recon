@@ -20,18 +20,6 @@
 			#:delay 15
 			#:limit 2500)))
 
-;; affiliation -> sql-ready list
-
-(define (map-hash-parse-affiliation lst)
-  (map (lambda (hash) (list
-		       (hash-ref hash 'characterID)
-		       (hash-ref hash 'characterName)
-		       (hash-ref hash 'corporationID)
-		       (hash-ref hash 'corporationName)
-		       (hash-ref hash 'allianceID)
-		       (hash-ref hash 'allianceName)))
-       lst))
-
 ;; Exec
 
 (sql-super-populate-affiliations)
