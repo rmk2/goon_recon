@@ -6,7 +6,13 @@
          xml
          xml/path
          srfi/19
-         db)
+         db
+	 web-server/servlet
+         web-server/servlet-env
+	 scribble/html/html
+	 (only-in scribble/html/xml
+		  literal
+		  output-xml))
 
 (require "eve-api_tools.rkt")
 (require "eve-dscan_tools.rkt")
@@ -30,7 +36,12 @@
 		       xml
 		       xml/path
 		       srfi/19
-		       db))
+		       db
+		       web-server/servlet
+		       web-server/servlet-env
+		       scribble/html/html)
+	 literal
+	 output-xml)
 
 (provide (all-from-out "eve-api_tools.rkt"))
 (provide (all-from-out "eve-dscan_tools.rkt"))

@@ -2,10 +2,6 @@
 #lang racket
 
 (require eve)
-(require scribble/html/html)
-(require (only-in scribble/html/xml
-		  literal
-		  output-xml))
 
 (define-syntax clean-date
   (syntax-rules ()

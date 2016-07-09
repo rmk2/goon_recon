@@ -3,10 +3,6 @@
 
 (require eve)
 (require racket/set)
-(require scribble/html/html)
-(require (only-in scribble/html/xml
-		  literal
-		  output-xml))
 (require racket/future)
 
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))

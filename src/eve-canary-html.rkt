@@ -3,11 +3,6 @@
 
 (require eve)
 
-(require scribble/html/html)
-(require (only-in scribble/html/xml
-		  literal
-		  output-xml))
-
 (output-xml (doctype 'html))
 (output-xml
  (html
