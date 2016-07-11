@@ -15,6 +15,7 @@
 		  output-xml))
 
 (require "eve-api_tools.rkt")
+(require "eve-dscan_filesystem.rkt")
 (require "eve-dscan_tools.rkt")
 (require "eve-html_tools.rkt")
 (require "eve-list_tools.rkt")
@@ -44,6 +45,7 @@
 	 output-xml)
 
 (provide (all-from-out "eve-api_tools.rkt"))
+(provide (all-from-out "eve-dscan_filesystem.rkt"))
 (provide (all-from-out "eve-dscan_tools.rkt"))
 (provide (all-from-out "eve-html_tools.rkt"))
 (provide (all-from-out "eve-list_tools.rkt"))
