@@ -102,9 +102,10 @@
       (map cdr (form-urlencoded->alist post-data)))))
   
   (define data
-    (dscan-list->hash
-     (dscan-normalise-distance
-      (dscan-raw->list dscan))))
+    (dscan-sort
+     (dscan-list->hash
+      (dscan-normalise-distance
+       (dscan-raw->list dscan)))))
 
   (define moon-scan-result
     (cond
