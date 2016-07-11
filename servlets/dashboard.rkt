@@ -35,7 +35,28 @@
 
 ;; Parameters
 
-(define webroot (if (string? (getenv "EVEROOT")) (getenv "EVEROOT") "./"))
+(define cl-port (make-parameter 8000))
+(define cl-prefix (make-parameter null))
+(define cl-persist (make-parameter #f))
+
+;; Command-line argument handling
+
+(define parse-args
+  (command-line
+   #:once-each
+   [("-d" "--persist-dscan" "--save-dscan") "Save raw dscans to disk, default: false"
+    (cl-persist #t)]
+   [("-P" "--port") port "Use specified port, default: 8000"
+    (if (number? (string->number port)) (cl-port (string->number port)) (cl-port))]
+   [("-w" "--webroot" "-p" "--prefix") dir "Specify webroot directory, alternative: env EVEROOT=dir, default: current dir"
+    (if (directory-exists? dir) (cl-prefix dir) (raise-user-error "[error] Directory does not exist:" dir))]))
+
+;; Set webroot (used for storing files etc.)
+
+(define webroot
+  (cond [(not (null? (cl-prefix))) (cl-prefix)]
+	[(string? (getenv "EVEROOT")) (getenv "EVEROOT")]
+	[else "./"]))
 
 ;; Mimetype table
 
@@ -45,7 +66,7 @@
 
 (serve/servlet main
 	       #:stateless? #t
-	       #:port 8000
+	       #:port (cl-port)
 	       #:command-line? #t
 	       #:banner? #t
 	       #:servlet-regexp #rx""
