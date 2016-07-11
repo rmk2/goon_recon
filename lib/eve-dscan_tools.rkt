@@ -2,6 +2,7 @@
 
 (require "eve-api_tools.rkt")
 (require "eve-string_tools.rkt")
+(require "eve-sql_structs.rkt")
 (require "eve-sql_types.rkt")
 
 (require xml)
@@ -61,6 +62,17 @@
 		       (cons 'name (first lst))
 		       (cons 'type (second lst))
 		       (cons 'distance (third lst)))))
+       lst))
+
+;; Translate a list of dscan hashes into a list of dscan structs
+
+(define (dscan-hash->struct lst)
+  (map (lambda (hash) (call-with-values
+			 (lambda ()
+			   (values (hash-ref hash 'name)
+				   (hash-ref hash 'type)
+				   (hash-ref hash 'distance)))
+			dscan))
        lst))
 
 ;; Sort by proximity, closest to furthest
