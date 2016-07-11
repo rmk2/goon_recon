@@ -10,6 +10,7 @@ This is a Racket project. Install Racket and follow these steps to run it:
 raco link --name eve --user lib
 
 # Install dependencies
+raco pkg install grommet
 raco pkg install xexpr-path
 
 # Run webserver
