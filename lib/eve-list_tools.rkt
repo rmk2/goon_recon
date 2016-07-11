@@ -27,3 +27,16 @@
     (if (<= (* i limit) (length query))
 	(loop query limit (+ i 1) (list* (drop (take query (* i limit)) (* (- i 1) limit)) result))
 	(reverse (list* (take-right query (remainder (length query) limit)) result)))))
+
+;; Count duplicates in a list, shortening the list until we hit length 0
+
+(define (count-duplicates input)
+  (let loop ([element (car input)] [counter 0] [lst input] [result null])
+    (let ((first-element (unless (null? lst) (car lst))))
+      (cond
+       ((null? lst)
+	(reverse (cons (list element counter) result)))
+       ((equal? first-element element)
+	(loop element (+ counter 1) (cdr lst) result))
+       (else
+	(loop first-element 1 (cdr lst) (cons (list element counter) result)))))))
