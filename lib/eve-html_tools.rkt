@@ -121,39 +121,55 @@
 		nav-list))))
 
 (define (html-create-dscan-rows ships info structures starbases)
-    (list
-     (div 'class: "dscan horizontal"
-	  (map (lambda (heading column)
-		 (div 'class: "dscan-column"
-		      (h3 heading)
-		      (map (lambda (element)
-			     (div 'class: "dscan-element"
-				  (div 'class: "dscan-count" (cdr element))
-				  (div 'class: "dscan-type" (car element))))
-			   column)))
-	       (list "Ship Types" "Ship Groups")
-	       (list (car ships)
-		     (cdr ships)))
-	  (div 'class: "dscan vertical"
-	       (map (lambda (heading column)
-	       	      (div 'class: "dscan-column"
-	       		   (h3 heading)
-	       		   (map (lambda (group)
-	       			  (div 'class: "dscan-group"
-	       			       (map (lambda (detail)
-					      (div 'class: "dscan-detail hide"
-						   (div 'class: "dscan-element"
-							(div 'class: "dscan-count" (cdr detail))
-							(div 'class: "dscan-type" (car detail)))))
-					    (car group))
-				       (map (lambda (element)
-					      (div 'class: "dscan-summary"
-						   (div 'class: "dscan-element"
-							(div 'class: "dscan-count" (cdr element))
-							(div 'class: "dscan-type" (car element)))))
-					    (cdr group))))
-				column)))
-		    (list "Drones/Deployables" "Structures" "Starbases (on-grid only)")
-		    (filter-map (lambda (lst) (if (empty? (flatten lst)) null (filter (lambda (x) (not (empty? x))) lst)))
-				(list info structures starbases)))
-	       (button 'onclick: "toggleClass();" "Toggle details")))))
+  (define (colorise-div #:picker n #:class [class "dscan-element"] body)
+    (make-element 'div
+		  (list
+		   (cons 'class class)
+		   (cons 'style
+			 (string-append "background-color:"
+					(cond
+					 [(member n (range 0 10)) "#f5f5f5"] ;; css whitesmoke
+					 [(member n (range 10 30)) "#fff7b0"] ;; custom yellow
+					 [(member n (range 30 60)) "#ffd700"] ;; css gold
+					 [(member n (range 60 100)) "#ffa500"] ;; css orange
+					 [else "#ff6347"])))) ;; css tomato
+		  body))
+  (list
+   (div 'class: "dscan horizontal"
+	(map (lambda (heading column)
+	       (div 'class: "dscan-column"
+		    (h3 heading)
+		    (map (lambda (element)
+			   (colorise-div #:picker (cadr element) #:class "dscan-element"
+					 (list
+					  (div 'class: "dscan-count" (cdr element))
+					  (div 'class: "dscan-type" (car element)))))
+			 column)))
+	     (list "Ship Types" "Ship Groups")
+	     (list (car ships)
+		   (cdr ships)))
+	(div 'class: "dscan vertical"
+	     (map (lambda (heading column)
+		    (div 'class: "dscan-column"
+			 (h3 heading)
+			 (map (lambda (group)
+				(div 'class: "dscan-group"
+				     (map (lambda (detail)
+					    (div 'class: "dscan-detail hide"
+						 (colorise-div #:picker (cadr detail) #:class "dscan-element"
+							       (list
+								(div 'class: "dscan-count" (cdr detail))
+								(div 'class: "dscan-type" (car detail))))))
+					  (car group))
+				     (map (lambda (element)
+					    (div 'class: "dscan-summary"
+						 (colorise-div #:picker (cadr element) #:class "dscan-element"
+							       (list
+								(div 'class: "dscan-count" (cdr element))
+								(div 'class: "dscan-type" (car element))))))
+					  (cdr group))))
+			      column)))
+		  (list "Drones/Deployables" "Structures" "Starbases (on-grid only)")
+		  (filter-map (lambda (lst) (if (empty? (flatten lst)) null (filter (lambda (x) (not (empty? x))) lst)))
+			      (list info structures starbases)))
+	     (button 'onclick: "toggleClass();" "Toggle details")))))
