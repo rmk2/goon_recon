@@ -146,8 +146,8 @@
 					  (div 'class: "dscan-type" (car element)))))
 			 column)))
 	     (list "Ship Types" "Ship Groups")
-	     (list (car ships)
-		   (cdr ships)))
+	     (if (empty? ships) (list null null)
+		 (list (car ships) (cdr ships))))
 	(div 'class: "dscan vertical"
 	     (map (lambda (heading column)
 		    (div 'class: "dscan-column"
