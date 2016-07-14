@@ -13,7 +13,9 @@
 ;; Include servlet component
 
 (require "dashboard/common.rkt"
+	 "dashboard/dscan.rkt"
 	 "dashboard/moon-database.rkt"
+	 "dashboard/parse.rkt"
 	 "dashboard/report.rkt"
 	 "dashboard/result.rkt"
 	 "dashboard/tasks.rkt"
@@ -28,6 +30,9 @@
    [("recon" "moon-database") exec-moon-database]
    [("recon" "tasks") exec-tasks]
    [("recon" "timers") exec-timers]
+   [("dscan" "intel") exec-dscan-report]
+   [("dscan" "submit") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
+   [("dscan" (string-arg)) (lambda (req id) (exec-parse-archive req id))]
    [("timers") exec-timers]))
 
 (define (main req)
