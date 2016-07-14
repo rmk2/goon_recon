@@ -36,7 +36,7 @@
 (struct mapDenormalize (id type group system constellation region name) #:transparent)
 
 ;; sql-moon-update-scan & sql-moon-update-empty
-(struct sql-moon (region constellation system planet moon alliance corporation datetime type online) #:transparent)
+(struct sql-moon (region constellation system planet moon alliance corporation datetime type online scanid) #:transparent)
 
 ;; sql-killmail (supers + towers)
 (struct sql-killmail (shiptype characterid charactername corporationid corporationname allianceid alliancename location system region datetime killid victimtype [eventtype #:auto #:mutable]) #:auto-value "" #:prefab)

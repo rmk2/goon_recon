@@ -10,7 +10,7 @@
 
 ;; d-scan -> scan data (using the sql-moon struct)
 
-(define (moon-parse-scan input #:corporation corporation #:alliance alliance)
+(define (moon-parse-scan input #:corporation corporation #:alliance alliance #:id [scan-id 0])
   (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)]
 	[tower (hash-ref (dscan-proximity (tower? input)) 'type)])
     (call-with-values
@@ -28,10 +28,11 @@
 	   (if (and (dscan-proximity (forcefield? input))
 		    (< (hash-ref (dscan-proximity (forcefield? input)) 'distance) (max_distance)))
 	       1
-	       0)))
+	       0)
+	   scan-id))
       sql-moon)))
 
-(define (moon-parse-empty input)
+(define (moon-parse-empty input #:id [scan-id 0])
   (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)])
     (call-with-values
 	(lambda ()
@@ -45,7 +46,8 @@
 	   null
 	   (srfi-date->sql-timestamp (current-date))
 	   null
-	   null))
+	   null
+	   scan-id))
       sql-moon)))
 
 ;; Pretty-print condensed d-scan result for HTML output
@@ -71,7 +73,7 @@
 
 ;; servlet
 
-(define (exec-result req)
+(define (exec-result req #:persist-dscan persist-dscan?)
   (define response-generator
     (response/output
      (lambda (port)
@@ -114,7 +116,7 @@
 	  (false? (dscan-proximity (moon? data)))
 	  (> (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance)))
       #f]
-     [else (moon-parse-scan data #:corporation corporation #:alliance alliance)]))
+     [else (moon-parse-scan data #:corporation corporation #:alliance alliance #:id (dscan-data->id dscan))]))
 
   (define moon-empty-result
     (cond
@@ -123,7 +125,13 @@
 	  (false? (dscan-proximity (moon? data)))
 	  (> (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance)))
       #f]
-     [else (moon-parse-empty data)]))
+     [else (moon-parse-empty data #:id (dscan-data->id dscan))]))
+
+  (cond
+   [(and persist-dscan?
+	 (or (not (false? moon-scan-result))
+	     (not (false? moon-empty-result))))
+    (dscan-gzip-write dscan)])
 
   (cond
    [(not (false? moon-scan-result))

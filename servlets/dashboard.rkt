@@ -26,13 +26,13 @@
 (define-values (main-dispatch main-url)
   (dispatch-rules
    [("recon" "report") exec-report]
-   [("recon" "result") #:method "post" exec-result]
+   [("recon" "result") #:method "post" (lambda (req) (exec-result req #:persist-dscan (cl-persist)))]
    [("recon" "moon-database") exec-moon-database]
    [("recon" "tasks") exec-tasks]
    [("recon" "timers") exec-timers]
    [("dscan" "intel") exec-dscan-report]
    [("dscan" "submit") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
-   [("dscan" (string-arg)) (lambda (req id) (exec-parse-archive req id))]
+   [("dscan" (string-arg)) exec-parse-archive]
    [("timers") exec-timers]))
 
 (define (main req)

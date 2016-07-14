@@ -30,7 +30,7 @@
 
 (define (sql-moon-update-scan lst)
   (for-each (lambda (x)
-	      (query sqlc "INSERT INTO moonScanRaw VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE allianceTicker=?,corporationTicker=?,datetime=?,typeID=?,online=?"
+	      (query sqlc "INSERT INTO moonScanRaw VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE allianceTicker=?,corporationTicker=?,datetime=?,typeID=?,online=?,scanID=?"
 		     (sql-moon-region x)
 		     (sql-moon-constellation x)
 		     (sql-moon-system x)
@@ -41,11 +41,13 @@
 		     (sql-moon-datetime x)
 		     (sql-moon-type x)
 		     (sql-moon-online x)
+		     (sql-moon-scanid x)
 		     (sql-moon-alliance x)
 		     (sql-moon-corporation x)
 		     (sql-moon-datetime x)
 		     (sql-moon-type x)
-		     (sql-moon-online x)))
+		     (sql-moon-online x)
+		     (sql-moon-scanid x)))
 	    lst))
 
 (define (sql-moon-update-empty lst)
