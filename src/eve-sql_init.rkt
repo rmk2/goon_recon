@@ -31,6 +31,10 @@
 
 (sql-moon-create-triggers)
 
+;; Create type association view
+
+(sql-type-create-associations)
+
 ;; Create tower kill tables
 
 (sql-tower-create-raw)
