@@ -52,7 +52,8 @@
 	   (literal (style/inline 'type: "text/css" ".hide { display: none; }"))
 	   (literal (style/inline 'type: "text/css" ".dscan-element { display: flex; padding: 0.1em; margin: 0.25em; min-width: 20em; }"))
 	   (literal (style/inline 'type: "text/css" "button { margin: 1em; align-self: center; }"))
-	   (literal (style/inline 'type: "text/css" ".dscan-count { padding-right: 0.5em; }"))
+	   (literal (style/inline 'type: "text/css" ".dscan-type { padding: 0.1em; }"))
+	   (literal (style/inline 'type: "text/css" ".dscan-count { margin-right: 0.25em; padding: 0.1em; font-weight: bold; }"))
 	   (script (literal "function toggleClass() { var x = document.getElementsByClassName('dscan-detail'); var y = document.getElementsByClassName('dscan-summary'); for (var i = 0; i < x.length; ++i) { x[i].classList.toggle('hide'); y[i].classList.toggle('hide');} }"))))
 	 (body
 	  (output:create-html-navigation #:title "GoonSwarm Recon" #:links '(("Dashboard" . "intel")))
