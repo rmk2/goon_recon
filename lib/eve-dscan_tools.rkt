@@ -39,6 +39,7 @@
 ;; D-Scan munching
 
 (define (AU->km n) (inexact->exact (* n 1.496e+8)))
+(define (m->km n) (exact->inexact (/ n 1000)))
 
 (define (dscan-raw->list input)
   (map (lambda (x) (string-split x "\t"))
@@ -51,6 +52,10 @@
 		   (list (first x)
 			 (second x)
 			 (string->number (string-join (regexp-match* #px"\\d+" (last x)) "")))]
+		  [(pregexp #px"(.)\\sm$")
+		   (list (first x)
+			 (second x)
+			 (m->km (string->number (string-join (regexp-match* #px"\\d+" (last x)) ""))))]
 		  [(pregexp #px"(.)\\sAU$")
 		   (list (first x)
 			 (second x)
