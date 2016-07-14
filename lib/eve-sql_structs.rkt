@@ -43,3 +43,6 @@
 
 ;; dscan
 (struct dscan (name type distance) #:prefab #:extra-constructor-name parse-dscan)
+
+;; type-association-list
+(struct typeAssociation (typeid typename groupid groupname category) #:prefab)

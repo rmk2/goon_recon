@@ -1,7 +1,9 @@
 #lang racket
 
 (require "eve-api_tools.rkt")
+(require "eve-list_tools.rkt")
 (require "eve-string_tools.rkt")
+(require "eve-sql_main.rkt")
 (require "eve-sql_structs.rkt")
 (require "eve-sql_types.rkt")
 
@@ -25,8 +27,8 @@
 (define (fill-alliance #:alliance alliance #:corporation corporation)
   (let* ([corporation (if (string? corporation) (string-upcase corporation) "")]
 	 [try-corp (if (parse-corporation corporation)
-		      (corporation-to-alliance (parse-corporation :id corporation))
-		      "0")])		      
+		       (corporation-to-alliance (parse-corporation :id corporation))
+		       "0")])
     (cond
      [(not (string-empty? alliance)) (string-upcase alliance)]
      [(and (string-empty? alliance) (string? corporation)
@@ -68,10 +70,10 @@
 
 (define (dscan-hash->struct lst)
   (map (lambda (hash) (call-with-values
-			 (lambda ()
-			   (values (hash-ref hash 'name)
-				   (hash-ref hash 'type)
-				   (hash-ref hash 'distance)))
+			  (lambda ()
+			    (values (hash-ref hash 'name)
+				    (hash-ref hash 'type)
+				    (hash-ref hash 'distance)))
 			dscan))
        lst))
 
@@ -161,3 +163,57 @@
       (parse-constellation :name (second lst))
       (parse-solarsystem :name (third lst)))
      " › ")]))
+
+;; Create view that combines typeID/Name, groupID/Name and categoryID
+
+(define (sql-type-create-associations)
+  (if (table-exists? sqlc "typeAssociations")
+      #t
+      (query-exec sqlc "CREATE VIEW typeAssociations AS SELECT t.typeID,t.typeName,g.groupID,g.groupName,g.categoryID FROM invGroups AS g LEFT JOIN invTypes AS t ON t.groupID = g.groupID WHERE t.published = 1")))
+
+;; Type associations -> typeAssociation struct
+
+(define (sql-type-parse-association category)
+  (query-rows sqlc "SELECT typeID,typeName,groupID,groupName,categoryID FROM typeAssociations WHERE categoryID = ?" category))
+
+(define (type-association-list category)
+  (map (lambda (v) (sql-parse->struct v #:struct typeAssociation))
+       (sql-type-parse-association category)))
+
+;; Type association shortcuts
+
+;; (define deployable-type-list (type-association-list 22))
+;; (define drone-type-list (type-association-list 18))
+;; (define fighter-type-list (type-association-list 87))
+;; (define ship-type-list (type-association-list 6))
+;; (define sovereignty-type-list (type-association-list 40))
+;; (define starbase-type-list (type-association-list 23))
+;; (define structure-type-list (type-association-list 65))
+
+;; Parse dscan data, filter by chosen type association list
+
+(define (parse-type-list input type-list)
+  (filter-map (lambda (hash)
+		(findf (lambda (x) (equal? (hash-ref hash 'type) (typeAssociation-typename x))) type-list))
+	      input))
+
+(define-syntax filter-dscan
+  (syntax-rules (:deployable :drone :fighter :ship :sovereignty :starbase :structure)
+    ((_ :deployable input) (filter-dscan input (type-association-list 22)))
+    ((_ :drone input) (filter-dscan input (type-association-list 18)))
+    ((_ :fighter input) (filter-dscan input (type-association-list 87)))
+    ((_ :ship input) (filter-dscan input (type-association-list 6)))
+    ((_ :sovereignty input) (filter-dscan input (type-association-list 40)))
+    ((_ :starbase input) (filter-dscan input (type-association-list 23)))
+    ((_ :structure input) (filter-dscan input (type-association-list 65)))
+    ((_ input type-list)
+     (let ([result (parse-type-list input type-list)])
+       (cond
+	[(empty? result) null]
+	[else (cons
+	       (sort (count-duplicates (sort (map (lambda (x) (typeAssociation-typename x)) result) string-ci>=?))
+		     >=
+		     #:key second)
+	       (sort (count-duplicates (sort (map (lambda (x) (typeAssociation-groupname x)) result) string-ci>=?))
+		     >=
+		     #:key second))])))))

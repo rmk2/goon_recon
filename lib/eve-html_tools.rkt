@@ -119,3 +119,41 @@
 			     (if (equal? active-url (cdr x)) (list (cons 'class "active")) null)
 			     (a 'href: (cdr x) (car x))))
 		nav-list))))
+
+(define (html-create-dscan-rows ships info structures starbases)
+    (list
+     (div 'class: "dscan horizontal"
+	  (map (lambda (heading column)
+		 (div 'class: "dscan-column"
+		      (h3 heading)
+		      (map (lambda (element)
+			     (div 'class: "dscan-element"
+				  (div 'class: "dscan-count" (cdr element))
+				  (div 'class: "dscan-type" (car element))))
+			   column)))
+	       (list "Ship Types" "Ship Groups")
+	       (list (car ships)
+		     (cdr ships)))
+	  (div 'class: "dscan vertical"
+	       (map (lambda (heading column)
+	       	      (div 'class: "dscan-column"
+	       		   (h3 heading)
+	       		   (map (lambda (group)
+	       			  (div 'class: "dscan-group"
+	       			       (map (lambda (detail)
+					      (div 'class: "dscan-detail hide"
+						   (div 'class: "dscan-element"
+							(div 'class: "dscan-count" (cdr detail))
+							(div 'class: "dscan-type" (car detail)))))
+					    (car group))
+				       (map (lambda (element)
+					      (div 'class: "dscan-summary"
+						   (div 'class: "dscan-element"
+							(div 'class: "dscan-count" (cdr element))
+							(div 'class: "dscan-type" (car element)))))
+					    (cdr group))))
+				column)))
+		    (list "Drones/Deployables" "Structures" "Starbases (on-grid only)")
+		    (filter-map (lambda (lst) (if (empty? (flatten lst)) null (filter (lambda (x) (not (empty? x))) lst)))
+				(list info structures starbases)))
+	       (button 'onclick: "toggleClass();" "Toggle details")))))
