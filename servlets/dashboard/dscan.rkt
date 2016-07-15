@@ -48,9 +48,9 @@
 	  (list
 	   (literal (style/inline 'type: "text/css" ".dscan { display: flex; flex-wrap: wrap; justify-content: flex-start; align-items: baseline; }"))
 	   (literal (style/inline 'type: "text/css" ".dscan.vertical { flex-direction: column; border: 1px solid black; }"))
-	   (literal (style/inline 'type: "text/css" ".dscan-column { padding: 1em; }"))
+	   (literal (style/inline 'type: "text/css" ".dscan-column { padding: 1em; min-width: 20em; }"))
 	   (literal (style/inline 'type: "text/css" ".hide { display: none; }"))
-	   (literal (style/inline 'type: "text/css" ".dscan-element { display: flex; padding: 0.1em; margin: 0.25em; min-width: 20em; flex-direction: row-reverse; justify-content: space-between; }"))
+	   (literal (style/inline 'type: "text/css" ".dscan-element { display: flex; padding: 0.1em; margin: 0.25em; flex-direction: row-reverse; justify-content: space-between; }"))
 	   (literal (style/inline 'type: "text/css" "button { margin: 1em; align-self: center; }"))
 	   (literal (style/inline 'type: "text/css" ".dscan-type { padding: 0.1em; }"))
 	   (literal (style/inline 'type: "text/css" ".dscan-count { margin-right: 0.25em; padding: 0.1em; font-weight: bold; }"))
