@@ -172,4 +172,4 @@
 		  (list "Drones/Deployables" "Structures" "Starbases (on-grid only)")
 		  (filter-map (lambda (lst) (if (empty? (flatten lst)) null (filter (lambda (x) (not (empty? x))) lst)))
 			      (list info structures starbases)))
-	     (button 'onclick: "toggleClass();" "Toggle details")))))
+	     (button 'onclick: "toggleClass('dscan-detail'); toggleClass('dscan-summary')" "Toggle details")))))
