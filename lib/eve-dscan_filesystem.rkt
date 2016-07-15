@@ -17,7 +17,8 @@
     ((_ :md5 data) (bytes->hex-string (md5-bytes data)))
     ((_ :sha1 data) (bytes->hex-string (sha1-bytes data)))
     ((_ :sha256 data) (bytes->hex-string (sha256-bytes data)))
-    ((_ data) (dscan-data->id :md5 data))))
+    ((_ :sha256-truncate data) (bytes->hex-string (subbytes (sha256-bytes data) 0 16)))
+    ((_ data) (dscan-data->id :sha256-truncate data))))
 
 ;; Create a filename from dscan
 ;; filename: hex-string + ".gz"
