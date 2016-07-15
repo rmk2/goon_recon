@@ -47,16 +47,19 @@
     (dscan-list->hash
      (dscan-raw->list dscan)))
 
+  (define data-normalised
+    (dscan-sort
+     (dscan-list->hash
+      (dscan-normalise-distance
+       (dscan-raw->list dscan)))))
+
   (define data-ongrid
     (filter (lambda (hash) (< (hash-ref hash 'distance) (* 3 (max_distance))))
-	    (dscan-sort
-	     (dscan-list->hash
-	      (dscan-normalise-distance
-	       (dscan-raw->list dscan))))))
+	    data-normalised))
 
   (define dscan-data
     (call-with-values
-    	(lambda()
+	(lambda()
 	  (values
 	   (filter-dscan :ship data-full)
 	   (list
@@ -70,6 +73,6 @@
 	    (filter-dscan :starbase data-ongrid))))
       output:html-create-dscan-rows))
 
-  (define location (guess->location (dscan-guess-location data-ongrid)))
+  (define location (guess->location (dscan-guess-location data-normalised)))
 
   (exec-dscan #:dscan dscan-data #:location location))
