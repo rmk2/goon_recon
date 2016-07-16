@@ -24,7 +24,7 @@
 		     (fieldset
 		      (legend "D-Scan reporting")
 		      (br)
-		      (textarea 'name: "dscan" 'rows: "20" 'cols: "50" 'required: #t)
+		      (textarea 'name: "dscan" 'rows: "20" 'cols: "50" 'required: #t 'placeholder: "Paste D-Scan here")
 		      (br)
 		      (br)
 		      (input 'type: "checkbox" "Checkbox")
