@@ -17,6 +17,18 @@ raco pkg install xexpr-path
 racket servlets/dashboard.rkt
 ```
 
+If you would like to use the dscan parsing/reporting functionality implemented
+as well, you will have to specify a directory where gzipped dscan data can be
+saved, as well as a switch to actually enable storing dscans on disk. The
+webroot directory can also be provided by setting the EVEROOT environment
+variable instead. Priority goes to command-line parameter before environmental
+variable before current directory:
+
+```
+# Run webserver with dscan persistence
+racket servlets/dashboard.rkt --webroot </path/to/directory> --persist-dscan
+```
+
 ## Partial database setup
 
 Running `eve-sql_init.rkt` will create all necessary database tables *that do
