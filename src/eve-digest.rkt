@@ -81,7 +81,7 @@
    #:once-each
    [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
    [("-e" "--end-date") str "Select end date, format: YYYYMMDD" (cl-end str)]
-   [("-l" "--link" "--href") "Show links to killmails, default: false" (cl-href #t)]
+   [("-L" "--link" "--href") "Show links to killmails, default: false" (cl-href #t)]
    [("-P" "--pilot" "--active") "Show a list of (unique) active pilots" (cl-active #t)]
    [("-H" "--html") "Output parsed data as html, default: false" (begin (cl-csv #f) (cl-html #t))]
    [("-c" "--csv" "-p" "--print") "Print output as csv, default: false" (begin (cl-html #f) (cl-csv #t))]
@@ -94,7 +94,7 @@
    #:once-any
    [("-a" "--all") "Show kills & losses by <groupid>, default: false" (begin (cl-kills #t) (cl-losses #t))]
    [("-k" "--kills") "Show kills by <groupid>, default: true" (begin (cl-kills #t) (cl-losses #f))]
-   [("-L" "--losses") "Show losses by <groupid>, default: false" (begin (cl-losses #t) (cl-kills #f))]
+   [("-l" "--losses") "Show losses by <groupid>, default: false" (begin (cl-losses #t) (cl-kills #f))]
    [("-X" "--cron" "--intel") "Shortcut for collecting super killmails via cron, setting all appropriate options"
     (begin (cl-raw #t) (cl-sql #t) (cl-losses #t) (cl-kills #t) (cl-date null) (cl-groups '("30" "659"))
 	   (cl-id (sql-super-latest-killid)))]))
