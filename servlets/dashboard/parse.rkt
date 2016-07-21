@@ -71,7 +71,7 @@
 	    (filter-dscan :sovereignty data-full))
 	   (list
 	    (filter-dscan :starbase data-ongrid))))
-      output:html-create-dscan-rows))
+      output:create-html-dscan-rows))
 
   (define location (guess->location (dscan-guess-location data-normalised)))
 

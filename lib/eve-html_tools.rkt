@@ -120,7 +120,7 @@
 			     (a 'href: (cdr x) (car x))))
 		nav-list))))
 
-(define (html-create-dscan-rows ships info structures starbases)
+(define (create-html-dscan-rows ships info structures starbases)
   (define (colorise-div #:picker n #:class [class "dscan-element"] body)
     (make-element 'div
 		  (list
