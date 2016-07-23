@@ -133,7 +133,7 @@
 			    [citadel (car (ostfs-list->struct entry-data))]
 			    [system (caadr entry-data)])
 		       (citadel-list->struct (main-parser #:citadel citadel #:system system))))
-     (ostfs-filter-citadels ostfs-test))
+     (remove-duplicates (ostfs-filter-citadels ostfs-test)))
 
 ;; Find files
 
