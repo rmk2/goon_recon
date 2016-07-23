@@ -30,7 +30,7 @@
   (lexer
    [(:= 8 numeric) (cons (list lexeme) (ostfs-lexer input-port))] ;; solarSystemID
    [(:+ (:: whitespace (:? "(") (:+ "{"))  (:: (:+ "}") (:? ")") punctuation)) (ostfs-lexer input-port)]
-   [(:: (:? "-") (:+ numeric) (:? ".") (:? numeric)) (cons (string->number lexeme) (ostfs-lexer input-port))]
+   [(:: (:? "-") (:+ numeric) (:? ".") (:* numeric)) (cons (string->number lexeme) (ostfs-lexer input-port))]
    [(:: (:+ alphabetic) (:? "-") (:+ numeric)) (cons lexeme (ostfs-lexer input-port))] ;; signature
    [(:or "L" punctuation whitespace) (ostfs-lexer input-port)]
    [(:+ alphabetic) (cons (list lexeme) (ostfs-lexer input-port))] ;; type
@@ -72,6 +72,22 @@
 				   [else #f]))
 	      (split-list (memf (lambda (i) (and (number? i) (> i 1e12) (< i 1.09e12))) lst) 8)))
 
+(struct citadel (itemID system type corporation alliance datetime) #:transparent)
+
+(define (citadel-list->struct lst [struct citadel])
+  (call-with-values
+      (lambda () (vector->values (list->vector lst)))
+    citadel))
+
+;; Keep entries that contain citadels, drop all others
+
+(define (ostfs-filter-citadels lst)
+  (filter-map (lambda (entry) (let* ([entry-data (ostfs-lexer (open-input-string entry))])
+				(if (memf (lambda (i) (and (number? i) (> i 1e12) (< i 1.09e12))) entry-data)
+				    entry
+				    #f)))
+	      lst))
+
 ;; Cartesian math
 
 (define (cartesian-distance origin target)
@@ -94,18 +110,39 @@
 
 ;; Laboratory
 
-(define test-citadel (car (ostfs-list->struct (ostfs-lexer (open-input-string (third ostfs-test))))))
-(define test-system (caadr (ostfs-lexer (open-input-string (third ostfs-test)))))
+;; (define test-citadel (car (ostfs-list->struct (ostfs-lexer (open-input-string (third ostfs-test))))))
+;; (define test-system (caadr (ostfs-lexer (open-input-string (third ostfs-test)))))
 
-(let* ([citadel test-citadel]
-       [system test-system]
-       [citadel-data (car (filter (lambda (x) (equal? (anomaly-itemID test-citadel)
-						      (hash-ref x 'itemID)))
-				  (ccm-string->hash ccm-test)))])
-  (list
-   (anomaly-itemID citadel)
-   (parse-nearest-celestial #:systemid system #:anomaly citadel)
-   (hash-ref citadel-data 'typeID)
-   (hash-ref citadel-data 'corpID)
-   (hash-ref citadel-data 'allianceID)
-   (date->string (current-date) "~5")))
+(define (main-parser #:citadel citadel #:system system)
+  (let* ([citadel citadel]
+	 [system system]
+	 [citadel-data (car (filter (lambda (x) (equal? (anomaly-itemID citadel)
+							(hash-ref x 'itemID)))
+				    (ccm-string->hash ccm-test)))])
+    (list
+     (anomaly-itemID citadel)
+     (parse-nearest-celestial #:systemid system #:anomaly citadel)
+     (hash-ref citadel-data 'typeID)
+     (hash-ref citadel-data 'corpID)
+     (if (hash-has-key? citadel-data 'allianceID) (hash-ref citadel-data 'allianceID) 0)
+     (date->string (current-date) "~5"))))
+
+;; Run all (log file -> list of citadel structs)
+
+(map (lambda (entry) (let* ([entry-data (ostfs-lexer (open-input-string entry))]
+			    [citadel (car (ostfs-list->struct entry-data))]
+			    [system (caadr entry-data)])
+		       (citadel-list->struct (main-parser #:citadel citadel #:system system))))
+     (ostfs-filter-citadels ostfs-test))
+
+;; Find files
+
+;; (find-files (lambda (file) (regexp-match? #px".lsw$" file)) "/windows/Users/Ryko/Desktop/Eve/")
+
+;; ;; To do:
+
+;; Make ostfs-test & ccm-test dynamic (variable->function)
+;; Add command-line handling for directory prefix and log file(s)
+;; Loop through input files, running analysis for each file
+;; SQL schema for parsed citadels
+;; SQL update for parsed citadels (struct->db)
