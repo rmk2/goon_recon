@@ -130,9 +130,10 @@
 ;; Run all (log file -> list of citadel structs)
 
 (map (lambda (entry) (let* ([entry-data (ostfs-lexer (open-input-string entry))]
-			    [citadel (car (ostfs-list->struct entry-data))]
+			    [citadel (ostfs-list->struct entry-data)]
 			    [system (caadr entry-data)])
-		       (citadel-list->struct (main-parser #:citadel citadel #:system system))))
+		       (append-map (lambda (x) (citadel-list->struct (main-parser #:citadel x #:system system)))
+			    citadel)))
      (remove-duplicates (ostfs-filter-citadels ostfs-test)))
 
 ;; Find files
