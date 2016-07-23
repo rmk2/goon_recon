@@ -72,7 +72,7 @@
 				   [else #f]))
 	      (split-list (memf (lambda (i) (and (number? i) (> i 1e12) (< i 1.09e12))) lst) 8)))
 
-(struct citadel (itemID system type corporation alliance datetime) #:transparent)
+(struct citadel (itemID location type corporation alliance datetime) #:transparent)
 
 (define (citadel-list->struct lst [struct citadel])
   (call-with-values
