@@ -46,3 +46,6 @@
 
 ;; type-association-list
 (struct typeAssociation (typeid typename groupid groupname category) #:prefab)
+
+;; JWT token for (recon) usernames
+(struct recon-jwt (issuer audiences subject username))
