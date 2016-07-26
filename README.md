@@ -11,6 +11,7 @@ raco link --name eve --user lib
 
 # Install dependencies
 raco pkg install grommet
+raco pkg install net-jwt
 raco pkg install xexpr-path
 
 # Run webserver
