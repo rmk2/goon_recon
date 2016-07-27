@@ -112,12 +112,27 @@
 (define (sql-goo-create-guess)
   (if (table-exists? sqlc "moonGooGuess")
       #t
-      (query-exec sqlc "CREATE TABLE moonGooGuess (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL,moonType INT, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
+      (query-exec sqlc "CREATE TABLE moonGooGuess (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, datetime DATETIME DEFAULT '0000-00-00 00:00:00', moonType NOT NULL INT, amount TINYINT DEFAULT NULL, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
 
 (define (sql-goo-create-raw)
   (if (table-exists? sqlc "moonGooRaw")
       #t
-      (query-exec sqlc "CREATE TABLE moonGooRaw (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL,moonType INT, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
+      (query-exec sqlc "CREATE TABLE moonGooRaw (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, datetime DATETIME DEFAULT '0000-00-00 00:00:00', moonType NOT NULL INT, amount TINYINT DEFAULT NULL, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
+
+(define (sql-goo-update-scan lst)
+  (for-each (lambda (x)
+	      (query sqlc "INSERT INTO moonGooRaw VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE datetime=?,amount=?"
+		     (sql-goo-region x)
+		     (sql-goo-constellation x)
+		     (sql-goo-system x)
+		     (sql-goo-planet x)
+		     (sql-goo-moon x)
+		     (sql-goo-datetime x)
+		     (sql-goo-type x)
+		     (sql-goo-amount x)
+		     (sql-goo-datetime x)
+		     (sql-goo-amount x)))
+	    lst))
 
 ;; Define triggers to update the pseudo-materialized table we created above
 ;; whenever moonScanRaw changes, since a simple view on its own is too slow.

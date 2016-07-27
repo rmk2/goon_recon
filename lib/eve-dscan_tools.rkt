@@ -10,6 +10,8 @@
 (require xml)
 (require racket/set)
 (require db)
+(require db/util/datetime)
+(require srfi/19)
 
 (provide (all-defined-out))
 
@@ -222,3 +224,34 @@
 	       (sort (count-duplicates (sort (map (lambda (x) (typeAssociation-groupname x)) result) string-ci>=?))
 		     >=
 		     #:key second))])))))
+
+;; Split moon probing results per moon (use dscan-raw->list as input)
+
+(define (goo-split-probe-results lst)
+  (let loop ([data lst] [result null])
+    (cond [(empty? data) result]
+	  [else (loop (dropf (cdr data) (lambda (x) (not (list? (split-moon-display (car x))))))
+		      (list* (cons (first data)
+				   (takef (cdr data) (lambda (x) (not (list? (split-moon-display (car x)))))))
+			     result))])))
+
+;; Parse moon probing results into a list per type per moon
+
+(define (goo-parse-results lst)
+  (append-map (lambda (x)
+		(let* ([data x]
+		       [location (sql-parse->struct (parse-map (car (first data))) #:struct mapDenormalize)]
+		       [moon (list
+			      (mapDenormalize-region location)
+			      (mapDenormalize-constellation location)
+			      (mapDenormalize-system location)
+			      (cdr (split-moon-display (car (first data))))
+			      (srfi-date->sql-timestamp (current-date)))])
+		  (map (lambda (x) (flatten (list moon (parse-type :id (car x)) (cadr x)))) (cdr data))))
+	      lst))
+
+;; Transform a list of moon lists into a list of sql-goo structs
+
+(define (goo-list->struct lst)
+  (map (lambda (moon) (call-with-values (lambda () (vector->values (list->vector moon))) sql-goo))
+       lst))
