@@ -84,11 +84,17 @@
 	 (body
 	  (output:create-html-navigation #:title "GoonSwarm Recon")
 	  (div 'id: "content"
-	       (h1 (pretty-print-location (guess->location (dscan-guess-location data))))
+	       (let ([location (cond [(not (false? goo-scan-result))
+				      (list (parse-region :name (sql-goo-region (first goo-scan-result)))
+					    (parse-constellation :name (sql-goo-constellation (first goo-scan-result)))
+					    (parse-solarsystem :name (sql-goo-system (first goo-scan-result))))]
+				     [else (guess->location (dscan-guess-location data))])])
+		 (h1 (pretty-print-location location)))
 	       (b "Scan Result: ")
 	       (cond
 		[(not (false? moon-scan-result)) (pretty-print-moon-result data moon-scan-result)]
-		[(not (false? goo-scan-result)) "Moon probing results saved!"]
+		[(not (false? goo-scan-result))
+		 (format "Moon probing results saved for ~a!" (car (first (dscan-raw->list dscan))))]
 		[else "No structure found in close proximity"])
 	       (br)
 	       (br)
