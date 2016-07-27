@@ -22,6 +22,11 @@
 (sql-super-create-latest)
 (sql-super-create-watchlist)
 
+;; Create moon goo tables
+
+(sql-goo-create-raw)
+(sql-goo-create-view)
+
 ;; Create moon scan tables
 
 (sql-moon-create-raw)
@@ -30,11 +35,6 @@
 (sql-moon-create-tasks)
 
 (sql-moon-create-triggers)
-
-;; Create moon goo tables
-
-(sql-goo-create-raw)
-(sql-goo-create-view)
 
 ;; Create type association view
 
