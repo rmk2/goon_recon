@@ -112,12 +112,12 @@
 (define (sql-goo-create-guess)
   (if (table-exists? sqlc "moonGooGuess")
       #t
-      (query-exec sqlc "CREATE TABLE moonGooGuess (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, datetime DATETIME DEFAULT '0000-00-00 00:00:00', moonType NOT NULL INT, amount TINYINT DEFAULT NULL, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
+      (query-exec sqlc "CREATE TABLE moonGooGuess (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, datetime DATETIME DEFAULT '0000-00-00 00:00:00', moonType INT NOT NULL, amount TINYINT DEFAULT NULL, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
 
 (define (sql-goo-create-raw)
   (if (table-exists? sqlc "moonGooRaw")
       #t
-      (query-exec sqlc "CREATE TABLE moonGooRaw (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, datetime DATETIME DEFAULT '0000-00-00 00:00:00', moonType NOT NULL INT, amount TINYINT DEFAULT NULL, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
+      (query-exec sqlc "CREATE TABLE moonGooRaw (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, datetime DATETIME DEFAULT '0000-00-00 00:00:00', moonType INT NOT NULL, amount TINYINT DEFAULT NULL, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
 
 (define (sql-goo-update-scan lst)
   (for-each (lambda (x)
