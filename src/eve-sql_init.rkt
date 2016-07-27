@@ -31,6 +31,11 @@
 
 (sql-moon-create-triggers)
 
+;; Create moon goo tables
+
+(sql-goo-create-raw)
+(sql-goo-create-view)
+
 ;; Create type association view
 
 (sql-type-create-associations)

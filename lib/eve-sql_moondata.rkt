@@ -70,7 +70,7 @@
 				      "mapRegions.regionName,mapConstellations.constellationName,"
 				      "mapSolarSystems.solarSystemName,scan.planet,scan.moon,scan.allianceTicker,"
 				      "customAlliances.allianceName,scan.corporationTicker,customCorporations.corporationName,"
-				      "scan.datetime,invTypes.typeName,data.moonType,"
+				      "scan.datetime,invTypes.typeName,moonTypes.typeName AS moonType,"
 				      "CASE scan.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END AS 'online', "
 				      "IF(towerKillRaw.datetime > scan.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus' "
 				      "FROM moonScanRaw AS scan "
@@ -80,9 +80,10 @@
 				      "LEFT JOIN invTypes ON invTypes.typeID = scan.typeID "
 				      "LEFT JOIN customAlliances ON customAlliances.allianceTicker = scan.allianceTicker "
 				      "LEFT JOIN customCorporations ON customCorporations.corporationTicker = scan.corporationTicker "
-				      "LEFT JOIN moondata AS data ON data.solarSystemName = mapSolarSystems.solarSystemName "
+				      "LEFT JOIN moonGooView AS data ON data.solarSystemID = scan.solarSystemID "
 				      "AND data.planet = scan.planet "
 				      "AND data.moon = scan.moon "
+				      "LEFT JOIN invTypes AS moonTypes ON moonTypes.typeID = data.moonType "
 				      "LEFT JOIN towerKillRaw ON scan.solarSystemID = towerKillRaw.solarSystemID "
 				      "AND scan.planet = towerKillRaw.planet "
 				      "AND scan.moon = towerKillRaw.moon"))))
@@ -119,6 +120,11 @@
       #t
       (query-exec sqlc "CREATE TABLE moonGooRaw (regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, datetime DATETIME DEFAULT '0000-00-00 00:00:00', moonType INT NOT NULL, amount TINYINT DEFAULT NULL, UNIQUE KEY (solarSystemID, planet, moon, moonType) )")))
 
+(define (sql-goo-create-view) ;; View that only shows the most valuable moon goo
+  (if (table-exists? sqlc "moonGooView")
+      #t
+      (query-exec sqlc "CREATE VIEW moonGooView AS SELECT regionID, constellationID, solarSystemID, planet, moon, datetime, MAX(moonType) as moonType FROM moonGooRaw GROUP BY solarSystemID,planet,moon ORDER BY regionID,constellationID,solarSystemID,planet,moon")))
+
 (define (sql-goo-update-scan lst)
   (for-each (lambda (x)
 	      (query sqlc "INSERT INTO moonGooRaw VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE datetime=?,amount=?"
@@ -146,7 +152,7 @@
 		    "mapRegions.regionName,mapConstellations.constellationName,"
 		    "mapSolarSystems.solarSystemName,NEW.planet,NEW.moon,NEW.allianceTicker,"
 		    "customAlliances.allianceName,NEW.corporationTicker,customCorporations.corporationName,"
-		    "NEW.datetime,invTypes.typeName,data.moonType,"
+		    "NEW.datetime,invTypes.typeName,moonTypes.typeName AS moonType,"
 		    "CASE NEW.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END AS 'online', "
 		    "IF(towerKillRaw.datetime > NEW.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus' "
 		    "FROM moonScanRaw "
@@ -156,9 +162,10 @@
 		    "LEFT JOIN invTypes ON invTypes.typeID = NEW.typeID "
 		    "LEFT JOIN customAlliances ON customAlliances.allianceTicker = NEW.allianceTicker "
 		    "LEFT JOIN customCorporations ON customCorporations.corporationTicker = NEW.corporationTicker "
-		    "LEFT JOIN moondata AS data ON data.solarSystemName = mapSolarSystems.solarSystemName "
-		    "AND data.planet = NEW.planet "
-		    "AND data.moon = NEW.moon "
+		    "LEFT JOIN moonGooView AS data ON data.solarSystemID = scan.solarSystemID "
+		    "AND data.planet = scan.planet "
+		    "AND data.moon = scan.moon "
+		    "LEFT JOIN invTypes AS moonTypes ON moonTypes.typeID = data.moonType "
 		    "LEFT JOIN towerKillRaw ON NEW.solarSystemID = towerKillRaw.solarSystemID "
 		    "AND NEW.planet = towerKillRaw.planet "
 		    "AND NEW.moon = towerKillRaw.moon "
