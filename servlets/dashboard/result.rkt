@@ -88,6 +88,7 @@
 	       (b "Scan Result: ")
 	       (cond
 		[(not (false? moon-scan-result)) (pretty-print-moon-result data moon-scan-result)]
+		[(not (false? goo-scan-result)) "Moon probing results saved!"]
 		[else "No structure found in close proximity"])
 	       (br)
 	       (br)
@@ -127,6 +128,13 @@
       #f]
      [else (moon-parse-empty data #:id (dscan-data->id dscan))]))
 
+  (define goo-scan-result
+    (cond
+     [(or (string-empty? dscan)
+	  (false? (goo-probe-result? dscan)))
+      #f]
+     [else (goo-list->struct (goo-parse-results (goo-split-probe-results (dscan-raw->list dscan))))]))
+
   (cond
    [(and persist-dscan?
 	 (or (not (false? moon-scan-result))
@@ -137,6 +145,8 @@
    [(not (false? moon-scan-result))
     (sql-moon-update-scan (list moon-scan-result))]
    [(not (false? moon-empty-result))
-    (sql-moon-update-empty (list moon-empty-result))])
+    (sql-moon-update-empty (list moon-empty-result))]
+   [(not (false? goo-scan-result))
+    (sql-goo-update-scan goo-scan-result)])
 
   (send/back response-generator))

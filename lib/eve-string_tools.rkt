@@ -34,6 +34,12 @@
 	 (let ([lst (regexp-match #px"([A-Za-z0-9-]+\\s{0,1}\\w*)\\s([IVXL]+)\\s{0,1}[A-Za-z\\(\\)]*[ -]{3}\\w+\\s(\\d+)" str)])
 	   (list (second lst) (roman->int (third lst)) (string->number (fourth lst))))]))
 
+;; Check whether a string begins with a valid moon, followed by return and a
+;; valid row of moon goo
+
+(define (goo-probe-result? str)
+  (regexp-match? #px"([A-Za-z0-9-]+\\s{0,1}\\w*)\\s([IVXL]+)\\s{0,1}[A-Za-z\\(\\)]*[ -]{3}\\w+\\s(\\d+)\\s{2}(\\w+\\s\\w*\\s*\\d+)+" str))
+
 ;; Translate
 
 (define-syntax iso8601->relaxed
