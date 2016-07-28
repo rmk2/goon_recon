@@ -61,7 +61,7 @@
 		  [(pregexp #px"(.)\\sAU$")
 		   (list (first x)
 			 (second x)
-			 (AU->km (string->number (car (regexp-match #px"[\\d.]+" (last x))))))]
+			 (AU->km (string->number (car (regexp-match #px"[\\d.]+" (string-replace (last x) "," "."))))))]
 		  [_ #f]))
 	      lst))
 
