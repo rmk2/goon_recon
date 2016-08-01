@@ -14,6 +14,7 @@
 
 (require "dashboard/common.rkt"
 	 "dashboard/dscan.rkt"
+	 "dashboard/goo-database.rkt"
 	 "dashboard/moon-database.rkt"
 	 "dashboard/parse.rkt"
 	 "dashboard/report.rkt"
@@ -27,6 +28,7 @@
   (dispatch-rules
    [("recon" "report") exec-report]
    [("recon" "result") #:method "post" (lambda (req) (exec-result req #:persist-dscan (cl-persist)))]
+   [("recon" "goo-database") exec-goo-database]
    [("recon" "moon-database") exec-moon-database]
    [("recon" "tasks") exec-tasks]
    [("recon" "timers") exec-timers]
