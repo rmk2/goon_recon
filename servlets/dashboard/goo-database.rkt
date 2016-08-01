@@ -30,7 +30,7 @@
 	  (output:create-region-filter (sql-get-scanned-regions "moonGooDV"))
 	  (div 'id: "content"
 	       (h1 "Moon Probing Data")
-	       (output:create-html-hint "Note: Entries with without a valid datetime field are imported from external data")
+	       (output:create-html-hint "Note: Entries without a valid datetime field are imported from external data")
 	       (output:create-html-hint (format "Results filtered for: Region (~a)"
 						(string-join (query-regions filter_region)  "|")))
 	       (output:create-html-hint :tablesorter)
