@@ -108,7 +108,7 @@
 	     (input 'type: "submit"))))
 
 (define (create-html-navigation #:title [nav-title "GoonSwarm Recon"]
-				#:links [nav-list '(("Dashboard" . "report")
+				#:links [nav-list '(("Report" . "report")
 						    ("Tasks" . "tasks")
 						    ("Timerboard" . "timers"))]
 				#:active [active-url null])
