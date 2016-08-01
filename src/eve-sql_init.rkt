@@ -26,6 +26,7 @@
 
 (sql-goo-create-raw)
 (sql-goo-create-view)
+(sql-goo-create-descriptive-view)
 
 ;; Create moon scan tables
 

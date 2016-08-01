@@ -35,6 +35,7 @@
 					(td 'class: str str)
 					(td (cond
 					     [(sql-null? str) ""]
+					     [(equal? (sql-timestamp 0 0 0 0 0 0 0 #f) str) ""]
 					     [(sql-date? str) (date->string (sql-datetime->srfi-date str) "~1")]
 					     [(sql-timestamp? str) (date->string (sql-datetime->srfi-date str) "~1 ~3")]
 					     [(number? str) str]

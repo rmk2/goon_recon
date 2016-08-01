@@ -125,6 +125,11 @@
       #t
       (query-exec sqlc "CREATE VIEW moonGooView AS SELECT regionID, constellationID, solarSystemID, planet, moon, datetime, MAX(moonType) as moonType FROM moonGooRaw GROUP BY solarSystemID,planet,moon ORDER BY regionID,constellationID,solarSystemID,planet,moon")))
 
+(define (sql-goo-create-descriptive-view)
+  (if (table-exists? sqlc "moonGooDV")
+      #t
+      (query-exec sqlc "CREATE VIEW moonGooDV AS SELECT mr.regionName,mc.constellationName,ms.solarSystemName,goo.planet,goo.moon,goo.datetime,t.typeName AS moonType FROM moonGooRaw AS goo LEFT JOIN mapRegions AS mr ON mr.regionID = goo.regionID LEFT JOIN mapConstellations AS mc ON mc.constellationID = goo.constellationID LEFT JOIN mapSolarSystems AS ms ON ms.solarSystemID = goo.solarSystemID LEFT JOIN invTypes AS t ON t.typeID = goo.moonType")))
+
 (define (sql-goo-update-scan lst)
   (for-each (lambda (x)
 	      (query sqlc "INSERT INTO moonGooRaw VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE datetime=?,amount=?"
@@ -139,6 +144,12 @@
 		     (sql-goo-datetime x)
 		     (sql-goo-amount x)))
 	    lst))
+
+(define (sql-goo-get-scans)
+  (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,datetime,moonType FROM moonGooDV"))
+
+(define (sql-goo-region-scans param)
+  (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,datetime,moonType FROM moonGooDV WHERE regionName = ?" param)))
 
 ;; Define triggers to update the pseudo-materialized table we created above
 ;; whenever moonScanRaw changes, since a simple view on its own is too slow.

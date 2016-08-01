@@ -16,6 +16,7 @@
 	 (output:create-html-head
 	  #:title "Moon Scan Data"
 	  #:tablesorter #t
+	  #:navigation #t
 	  #:sort-column 0
 	  (list (literal (style/inline 'type: "text/css" "tr > td[class=\"LOLTX\"], tr > td[class=\"OHGOD\"] { background-color: #4D6EFF; color: white; }"))
 		(literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
@@ -27,6 +28,10 @@
 		(literal (style/inline 'type: "text/css" "tr.empty, span.empty { background-color: gray; }"))
 		(literal (style/inline 'type: "text/css" "tr.empty.rescan { background-color: gray; color: orange; }"))))
 	 (body
+	  (output:create-html-navigation
+	   #:title "GoonSwarm Recon L"
+	   #:active "moon-database"
+	   #:links '(("Goo Database" . "goo-database") ("Moon Database" . "moon-database")))
 	  (output:create-region-filter (sql-get-scanned-regions "moonScanView"))
 	  (div 'id: "content"
 	       (h1 "Moon Scan Data")
