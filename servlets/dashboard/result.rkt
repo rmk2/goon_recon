@@ -94,7 +94,11 @@
 	       (cond
 		[(not (false? moon-scan-result)) (pretty-print-moon-result data moon-scan-result)]
 		[(not (false? goo-scan-result))
-		 (format "Moon probing results saved for ~a!" (car (first (dscan-raw->list dscan))))]
+		 (format "Moon probing results saved for ~a!"
+			 (string-join (map caar (goo-split-probe-results (dscan-raw->list dscan)))
+				      ","
+				      #:before-last " & "
+				      #:after-last ""))]
 		[else "No structure found in close proximity"])
 	       (br)
 	       (br)
@@ -144,7 +148,8 @@
   (cond
    [(and persist-dscan?
 	 (or (not (false? moon-scan-result))
-	     (not (false? moon-empty-result))))
+	     (not (false? moon-empty-result))
+	     (not (false? goo-scan-result))))
     (dscan-gzip-write dscan)])
 
   (cond
