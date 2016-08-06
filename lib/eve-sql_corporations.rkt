@@ -3,6 +3,7 @@
 (require db)
 
 (require "eve-sql_main.rkt")
+(require "eve-sql_structs.rkt")
 
 (provide (all-defined-out))
 
@@ -13,12 +14,29 @@
 
 (define (sql-corporation-update-corporations lst)
   (for-each (lambda (x)
-	      (query sqlc "INSERT customCorporations VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE corporationID=?,corporationName=?"
+	      (query sqlc "INSERT INTO customCorporations VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE corporationID=?,corporationName=?"
 		     (first x)
 		     (second x)
 		     (third x)
 		     (first x)
 		     (third x)))
+	    lst))
+
+(define (sql-corporation-create-input)
+  (if (table-exists? sqlc "customCorporationInput")
+      #t
+      (query-exec sqlc "CREATE TABLE customCorporationInput ( corporationID INT NOT NULL, corporationTicker VARCHAR(5), corporationName VARCHAR(255), datetime DATETIME, PRIMARY KEY (corporationID) )")))
+
+(define (sql-corporation-update-input lst)
+  (for-each (lambda (x)
+	      (query sqlc "INSERT INTO customCorporationInput VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE corporationTicker=?,corporationName=?,datetime=?"
+		     (sql-corporation-id x)
+		     (sql-corporation-ticker x)
+		     (sql-corporation-name x)
+		     (sql-corporation-datetime x)
+		     (sql-corporation-ticker x)
+		     (sql-corporation-name x)
+		     (sql-corporation-datetime x)))
 	    lst))
 
 (define (sql-corporation-create-affiliations)

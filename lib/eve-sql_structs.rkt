@@ -29,6 +29,9 @@
 ;; parse-corporation
 (struct customCorporations (id ticker name) #:transparent)
 
+;; sql-corporation-update-input
+(struct sql-corporation (id ticker name datetime) #:transparent)
+
 ;; parse-alliance
 (struct customAlliances (id name ticker) #:transparent)
 
