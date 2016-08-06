@@ -15,6 +15,7 @@
 (require "dashboard/common.rkt"
 	 "dashboard/dscan.rkt"
 	 "dashboard/goo-database.rkt"
+	 "dashboard/input-corporation.rkt"
 	 "dashboard/moon-database.rkt"
 	 "dashboard/parse.rkt"
 	 "dashboard/report.rkt"
@@ -32,6 +33,8 @@
    [("recon" "moon-database") exec-moon-database]
    [("recon" "tasks") exec-tasks]
    [("recon" "timers") exec-timers]
+   [("recon" "input" "corporation" (integer-arg)) exec-input-corporation]
+   [("recon" "input" "corporation" (string-arg)) exec-input-corporation]
    [("dscan" "intel") exec-dscan-report]
    [("dscan" "submit") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
    [("dscan" (string-arg)) exec-parse-archive]
