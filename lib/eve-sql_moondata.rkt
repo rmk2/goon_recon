@@ -72,7 +72,8 @@
 				      "customAlliances.allianceName,scan.corporationTicker,customCorporations.corporationName,"
 				      "scan.datetime,invTypes.typeName,moonTypes.typeName AS moonType,"
 				      "CASE scan.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END AS 'online', "
-				      "IF(towerKillRaw.datetime > scan.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus' "
+				      "IF(towerKillRaw.datetime > scan.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus', "
+				      "scanID "
 				      "FROM moonScanRaw AS scan "
 				      "LEFT JOIN mapRegions ON mapRegions.regionID = scan.regionID "
 				      "LEFT JOIN mapConstellations ON mapConstellations.constellationID = scan.constellationID "
@@ -91,7 +92,7 @@
 (define (sql-moon-create-view)
   (if (table-exists? sqlc "moonScanVIEW")
       #t
-      (query-exec sqlc "CREATE VIEW moonScanView AS SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus FROM moonScanMV")))
+      (query-exec sqlc "CREATE VIEW moonScanView AS SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus,scanID FROM moonScanMV")))
 
 (define (sql-moon-region-towers param)
   (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus FROM moonScanView WHERE regionName LIKE ?" param)))
@@ -165,7 +166,8 @@
 		    "customAlliances.allianceName,NEW.corporationTicker,customCorporations.corporationName,"
 		    "NEW.datetime,invTypes.typeName,moonTypes.typeName AS moonType,"
 		    "CASE NEW.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END AS 'online', "
-		    "IF(towerKillRaw.datetime > NEW.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus' "
+		    "IF(towerKillRaw.datetime > NEW.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus', "
+		    "NEW.scanID "
 		    "FROM moonScanRaw "
 		    "LEFT JOIN mapRegions ON mapRegions.regionID = NEW.regionID "
 		    "LEFT JOIN mapConstellations ON mapConstellations.constellationID = NEW.constellationID "
@@ -214,7 +216,8 @@
 		    "mv.datetime=NEW.datetime,"
 		    "mv.typeName=invTypes.typeName,"
 		    "mv.online=CASE NEW.online WHEN 0 THEN 'OFFLINE' WHEN 1 THEN 'ONLINE' ELSE 'EMPTY' END, "
-		    "mv.checkStatus=IF(towerKillRaw.datetime > NEW.datetime, 'RESCAN', 'SCANNED') "
+		    "mv.checkStatus=IF(towerKillRaw.datetime > NEW.datetime, 'RESCAN', 'SCANNED'), "
+		    "mv.scanID=NEW.scanID "
 		    "WHERE mv.solarSystemName=mapSolarSystems.SolarSystemName AND mv.planet=OLD.planet AND mv.moon=OLD.moon; "
 		    "END;")))
 
