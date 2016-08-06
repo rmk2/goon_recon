@@ -39,6 +39,7 @@
 					     [(sql-date? str) (date->string (sql-datetime->srfi-date str) "~1")]
 					     [(sql-timestamp? str) (date->string (sql-datetime->srfi-date str) "~1 ~3")]
 					     [(number? str) str]
+					     [(struct? str) str]
 					     [(regexp-match #px"^http" str) (a 'href: str 'target: "_blank" "-> link")]
 					     [else str]))))
 				  (drop-right row drop-amount))))

@@ -40,15 +40,24 @@
 						(string-join (query-regions filter_region)  "|")))
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table #:ticker->class #t
-					 #:drop-right 2
+					 #:drop-right 3
 					 #:head (list "Region" "Constellation" "System" "Planet" "Moon" "AT"
 						      "Alliance" "CT" "Corporation" "Date" "Tower" "Goo")
-					 (user-filter-regions filter_region
-							      #:filter-function sql-moon-region-towers
-							      #:function (map vector->list (sql-moon-get-towers))))
+					 (moon-add-scanid
+					  (user-filter-regions filter_region
+							       #:filter-function sql-moon-region-towers
+							       #:function (map vector->list (sql-moon-get-towers)))))
 	       (output:create-html-hint :updated))))
 	port))))
 
   (define filter_region (get-regions req))
+
+  (define (moon-add-scanid lst)
+    (map (lambda (moon)
+	   (list-update moon 10 (lambda (type)
+				  (if (sql-null? (last moon))
+				      type
+				      (a 'href: (string-append "/dscan/" (last moon)) 'target: "_blank" type)))))
+	 lst))
 
   (send/back response-generator))
