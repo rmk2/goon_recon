@@ -29,21 +29,22 @@
 	 [kill-id (number->string (sql-super-latest-killid-mod))]
 	 [program (string-append command " " params " -i " kill-id)])
     (if (< (sql-super-latest-killid-mod) limit)
-	(let ([run (system program)])
-	  (if (not (false? run))
-	      (begin
-		(log-debug "[debug] Polling killmails")
-		(printf "last killID: ~a | last datetime: ~a~%"
-			(let ([killid (sql-super-latest-killid-mod)])
-			  (if (number? killid) killid 0))
-			(let ([datetime (sql-super-latest-datetime-mod)])	      
-			  (if (sql-timestamp? datetime)
-			      (date->string (sql-datetime->srfi-date datetime) "~1 ~3")
-			      0)))
-		(log-debug (format "[debug] Waiting before next iteration: ~s seconds" delay))
-		(sleep delay)
-		(run-digest #:limit limit #:start start #:delay delay))
-	      (error "Something went wrong!")))
+	(begin
+	  (log-debug "[debug] Polling killmails")
+	  (let ([run (system program)])
+	    (if (not (false? run))
+		(begin
+		  (printf "last killID: ~a | last datetime: ~a~%"
+			  (let ([killid (sql-super-latest-killid-mod)])
+			    (if (number? killid) killid 0))
+			  (let ([datetime (sql-super-latest-datetime-mod)])
+			    (if (sql-timestamp? datetime)
+				(date->string (sql-datetime->srfi-date datetime) "~1 ~3")
+				0)))
+		  (log-debug (format "[debug] Waiting before next iteration: ~s seconds" delay))
+		  (sleep delay)
+		  (run-digest #:limit limit #:start start #:delay delay))
+		(error "Something went wrong!"))))
 	(exit 0))))
 
 ;; Exec
