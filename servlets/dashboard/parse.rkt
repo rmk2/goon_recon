@@ -2,8 +2,6 @@
 
 (require eve)
 
-(require net/uri-codec)
-
 (require "common.rkt")
 (require "dscan.rkt")
 
@@ -18,13 +16,9 @@
 
 (define (exec-parse-dscan req #:persist-dscan persist-dscan?)
 
-  (define post-data (bytes->string/utf-8 (request-post-data/raw req)))
-  (define form-data (form-urlencoded->alist post-data))
-
   (define-values (dscan)
-    (vector->values
-     (list->vector
-      (map cdr (form-urlencoded->alist post-data)))))
+    (values
+     (extract-post-data req #"dscan")))
 
   (cond [(> (length (string-split dscan "\t")) 1)
 	 (begin
