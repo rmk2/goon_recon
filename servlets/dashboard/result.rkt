@@ -109,10 +109,12 @@
   (define post-data (bytes->string/utf-8 (request-post-data/raw req)))
   (define form-data (form-urlencoded->alist post-data))
 
-  (define-values (corporation alliance dscan)
-    (vector->values
-     (list->vector
-      (map cdr (form-urlencoded->alist post-data)))))
+  (define-values (corporation alliance dscan location)
+    (values
+     (extract-post-data req #"corporation")
+     (extract-post-data req #"alliance")
+     (extract-post-data req #"dscan")
+     (extract-post-data req #"location")))
   
   (define data
     (dscan-sort

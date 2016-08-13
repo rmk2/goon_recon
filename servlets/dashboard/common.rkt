@@ -50,3 +50,13 @@
       (bytes->string/utf-8
        (binding:form-value b)))]
     [_ null]))
+
+(define (extract-post-data req query)
+  (match
+    (bindings-assq
+     query
+     (request-bindings/raw req))
+    [(? binding:form? b)
+     (bytes->string/utf-8
+      (binding:form-value b))]
+    [_ null]))
