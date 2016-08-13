@@ -2,8 +2,6 @@
 
 (require eve)
 
-(require net/uri-codec)
-
 (require "common.rkt")
 
 (provide (all-defined-out))
@@ -103,12 +101,9 @@
 	       (br)
 	       (br)
 	       (hr)
-	       (form 'action: "report" (input 'type: "submit" 'value: "Return to Dashboard")))))
+	       (form 'target: "_self" (input 'type: "submit" 'value: "Return to Dashboard")))))
 	port))))
   
-  (define post-data (bytes->string/utf-8 (request-post-data/raw req)))
-  (define form-data (form-urlencoded->alist post-data))
-
   (define-values (corporation alliance dscan location)
     (values
      (extract-post-data req #"corporation")

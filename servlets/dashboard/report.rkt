@@ -16,7 +16,7 @@
 	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "report")
 	  (div 'id: "content"
 	       (h1 "Dashboard")
-	       (form 'action: "result" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
+	       (form 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
 		     (fieldset
 		      (legend "D-Scan reporting")
 		      (br)

@@ -28,7 +28,7 @@
 (define-values (main-dispatch main-url)
   (dispatch-rules
    [("recon" "report") exec-report]
-   [("recon" "result") #:method "post" (lambda (req) (exec-result req #:persist-dscan (cl-persist)))]
+   [("recon" "report") #:method "post" (lambda (req) (exec-result req #:persist-dscan (cl-persist)))]
    [("recon" "goo-database") exec-goo-database]
    [("recon" "moon-database") exec-moon-database]
    [("recon" "tasks") exec-tasks]
