@@ -112,6 +112,9 @@
   (filter (lambda (hash) (member (hash-ref hash 'type)
 				 (map (lambda (x) (vector-ref x 2)) (parse-type :members 1657)))) lst))
 
+(define (stargate? lst)
+  (filter (lambda (hash) (regexp-match? #px"^(?i:stargate)" (hash-ref hash 'type))) lst))
+
 ;; Choose closest object (car), ideally after filtering
 ;; Example: (dscan-proximity (moon? lst))
 
