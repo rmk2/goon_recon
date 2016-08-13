@@ -35,8 +35,9 @@
    [("recon" "timers") exec-timers]
    [("recon" "input" "corporation" (integer-arg)) exec-input-corporation]
    [("recon" "input" "corporation" (string-arg)) exec-input-corporation]
-   [("dscan" "intel") exec-dscan-report]
-   [("dscan" "submit") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
+   [("dscan") exec-dscan-report]
+   [("dscan") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
+   [("dscan" "intel") (send/back (redirect-to "/dscan" permanently))]
    [("dscan" (string-arg)) exec-parse-archive]
    [("timers") exec-timers]))
 

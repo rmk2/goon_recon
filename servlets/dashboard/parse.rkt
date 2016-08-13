@@ -23,7 +23,7 @@
   (cond [(> (length (string-split dscan "\t")) 1)
 	 (begin
 	   (when persist-dscan? (dscan-gzip-write dscan))
-	   (send/back (redirect-to (dscan-data->id dscan))))]
+	   (send/back (redirect-to (string-append "/dscan/" (dscan-data->id dscan)))))]
 	[else (exec-dscan #:dscan "No D-Scan found!" #:location null)]))
 
 ;; Read dscan from disk, send it on to get parsed

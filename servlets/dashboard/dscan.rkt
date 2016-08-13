@@ -17,10 +17,10 @@
 	(html
 	 (output:create-html-head #:title "Dashboard" #:tablesorter #f #:navigation #t)
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "intel" #:links '(("Dashboard" . "intel")))
+	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "/dscan" #:links '(("Dashboard" . "/dscan")))
 	  (div 'id: "content"
 	       (h1 "Dashboard")
-	       (form 'action: "submit" 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
+	       (form 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
 		     (fieldset
 		      (legend "D-Scan reporting")
 		      (br)
@@ -56,7 +56,7 @@
 	   (literal (style/inline 'type: "text/css" ".dscan-count { margin-right: 0.25em; padding: 0.1em; font-weight: bold; }"))
 	   (script (literal "function toggleClass(c) { var x = document.getElementsByClassName(c); for (var i = 0; i < x.length; ++i) { x[i].classList.toggle('hide'); } }"))))
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon" #:links '(("Dashboard" . "intel")))
+	  (output:create-html-navigation #:title "GoonSwarm Recon" #:links '(("Dashboard" . "/dscan")))
 	  (div 'id: "content"
 	       (h1 (pretty-print-location location))
 	       dscan)))
