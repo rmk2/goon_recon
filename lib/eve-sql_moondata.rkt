@@ -26,7 +26,7 @@
 (define (sql-moon-create-raw)
   (if (table-exists? sqlc "moonScanRaw")
       #t
-      (query-exec sqlc "CREATE TABLE moonScanRaw ( regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, allianceTicker VARCHAR(10), corporationTicker VARCHAR(10), datetime DATETIME, typeID INT, online TINYINT(1), UNIQUE KEY (solarSystemID, planet, moon) )")))
+      (query-exec sqlc "CREATE TABLE moonScanRaw ( regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, planet INT NOT NULL, moon INT NOT NULL, allianceTicker VARCHAR(10), corporationTicker VARCHAR(10), datetime DATETIME, typeID INT, online TINYINT(1), scanID VARCHAR(64), UNIQUE KEY (solarSystemID, planet, moon) )")))
 
 (define (sql-moon-update-scan lst)
   (for-each (lambda (x)
