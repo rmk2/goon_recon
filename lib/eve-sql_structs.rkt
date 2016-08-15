@@ -44,6 +44,9 @@
 ;; sql-goo->struct & sql-goo-update-scan
 (struct sql-goo (region constellation system planet moon datetime type amount) #:transparent)
 
+;; sql-citadel-update-scan
+(struct sql-citadel (region constellation system location alliance corporation datetime type scanid))
+
 ;; sql-killmail (supers + towers)
 (struct sql-killmail (shiptype characterid charactername corporationid corporationname allianceid alliancename location system region datetime killid victimtype [eventtype #:auto #:mutable]) #:auto-value "" #:prefab)
 

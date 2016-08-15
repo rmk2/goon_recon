@@ -48,6 +48,27 @@
 	   scan-id))
       sql-moon)))
 
+(define (citadel-parse-scan input
+			    #:corporation corporation
+			    #:alliance alliance
+			    #:location location
+			    #:id [scan-id 0])
+  (let ([citadel (hash-ref (dscan-proximity (citadel? input)) 'type)]
+	[location-input (sql-parse->struct (parse-map location) #:struct mapDenormalize)])
+    (call-with-values
+	(lambda ()
+	  (values
+	   (mapDenormalize-region location-input)
+	   (mapDenormalize-constellation location-input)
+	   (mapDenormalize-system location-input)
+	   (mapDenormalize-id location-input)
+	   (fill-alliance #:alliance alliance #:corporation corporation)
+	   (if (string-empty? corporation) "" (string-upcase corporation))
+	   (srfi-date->sql-timestamp (current-date))
+	   (parse-type :id citadel)
+	   scan-id))
+      sql-citadel)))
+
 ;; Pretty-print condensed d-scan result for HTML output
 
 (define (pretty-print-moon-result data result)
@@ -69,6 +90,22 @@
 	       (sql-moon-corporation result)
 	       "]"))))
 
+(define (pretty-print-citadel-result data result)
+  (format "~a: ~a @ ~akm, belonging to ~a"
+	  (parse-map :name (sql-citadel-location result))
+	  (hash-ref (dscan-proximity (citadel? data)) 'type)
+	  (hash-ref (dscan-proximity (citadel? data)) 'distance)
+	  (if (sql-null? (sql-citadel-corporation result))
+	      "-"
+	      (string-append
+	       (let ([corporation (parse-corporation (sql-citadel-corporation result))])
+		 (if (false? corporation)
+		     "? "
+		     (vector-ref corporation 2)))
+	       "["
+	       (sql-citadel-corporation result)
+	       "]"))))
+
 ;; servlet
 
 (define (exec-result req #:persist-dscan persist-dscan?)
@@ -82,22 +119,28 @@
 	 (body
 	  (output:create-html-navigation #:title "GoonSwarm Recon")
 	  (div 'id: "content"
-	       (let ([location (cond [(not (false? goo-scan-result))
-				      (list (parse-region :name (sql-goo-region (first goo-scan-result)))
-					    (parse-constellation :name (sql-goo-constellation (first goo-scan-result)))
-					    (parse-solarsystem :name (sql-goo-system (first goo-scan-result))))]
-				     [else (guess->location (dscan-guess-location data))])])
-		 (h1 (pretty-print-location location)))
-	       (b "Scan Result: ")
-	       (cond
-		[(not (false? moon-scan-result)) (pretty-print-moon-result data moon-scan-result)]
-		[(not (false? goo-scan-result))
-		 (format "Moon probing results saved for ~a!"
-			 (string-join (map caar (goo-split-probe-results (dscan-raw->list dscan)))
-				      ","
-				      #:before-last " & "
-				      #:after-last ""))]
-		[else "No structure found in close proximity"])
+	       (h1 (pretty-print-location location-guess))
+	       (if (null? location-guess)
+		   (form 'method: "POST" 
+			 "Please enter the closest celestial: "
+			 (input 'type: "text" 'name: "location" 'required: #t 'style: "margin-right:0.5em;")
+			 (map (lambda (name value)
+				(input 'type: "hidden" 'name: name 'value: (if (string-empty? value) "" value)))
+			      (list "dscan" "alliance" "corporation")
+			      (list dscan alliance corporation))
+			 (input 'type: "submit" 'value: "Submit"))
+		   (list
+		    (b "Scan Result: ")
+		    (cond
+		     [(not (false? citadel-scan-result)) (pretty-print-citadel-result data citadel-scan-result)]
+		     [(not (false? moon-scan-result)) (pretty-print-moon-result data moon-scan-result)]
+		     [(not (false? goo-scan-result))
+		      (format "Moon probing results saved for ~a!"
+			      (string-join (map caar (goo-split-probe-results (dscan-raw->list dscan)))
+					   ","
+					   #:before-last " & "
+					   #:after-last ""))]
+		     [else "No structure found in close proximity"])))
 	       (br)
 	       (br)
 	       (hr)
@@ -142,14 +185,44 @@
       #f]
      [else (goo-list->struct (goo-parse-results (goo-split-probe-results (dscan-raw->list dscan))))]))
 
+  (define citadel-scan-result
+    (cond
+     [(or (string-empty? dscan)
+	  (false? (dscan-proximity (citadel? data)))
+	  (> (hash-ref (dscan-proximity (citadel? data)) 'distance) (max_distance))
+	  (and (null? location) (false? (dscan-celestials? data))))
+      #f]
+     [else (citadel-parse-scan data
+			       #:corporation corporation
+			       #:alliance alliance
+			       #:id (dscan-data->id dscan)
+			       #:location (cond [(null? location) (dscan-nearest-celestial data)]
+						[(string? location) location]))]))
+
+  (define location-guess
+    (cond [(not (false? goo-scan-result))
+	   (list (parse-region :name (sql-goo-region (first goo-scan-result)))
+		 (parse-constellation :name (sql-goo-constellation (first goo-scan-result)))
+		 (parse-solarsystem :name (sql-goo-system (first goo-scan-result))))]
+	  [(and (not (false? citadel-scan-result))
+		(string? location))
+	   (let ([location-input (sql-parse->struct (parse-map location) #:struct mapDenormalize)])
+	     (list (mapDenormalize-region location-input)
+		   (mapDenormalize-constellation location-input)
+		   (mapDenormalize-system location-input)))]
+	  [else (guess->location (dscan-guess-location data))])) 
+
   (cond
    [(and persist-dscan?
 	 (or (not (false? moon-scan-result))
 	     (not (false? moon-empty-result))
-	     (not (false? goo-scan-result))))
+	     (not (false? goo-scan-result))
+	     (not (false? citadel-scan-result))))
     (dscan-gzip-write dscan)])
 
   (cond
+   [(not (false? citadel-scan-result))
+    (sql-citadel-update-scan (list citadel-scan-result))]
    [(not (false? moon-scan-result))
     (sql-moon-update-scan (list moon-scan-result))]
    [(not (false? moon-empty-result))

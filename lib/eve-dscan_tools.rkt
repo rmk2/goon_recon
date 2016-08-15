@@ -123,6 +123,20 @@
       #f
       (car (dscan-sort lst))))
 
+;; Find nearest object that is either a moon, planet, station or sun
+
+(define (dscan-parse-celestials input)
+  (filter-map (lambda (x) (dscan-proximity (x input)))
+	      (list moon? planet? station? sun?)))
+
+(define (dscan-nearest-celestial input)
+  (let ([celestials (dscan-parse-celestials input)])
+    (cond [(empty? celestials) null]
+	  [else (hash-ref (dscan-proximity celestials) 'name)])))
+
+(define (dscan-celestials? input)
+  (if (not (empty? (dscan-parse-celestials input))) #t #f))
+
 ;; Guess overall location
 
 (define (dscan-parse-location lst)
