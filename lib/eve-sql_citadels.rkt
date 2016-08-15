@@ -82,7 +82,7 @@
   (query-exec sqlc (string-append
 		    "CREATE TRIGGER insert_citadelScanRaw AFTER INSERT ON citadelScanRaw "
 		    "FOR EACH ROW BEGIN "
-		    "SET @id = 1; "
+		    "SET @id = 0; "
 		    "REPLACE INTO citadelScanID "
 		    "SELECT CONCAT_WS('-',locationID,corp.corporationID,typeID,derivedID) AS citadelID,scanID "
 		    "FROM (SELECT locationID,corporationTicker,typeID,scanID,"
@@ -127,7 +127,7 @@
   (query-exec sqlc (string-append
 		    "CREATE TRIGGER update_citadelScanRaw AFTER UPDATE ON citadelScanRaw "
 		    "FOR EACH ROW BEGIN "
-		    "SET @id = 1; "
+		    "SET @id = 0; "
 		    "REPLACE INTO citadelScanID "
 		    "SELECT CONCAT_WS('-',locationID,corp.corporationID,typeID,derivedID) AS citadelID,scanID "
 		    "FROM (SELECT locationID,corporationTicker,typeID,scanID,"
