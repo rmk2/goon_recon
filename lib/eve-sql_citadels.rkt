@@ -47,7 +47,7 @@
 				      "scan.allianceTicker,customAlliances.allianceName,scan.corporationTicker,"
 				      "customCorporations.corporationName,scan.datetime,invTypes.typeName,"
 				      "IF(citadelKillRaw.datetime > scan.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus', "
-				      "scan.scanID,citadelScanID.citadelID "
+				      "citadelScanID.citadelID,scan.scanID "
 				      "FROM citadelScanRaw AS scan "
 				      "LEFT JOIN mapRegions ON mapRegions.regionID = scan.regionID "
 				      "LEFT JOIN mapConstellations ON mapConstellations.constellationID = scan.constellationID "
@@ -63,7 +63,7 @@
 (define (sql-citadel-create-view)
   (if (table-exists? sqlc "citadelScanView")
       #t
-      (query-exec sqlc "CREATE VIEW citadelScanView AS SELECT regionName,constellationName,solarSystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,checkStatus,scanID,citadelID FROM citadelScanMV")))
+      (query-exec sqlc "CREATE VIEW citadelScanView AS SELECT regionName,constellationName,solarSystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,checkStatus,citadelID,scanID FROM citadelScanMV")))
 
 (define (sql-citadel-create-kill-raw)
   (if (table-exists? sqlc "citadelKillRaw")
