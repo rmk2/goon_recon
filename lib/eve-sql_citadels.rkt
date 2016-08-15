@@ -102,6 +102,12 @@
 				      "LEFT JOIN customAlliances ON customAlliances.allianceID = citadelKillRaw.allianceID "
 				      "LEFT JOIN invTypes ON invTypes.typeID = citadelKillRaw.typeID"))))
 
+(define (sql-citadel-region-citadels param)
+  (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,checkStatus,scanID,citadelID FROM citadelScanView WHERE regionName LIKE ?" param))
+
+(define (sql-citadel-get-citadels)
+  (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,checkStatus,scanID,citadelID FROM citadelScanView"))
+
 ;; Triggers for citadelScanRaw
 
 (define (sql-citadel-create-trigger-insert)
