@@ -48,6 +48,22 @@
 
 (sql-tower-create-triggers)
 
+;; Create citadel scan tables
+
+(sql-citadel-create-raw)
+(sql-citadel-create-id-table)
+(sql-citadel-create-pseudomaterialized-view)
+(sql-citadel-create-view)
+
+(sql-citadel-create-triggers)
+
+;; Create citadel kill tables
+
+(sql-citadel-create-kill-raw)
+(sql-citadel-create-kill-view)
+
+(sql-citadel-create-kill-triggers)
+
 ;; Create timerboard table
 
 (timerboard-prepare-table)

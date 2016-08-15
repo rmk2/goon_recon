@@ -36,17 +36,11 @@
       #t
       (query-exec sqlc "CREATE TABLE citadelScanID ( citadelID VARCHAR(64) NOT NULL, scanID VARCHAR(64) NOT NULL, UNIQUE KEY ( scanID ) )")))
 
-(define (sql-citadel-create-id-procedure)
-  (query-exec sqlc "CREATE PROCEDURE generateCitadelID () READS SQL DATA NOT DETERMINISTIC INSERT IGNORE INTO citadelScanID SELECT CONCAT_WS('-',base,derivedID) AS citadelID,scanID FROM (SELECT CONCAT_WS('-',locationID,corp.corporationID,typeID) AS base,scanID,@id := if(@data = CONCAT_WS('-',locationID,corp.corporationTicker,typeID), @id + 1, 1) AS derivedID,@data := CONCAT_WS('-',locationID,corp.corporationTicker,typeID) AS dummy FROM citadelScanRaw AS scan LEFT JOIN customCorporations AS corp ON corp.corporationTicker =  scan.corporationTicker ORDER BY CONCAT_WS('-',locationID,corp.corporationID,typeID) ) AS sub"))
-
-(define (sql-citadel-delete-id-procedure)
-  (query-exec sqlc "DROP PROCEDURE IF EXISTS generateCitadelID"))
-
 (define (sql-citadel-create-pseudomaterialized-view)
   (if (table-exists? sqlc "citadelScanMV")
       #t
       (query-exec sqlc (string-append "CREATE TABLE citadelScanMV "
-				      "( UNIQUE KEY (scanID) ) "
+				      "( UNIQUE KEY (scanID), UNIQUE KEY (citadelID) ) "
 				      "AS SELECT "
 				      "mapRegions.regionName,mapConstellations.constellationName,"
 				      "mapSolarSystems.solarSystemName,mapDenormalize.itemName AS locationName,"
