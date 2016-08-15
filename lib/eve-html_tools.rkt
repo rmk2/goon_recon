@@ -174,3 +174,11 @@
 		  (filter-map (lambda (lst) (if (empty? (flatten lst)) null (filter (lambda (x) (not (empty? x))) lst)))
 			      (list info structures starbases)))
 	     (button 'onclick: "toggleClass('dscan-detail'); toggleClass('dscan-summary')" "Toggle details")))))
+
+(define (moon-add-scanid lst #:position [position 10])
+    (map (lambda (scan)
+	   (list-update scan position (lambda (type)
+				  (if (sql-null? (last scan))
+				      type
+				      (a 'href: (string-append "/dscan/" (last scan)) 'target: "_blank" type)))))
+	 lst))

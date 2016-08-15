@@ -43,7 +43,7 @@
 					 #:drop-right 3
 					 #:head (list "Region" "Constellation" "System" "Planet" "Moon" "AT"
 						      "Alliance" "CT" "Corporation" "Date" "Tower" "Goo")
-					 (moon-add-scanid
+					 (moon-add-scanid #:position 10
 					  (user-filter-regions filter_region
 							       #:filter-function sql-moon-region-towers
 							       #:function (map vector->list (sql-moon-get-towers)))))
@@ -51,13 +51,5 @@
 	port))))
 
   (define filter_region (get-regions req))
-
-  (define (moon-add-scanid lst)
-    (map (lambda (moon)
-	   (list-update moon 10 (lambda (type)
-				  (if (sql-null? (last moon))
-				      type
-				      (a 'href: (string-append "/dscan/" (last moon)) 'target: "_blank" type)))))
-	 lst))
 
   (send/back response-generator))
