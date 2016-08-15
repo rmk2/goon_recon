@@ -90,7 +90,7 @@
 				      "AND scan.moon = towerKillRaw.moon"))))
 
 (define (sql-moon-create-view)
-  (if (table-exists? sqlc "moonScanVIEW")
+  (if (table-exists? sqlc "moonScanView")
       #t
       (query-exec sqlc "CREATE VIEW moonScanView AS SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus,scanID FROM moonScanMV")))
 
