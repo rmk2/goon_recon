@@ -76,6 +76,38 @@
       #t
       (query-exec sqlc "CREATE TABLE citadelKillRaw ( regionID INT NOT NULL, solarSystemID INT NOT NULL, locationID INT, corporationID INT NOT NULL, allianceID INT, datetime DATETIME NOT NULL, typeID INT, killID INT, UNIQUE KEY (killID) )")))
 
+(define (sql-citadel-update-kill lst)
+  (for-each (lambda (x)
+	      (query sqlc "INSERT INTO citadelKillRaw VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE corporationID=?,allianceID=?,datetime=?,typeID=?,killID=?"
+		     (first x)
+		     (second x)
+		     (third x)
+		     (fourth x)
+		     (fifth x)
+		     (sixth x)
+		     (seventh x)
+		     (eighth x)
+		     (fourth x)
+		     (fifth x)
+		     (sixth x)
+		     (seventh x)
+		     (eighth x)))
+	    lst))
+
+(define (sql-citadel-create-kill-view)
+  (if (table-exists? sqlc "citadelKillView")
+      #t
+      (query-exec sqlc (string-append "CREATE VIEW citadelKillView AS "
+				      "SELECT regionName,solarSystemName,itemName AS locationName,"
+				      "corporationName,allianceName,datetime,typeName,killID "
+				      "FROM citadelKillRaw "
+				      "LEFT JOIN mapRegions ON mapRegions.regionID = citadelKillRaw.regionID "
+				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = citadelKillRaw.solarSystemID "
+				      "LEFT JOIN mapDenormalize ON mapDenormalize.itemID = citadelKillRaw.locationID "
+				      "LEFT JOIN customCorporations AS corp ON corp.corporationID = citadelKillRaw.corporationID "
+				      "LEFT JOIN customAlliances ON customAlliances.allianceID = citadelKillRaw.allianceID "
+				      "LEFT JOIN invTypes ON invTypes.typeID = citadelKillRaw.typeID"))))
+
 ;; Triggers for citadelScanRaw
 
 (define (sql-citadel-create-trigger-insert)
