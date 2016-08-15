@@ -43,7 +43,7 @@
 					 #:drop-right 3
 					 #:head (list "Region" "Constellation" "System" "Planet" "Moon" "AT"
 						      "Alliance" "CT" "Corporation" "Date" "Tower" "Goo")
-					 (moon-add-scanid #:position 10
+					 (output:entry-add-scanid #:position 10
 					  (user-filter-regions filter_region
 							       #:filter-function sql-moon-region-towers
 							       #:function (map vector->list (sql-moon-get-towers)))))
