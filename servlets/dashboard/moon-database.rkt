@@ -35,7 +35,7 @@
 	  (output:create-region-filter (sql-get-scanned-regions "moonScanView"))
 	  (div 'id: "content"
 	       (h1 "Moon Scan Data")
-	       (output:create-html-hint (output:create-html-legend))
+	       (output:create-html-hint (output:create-html-legend :moon))
 	       (output:create-html-hint (format "Results filtered for: Region (~a)"
 						(string-join (query-regions filter_region)  "|")))
 	       (output:create-html-hint :tablesorter)

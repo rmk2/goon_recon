@@ -89,11 +89,14 @@
     ((_ str) (p 'style: "padding-left:.2em" str))))
 
 (define-syntax create-html-legend
-  (syntax-rules ()
-    ((_) (list "Legend:"
-	       (span 'class: "rescan" "Tower needs to be rescanned")
-	       (span 'class: "offline" "Tower was offline when scanned")
-	       (span 'class: "empty" "Moon was empty when scanned")))))
+  (syntax-rules (:moon :citadel)
+    ((_ :moon) (list "Legend:"
+		     (span 'class: "rescan" "Tower needs to be rescanned")
+		     (span 'class: "offline" "Tower was offline when scanned")
+		     (span 'class: "empty" "Moon was empty when scanned")))
+    ((_ :citadel) (list "Legend:"
+			(span 'class: "rescan" "Citadel needs to be rescanned")))
+    ((_) (create-html-legend :moon))))
 
 (define (create-region-filter region-list)
   (div 'id: "bar"
@@ -176,9 +179,9 @@
 	     (button 'onclick: "toggleClass('dscan-detail'); toggleClass('dscan-summary')" "Toggle details")))))
 
 (define (entry-add-scanid lst #:position [position 10])
-    (map (lambda (scan)
-	   (list-update scan position (lambda (type)
-				  (if (sql-null? (last scan))
-				      type
-				      (a 'href: (string-append "/dscan/" (last scan)) 'target: "_blank" type)))))
-	 lst))
+  (map (lambda (scan)
+	 (list-update scan position (lambda (type)
+				      (if (sql-null? (last scan))
+					  type
+					  (a 'href: (string-append "/dscan/" (last scan)) 'target: "_blank" type)))))
+       lst))
