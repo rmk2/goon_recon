@@ -160,6 +160,8 @@
       (dscan-normalise-distance
        (dscan-raw->list dscan)))))
 
+  (define location-try (parse-map location))
+
   (define moon-scan-result
     (cond
      [(or (string-empty? dscan)
@@ -190,14 +192,15 @@
      [(or (string-empty? dscan)
 	  (false? (dscan-proximity (citadel? data)))
 	  (> (hash-ref (dscan-proximity (citadel? data)) 'distance) (max_distance))
-	  (and (null? location) (false? (dscan-celestials? data))))
+	  (and (null? location) (false? (dscan-celestials? data)))
+	  (false? location-try))
       #f]
      [else (citadel-parse-scan data
 			       #:corporation corporation
 			       #:alliance alliance
 			       #:id (dscan-data->id dscan)
 			       #:location (cond [(null? location) (dscan-nearest-celestial data)]
-						[(string? location) location]))]))
+						[(not (false? location-try)) location]))]))
 
   (define location-guess
     (cond [(not (false? goo-scan-result))
@@ -205,8 +208,9 @@
 		 (parse-constellation :name (sql-goo-constellation (first goo-scan-result)))
 		 (parse-solarsystem :name (sql-goo-system (first goo-scan-result))))]
 	  [(and (not (false? citadel-scan-result))
-		(string? location))
-	   (let ([location-input (sql-parse->struct (parse-map location) #:struct mapDenormalize)])
+		(string? location)
+		(not (false? location-try)))
+	   (let ([location-input (sql-parse->struct location-try #:struct mapDenormalize)])
 	     (list (mapDenormalize-region location-input)
 		   (mapDenormalize-constellation location-input)
 		   (mapDenormalize-system location-input)))]
