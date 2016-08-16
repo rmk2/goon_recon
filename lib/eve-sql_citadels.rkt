@@ -103,10 +103,22 @@
 				      "LEFT JOIN invTypes ON invTypes.typeID = citadelKillRaw.typeID"))))
 
 (define (sql-citadel-region-citadels param)
-  (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,checkStatus,citadelID,scanID FROM citadelScanView WHERE regionName LIKE ?" param)))
+  (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,citadelID,checkStatus,scanID FROM citadelScanView WHERE regionName LIKE ?" param)))
 
 (define (sql-citadel-get-citadels)
-  (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,checkStatus,citadelID,scanID FROM citadelScanView"))
+  (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,citadelID,checkStatus,scanID FROM citadelScanView"))
+
+(define (sql-citadel-create-delete)
+  (if (table-exists? sqlc "citadelKillDelete")
+      #t
+      (query-exec sqlc "CREATE TABLE citadelScanDelete ( regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, locationID INT NOT NULL, allianceTicker VARCHAR(10), corporationTicker VARCHAR(10), datetime DATETIME, typeID INT, scanID VARCHAR(64), UNIQUE KEY ( scanID ) )")))
+
+(define (sql-citadel-delete-scan lst)
+  (for-each (lambda (x)
+	      (query sqlc "DELETE FROM citadelScanRaw WHERE scanID = ?"
+		     (query-maybe-value sqlc "SELECT scanID FROM citadelScanID WHERE citadelID = ?"
+					x)))
+	    lst))
 
 ;; Triggers for citadelScanRaw
 
@@ -130,7 +142,7 @@
 		    "NEW.allianceTicker,customAlliances.allianceName,NEW.corporationTicker,"
 		    "customCorporations.corporationName,NEW.datetime,invTypes.typeName,"
 		    "IF(citadelKillRaw.datetime > NEW.datetime, 'RESCAN', 'SCANNED') AS 'checkStatus', "
-		    "NEW.scanID,citadelScanID.citadelID "
+		    "citadelScanID.citadelID,NEW.scanID "
 		    "FROM citadelScanRaw "
 		    "LEFT JOIN mapRegions ON mapRegions.regionID = NEW.regionID "
 		    "LEFT JOIN mapConstellations ON mapConstellations.constellationID = NEW.constellationID "
@@ -153,6 +165,17 @@
 		    "WHERE citadelScanID.scanID=OLD.scanID; "
 		    "DELETE FROM citadelScanMV "
 		    "WHERE citadelScanMV.scanID=OLD.scanID; "
+		    "END;")))
+
+(define (sql-citadel-create-trigger-before-delete)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER before_delete_citadelScanRaw BEFORE DELETE ON citadelScanRaw "
+		    "FOR EACH ROW BEGIN "
+		    "INSERT IGNORE INTO citadelScanDelete "
+		    "SELECT regionID,constellationID,solarsystemID,locationID,"
+		    "allianceTicker,corporationTicker,datetime,typeID,scanID "
+		    "FROM citadelScanRaw "
+		    "WHERE scanID=OLD.scanID; "
 		    "END;")))
 
 (define (sql-citadel-create-trigger-update)
@@ -195,6 +218,8 @@
     (sql-citadel-create-trigger-insert)
     (query-exec sqlc "DROP TRIGGER IF EXISTS delete_citadelScanRaw")
     (sql-citadel-create-trigger-delete)
+    (query-exec sqlc "DROP TRIGGER IF EXISTS before_delete_citadelScanRaw")
+    (sql-citadel-create-trigger-before-delete)
     (query-exec sqlc "DROP TRIGGER IF EXISTS update_citadelScanRaw")
     (sql-citadel-create-trigger-update)))
 
