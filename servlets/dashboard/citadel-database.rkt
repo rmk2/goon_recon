@@ -8,11 +8,16 @@
 
 (define (exec-citadel-database-delete req)
   (let* ([bind-raw (request-bindings/raw req)]
-	 [bind-filter (remove (bindings-assq #"region" bind-raw) bind-raw)])
+  	 [bind-filter (remove (bindings-assq #"region" bind-raw) bind-raw)]
+	 [referer (headers-assq* #"referer" (request-headers/raw req))])
     (begin
       (sql-citadel-delete-scan
        (map (lambda (x) (bytes->string/utf-8 (binding:form-value x))) bind-filter))
-      (redirect-to (url->string (request-uri req))))))
+      (cond [(and (not (false? referer))
+		  (regexp-match? "(?:http|https)://recon.tendollarbond.com/.*"
+				 (bytes->string/utf-8 (header-value referer))))
+	     (redirect-to (string-replace (url->string (request-uri req)) "/recon" ""))]
+	    [else (redirect-to (url->string (request-uri req)))]))))
 
 (define (exec-citadel-database req)
   (define response-generator
