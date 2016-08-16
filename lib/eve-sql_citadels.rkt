@@ -109,7 +109,7 @@
   (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,citadelID,checkStatus,scanID FROM citadelScanView"))
 
 (define (sql-citadel-create-delete)
-  (if (table-exists? sqlc "citadelKillDelete")
+  (if (table-exists? sqlc "citadelScanDelete")
       #t
       (query-exec sqlc "CREATE TABLE citadelScanDelete ( regionID INT NOT NULL, constellationID INT NOT NULL, solarSystemID INT NOT NULL, locationID INT NOT NULL, allianceTicker VARCHAR(10), corporationTicker VARCHAR(10), datetime DATETIME, typeID INT, scanID VARCHAR(64), UNIQUE KEY ( scanID ) )")))
 
