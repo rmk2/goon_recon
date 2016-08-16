@@ -54,6 +54,7 @@
 (sql-citadel-create-id-table)
 (sql-citadel-create-pseudomaterialized-view)
 (sql-citadel-create-view)
+(sql-citadel-create-delete)
 
 (sql-citadel-create-triggers)
 
