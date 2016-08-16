@@ -122,8 +122,12 @@
 	       (h1 (pretty-print-location location-guess))
 	       (if (null? location-guess)
 		   (form 'method: "POST" 
-			 "Please enter the closest celestial: "
-			 (input 'type: "text" 'name: "location" 'required: #t 'style: "margin-right:0.5em;")
+			 "Please enter closest celestial: "
+			 (input 'type: "text"
+				'name: "location"
+				'required: #t
+				'style: "margin-right:0.5em;"
+				'placeholder: "Jita IV - Moon 4")
 			 (map (lambda (name value)
 				(input 'type: "hidden" 'name: name 'value: (if (string-empty? value) "" value)))
 			      (list "dscan" "alliance" "corporation")

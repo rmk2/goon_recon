@@ -40,7 +40,7 @@
   (if (table-exists? sqlc "citadelScanMV")
       #t
       (query-exec sqlc (string-append "CREATE TABLE citadelScanMV "
-				      "( UNIQUE KEY (scanID), UNIQUE KEY (citadelID) ) "
+				      "( UNIQUE KEY (scanID) ) "
 				      "AS SELECT "
 				      "mapRegions.regionName,mapConstellations.constellationName,"
 				      "mapSolarSystems.solarSystemName,mapDenormalize.itemName AS locationName,"
