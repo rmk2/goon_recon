@@ -13,6 +13,7 @@
 ;; Include servlet component
 
 (require "dashboard/common.rkt"
+	 "dashboard/citadel-database.rkt"
 	 "dashboard/dscan.rkt"
 	 "dashboard/goo-database.rkt"
 	 "dashboard/input-corporation.rkt"
@@ -29,6 +30,8 @@
   (dispatch-rules
    [("recon" "report") exec-report]
    [("recon" "report") #:method "post" (lambda (req) (exec-result req #:persist-dscan (cl-persist)))]
+   [("recon" "citadel-database") exec-citadel-database]
+   [("recon" "citadel-database") #:method "post" exec-citadel-database-delete]
    [("recon" "goo-database") exec-goo-database]
    [("recon" "moon-database") exec-moon-database]
    [("recon" "tasks") exec-tasks]
