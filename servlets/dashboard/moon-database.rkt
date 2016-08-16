@@ -31,7 +31,9 @@
 	  (output:create-html-navigation
 	   #:title "GoonSwarm Recon L"
 	   #:active "moon-database"
-	   #:links '(("Goo Database" . "goo-database") ("Moon Database" . "moon-database")))
+	   #:links '(("Citadel Database" . "citadel-database")
+		     ("Goo Database" . "goo-database")
+		     ("Moon Database" . "moon-database")))
 	  (output:create-region-filter (sql-get-scanned-regions "moonScanView"))
 	  (div 'id: "content"
 	       (h1 "Moon Scan Data")
