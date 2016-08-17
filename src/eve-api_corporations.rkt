@@ -9,10 +9,11 @@
   (query-rows sqlc "SELECT allianceTicker FROM moonScanView WHERE corporationName IS NULL"))
 
 (define (query-kill-unknown-corporations)
-  (filter-not empty?
-	      (list*
-	       (query-rows sqlc "SELECT towerKillRaw.corporationID FROM towerKillRaw LEFT JOIN customCorporations ON customCorporations.corporationID = towerKillRaw.corporationID WHERE corporationName IS NULL")
-	       (query-rows sqlc "SELECT citadelKillRaw.corporationID FROM citadelKillRaw LEFT JOIN customCorporations ON customCorporations.corporationID = citadelKillRaw.corporationID WHERE corporationName IS NULL"))))
+  (flatten
+   (filter-not empty?
+	       (list*
+		(query-rows sqlc "SELECT towerKillRaw.corporationID FROM towerKillRaw LEFT JOIN customCorporations ON customCorporations.corporationID = towerKillRaw.corporationID WHERE corporationName IS NULL")
+		(query-rows sqlc "SELECT citadelKillRaw.corporationID FROM citadelKillRaw LEFT JOIN customCorporations ON customCorporations.corporationID = citadelKillRaw.corporationID WHERE corporationName IS NULL")))))
 
 (define (query-input-unknown-corporations)
   (query-rows sqlc "SELECT corporationID FROM customCorporationInput"))
@@ -75,4 +76,4 @@
 
 (sql-corporation-update-corporations (tower-unknown-poll (remove-duplicates (query-kill-unknown-corporations))))
 
-(sql-corporation-update-corporations (input-unknown-poll (remove-duplicates (query-input-unknown-corporations))))
+;; (sql-corporation-update-corporations (input-unknown-poll (remove-duplicates (query-input-unknown-corporations))))
