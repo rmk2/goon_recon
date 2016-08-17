@@ -120,7 +120,7 @@
 	  (output:create-html-navigation #:title "GoonSwarm Recon")
 	  (div 'id: "content"
 	       (h1 (pretty-print-location location-guess))
-	       (if (null? location-guess)
+	       (if (and (null? location-guess) (dscan-proximity (citadel? data)))
 		   (form 'method: "POST" 
 			 "Please enter closest celestial: "
 			 (input 'type: "text"
