@@ -2,6 +2,7 @@
 
 (require racket/date)
 (require net/jwt)
+(require (prefix-in req: web-server/http/request-structs))
 
 (require "eve-sql_structs.rkt")
 
@@ -39,5 +40,11 @@
    [else #f]))
 
 (define (create-authorization-header token)
-  (header #"Authorization"
-	  (string->bytes/utf-8 (string-append "JWT " token))))
+  (req:header #"Authorization"
+	      (string->bytes/utf-8 (string-append "JWT " token))))
+
+(define (extract-authorization-header lst)
+  (let ([header-auth (req:headers-assq* #"authorization" lst)])
+    (if header-auth
+	(bytes->string/utf-8 (subbytes (req:header-value header-auth) 4))
+	null)))
