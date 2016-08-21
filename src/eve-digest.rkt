@@ -239,7 +239,9 @@
 			[date (hash-ref km-list 'killTime)]
 			[location (hash-ref km-list 'solarSystemID)]
 			[moonid (hash-ref km-list 'moonID)]
-			[locationid (hash-ref (hash-ref km-list 'zkb) 'locationID)]
+			[locationid (if (hash-has-key? (hash-ref km-list 'zkb) 'locationID)
+					(hash-ref (hash-ref km-list 'zkb) 'locationID)
+					0)]
 			[attackers (hash-ref km-list 'attackers)]
 			[id (hash-ref km-list 'killID)])
 		    (filter-map (lambda (a) (if (cl-raw)
