@@ -199,8 +199,10 @@
 	  (and (null? location) (false? (dscan-celestials? data)))
 	  (false? location-try))
       #f]
-     [(and (<= (hash-ref (dscan-proximity (citadel? data)) 'distance) (max_distance))
-	   (<= (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance))
+     [(and (dscan-proximity (tower? data))
+	   (dscan-proximity (citadel? data))
+	   (<= (hash-ref (dscan-proximity (citadel? data)) 'distance) (max_distance))
+	   (<= (hash-ref (dscan-proximity (tower? data)) 'distance) (max_distance))
 	   (> (hash-ref (dscan-proximity (citadel? data)) 'distance)
 	      (hash-ref (dscan-proximity (tower? data)) 'distance)))
       #f]
