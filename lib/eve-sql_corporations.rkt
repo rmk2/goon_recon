@@ -72,6 +72,11 @@
 		    "mv.corporationTicker=NEW.corporationTicker,"
 		    "mv.corporationName=NEW.corporationName "
 		    "WHERE mv.corporationTicker=NEW.corporationTicker; "
+		    "UPDATE citadelScanMV AS mv "
+		    "SET "
+		    "mv.corporationTicker=NEW.corporationTicker,"
+		    "mv.corporationName=NEW.corporationName "
+		    "WHERE mv.corporationTicker=NEW.corporationTicker; "
 		    "END;")))
 
 ;; Update moonScanMV for newly added corporation affiliations (from customCorporationAffiliations)
@@ -81,6 +86,13 @@
 		    "CREATE TRIGGER insert_customCorporationAffiliations AFTER INSERT ON customCorporationAffiliations "
 		    "FOR EACH ROW BEGIN "
 		    "UPDATE moonScanMV AS mv "
+		    "LEFT JOIN customAlliances ON customAlliances.allianceID = NEW.allianceID "
+		    "LEFT JOIN customCorporations ON customCorporations.corporationID = NEW.corporationID "
+		    "SET "
+		    "mv.allianceTicker=customAlliances.allianceTicker,"
+		    "mv.allianceName=customAlliances.allianceName "
+		    "WHERE mv.corporationTicker=customCorporations.corporationTicker; "
+		    "UPDATE citadelScanMV AS mv "
 		    "LEFT JOIN customAlliances ON customAlliances.allianceID = NEW.allianceID "
 		    "LEFT JOIN customCorporations ON customCorporations.corporationID = NEW.corporationID "
 		    "SET "
@@ -100,6 +112,13 @@
 		    "mv.allianceTicker=customAlliances.allianceTicker,"
 		    "mv.allianceName=customAlliances.allianceName "
 		    "WHERE mv.corporationTicker=customCorporations.corporationTicker; "
+		    "UPDATE citadelScanMV AS mv "
+		    "LEFT JOIN customAlliances ON customAlliances.allianceID = NEW.allianceID "
+		    "LEFT JOIN customCorporations ON customCorporations.corporationID = NEW.corporationID "
+		    "SET "
+		    "mv.allianceTicker=customAlliances.allianceTicker,"
+		    "mv.allianceName=customAlliances.allianceName "
+		    "WHERE mv.corporationTicker=customCorporations.corporationTicker; "
 		    "END;")))
 
 (define (sql-affiliation-create-trigger-delete)
@@ -107,7 +126,12 @@
 		    "CREATE TRIGGER delete_customCorporationAffiliations AFTER DELETE ON customCorporationAffiliations "
 		    "FOR EACH ROW BEGIN "
 		    "UPDATE moonScanMV AS mv "
-		    "LEFT JOIN customAlliances ON customAlliances.allianceID = OLD.allianceID "
+		    "LEFT JOIN customCorporations ON customCorporations.corporationID = OLD.corporationID "
+		    "SET "
+		    "mv.allianceTicker=NULL,"
+		    "mv.allianceName=NULL "
+		    "WHERE mv.corporationTicker=customCorporations.corporationTicker; "
+		    "UPDATE citadelScanMV AS mv "
 		    "LEFT JOIN customCorporations ON customCorporations.corporationID = OLD.corporationID "
 		    "SET "
 		    "mv.allianceTicker=NULL,"
