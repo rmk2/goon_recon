@@ -82,7 +82,8 @@
    (style/inline 'type: "text/css" ".nav-title { font-weight: bold; padding: 0.75em; color: indianred; margin-right: 4em; }")
    (style/inline 'type: "text/css" ".nav-element { padding: 0.75em; }")
    (style/inline 'type: "text/css" ".nav-element:hover { background-color: indianred; }")
-   (style/inline 'type: "text/css" ".nav-element a { padding: 0.75em; text-decoration: none; color: black; }")))
+   (style/inline 'type: "text/css" ".nav-element a { padding: 0.75em; text-decoration: none; color: black; }")
+   (style/inline 'type: "text/css" ".nav-element.right { margin-left: auto; }")))
 
 (define-syntax create-html-hint
   (syntax-rules (:tablesorter :updated)
@@ -126,7 +127,7 @@
 			 (a 'href: (cdr x) (car x))))
 	    nav-list)))
 
-(define (create-html-dscan-rows ships info structures starbases)
+(define (create-html-dscan-rows main info structures starbases #:local-scan [local-scan? #f])
   (define (colorise-div #:picker n #:class [class "dscan-element"] body)
     (make-element 'div
 		  (list
@@ -151,34 +152,36 @@
 					  (div 'class: "dscan-count" (cdr element))
 					  (div 'class: "dscan-type" (car element)))))
 			 column)))
-	     (list "Ship Types" "Ship Groups")
-	     (if (empty? ships) (list null null)
-		 (list (car ships) (cdr ships))))
-	(div 'class: "dscan vertical"
-	     (map (lambda (heading column)
-		    (div 'class: "dscan-column"
-			 (h3 heading)
-			 (map (lambda (group)
-				(div 'class: "dscan-group"
-				     (map (lambda (detail)
-					    (div 'class: "dscan-detail hide"
-						 (colorise-div #:picker (cadr detail) #:class "dscan-element"
-							       (list
-								(div 'class: "dscan-count" (cdr detail))
-								(div 'class: "dscan-type" (car detail))))))
-					  (car group))
-				     (map (lambda (element)
-					    (div 'class: "dscan-summary"
-						 (colorise-div #:picker (cadr element) #:class "dscan-element"
-							       (list
-								(div 'class: "dscan-count" (cdr element))
-								(div 'class: "dscan-type" (car element))))))
-					  (cdr group))))
-			      column)))
-		  (list "Drones/Deployables" "Structures" "Starbases (on-grid only)")
-		  (filter-map (lambda (lst) (if (empty? (flatten lst)) null (filter (lambda (x) (not (empty? x))) lst)))
-			      (list info structures starbases)))
-	     (button 'onclick: "toggleClass('dscan-detail'); toggleClass('dscan-summary')" "Toggle details")))))
+	     (if local-scan? (list "Corporations" "Alliances") (list "Ship Types" "Ship Groups"))
+	     (if (empty? main) (list null null)
+		 (list (car main) (cdr main))))
+	(if local-scan?
+	    null
+	    (div 'class: "dscan vertical"
+		 (map (lambda (heading column)
+			(div 'class: "dscan-column"
+			     (h3 heading)
+			     (map (lambda (group)
+				    (div 'class: "dscan-group"
+					 (map (lambda (detail)
+						(div 'class: "dscan-detail hide"
+						     (colorise-div #:picker (cadr detail) #:class "dscan-element"
+								   (list
+								    (div 'class: "dscan-count" (cdr detail))
+								    (div 'class: "dscan-type" (car detail))))))
+					      (car group))
+					 (map (lambda (element)
+						(div 'class: "dscan-summary"
+						     (colorise-div #:picker (cadr element) #:class "dscan-element"
+								   (list
+								    (div 'class: "dscan-count" (cdr element))
+								    (div 'class: "dscan-type" (car element))))))
+					      (cdr group))))
+				  column)))
+		      (list "Drones/Deployables" "Structures" "Starbases (on-grid only)")
+		      (filter-map (lambda (lst) (if (empty? (flatten lst)) null (filter (lambda (x) (not (empty? x))) lst)))
+				  (list info structures starbases)))
+		 (button 'onclick: "toggleClass('dscan-detail'); toggleClass('dscan-summary')" "Toggle details"))))))
 
 (define (entry-add-scanid lst #:position [position 10])
   (map (lambda (scan)
