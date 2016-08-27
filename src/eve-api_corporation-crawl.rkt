@@ -46,7 +46,7 @@
 (define (sql-corporation-max-allianceid)
   (query-value sqlc "SELECT MAX(allianceID) FROM customCorporationAffiliations"))
 
-;; Exec
+;; Main
 
 (define (main start-id)
   (sql-corporation-update-affiliations
@@ -56,6 +56,12 @@
 			#:digest digest-update-affiliations
 			#:limit 20)))
 
+;; Exec
+
+;; Update affiliations
 (cond [(< (sql-corporation-max-allianceid) (sql-alliance-max-allianceid))
        (main (sql-corporation-max-allianceid))]
       [else (main (sql-alliance-min-allianceid))])
+
+;; Clean old affiliations not updated above
+(sql-corporation-clean-affiliations)

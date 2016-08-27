@@ -61,6 +61,9 @@
 				  "LEFT JOIN customAlliances AS a ON main.allianceID = a.allianceID "
 				  "ORDER BY allianceName")))
 
+(define (sql-corporation-clean-affiliations)
+  (query-exec sqlc "DELETE FROM customCorporationAffiliations WHERE DATEDIFF(CURDATE(),DATE(datetime)) > 1"))
+
 ;; Update moonScanMV for newly added corporations (from customCorporations)
 
 (define (sql-corporation-create-trigger-insert)
