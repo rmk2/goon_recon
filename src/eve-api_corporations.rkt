@@ -6,7 +6,11 @@
 ;; Database
 
 (define (query-scan-unknown-corporations)
-  (query-rows sqlc "SELECT allianceTicker FROM moonScanView WHERE corporationName IS NULL"))
+  (flatten
+   (filter-not empty?
+	       (list*
+		(query-rows sqlc "SELECT allianceTicker FROM moonScanView WHERE corporationName IS NULL")
+		(query-rows sqlc "SELECT allianceTicker FROM citadelScanView WHERE corporationName IS NULL")))))
 
 (define (query-kill-unknown-corporations)
   (flatten
@@ -54,16 +58,7 @@
 
 ;; Update polled towers from towerKillRaw
 
-(define (tower-unknown-poll lst)
-  (exec-limit-api-rate #:function hash-poll-corporations
-		       #:input (map (lambda (x) (number->string (vector->values x))) lst)
-		       #:delay 1
-		       #:digest hash-parse-corporations
-		       #:limit 30))
-
-;; Update corporations from customCorporationInput
-
-(define (input-unknown-poll lst)
+(define (general-unknown-poll lst)
   (exec-limit-api-rate #:function hash-poll-corporations
 		       #:input (map (lambda (x) (number->string (vector->values x))) lst)
 		       #:delay 1
@@ -74,6 +69,6 @@
 
 (scan-unknown (remove-duplicates (extract-corporationids (query-scan-unknown-corporations))))
 
-(sql-corporation-update-corporations (tower-unknown-poll (remove-duplicates (query-kill-unknown-corporations))))
+(sql-corporation-update-corporations (general-unknown-poll (remove-duplicates (query-kill-unknown-corporations))))
 
-;; (sql-corporation-update-corporations (input-unknown-poll (remove-duplicates (query-input-unknown-corporations))))
+;; (sql-corporation-update-corporations (general-unknown-poll (remove-duplicates (query-input-unknown-corporations))))
