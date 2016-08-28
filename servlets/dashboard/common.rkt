@@ -10,14 +10,13 @@
 
 ;; Check if a given query string is a valid solarSystemName
 
-;; (define (system? query) (findf (lambda (str) (equal? (string-downcase query) (string-downcase str)))
-;; 			       (map vector->values
-;; 				    (query-rows sqlc "SELECT DISTINCT solarSystemName FROM mapSolarSystems"))))
+(define (system? query) (findf (lambda (str) (equal? (string-downcase query) (string-downcase str)))
+			       (map vector->values
+				    (query-rows sqlc "SELECT DISTINCT solarSystemName FROM mapSolarSystems"))))
 
-(define (system? query)
-  (if (false? (query-maybe-row sqlc "SELECT solarSystemName FROM mapSolarSystems WHERE solarSystemName = ?" query))
-      #f
-      query))
+(define (constellation? query) (findf (lambda (str) (equal? (string-downcase query) (string-downcase str)))
+			       (map vector->values
+				    (query-rows sqlc "SELECT DISTINCT constellationName FROM mapConstellations"))))
 
 ;; Moon database
 
@@ -40,10 +39,10 @@
 		(query-regions lst))]
    [else function]))
 
-(define (get-regions req)
+(define (get-filter req filter)
   (match
     (bindings-assq
-     #"region"
+     filter
      (request-bindings/raw req))
     [(? binding:form? b)
      (list

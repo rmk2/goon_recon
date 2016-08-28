@@ -33,6 +33,6 @@
 	       (output:create-html-hint :updated))))
 	port))))
 
-  (define filter_region (get-regions req))
+  (define filter_region (get-filter req #"region"))
 
   (send/back response-generator))
