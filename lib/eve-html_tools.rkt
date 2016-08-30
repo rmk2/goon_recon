@@ -42,7 +42,8 @@
 					     [(struct? str) str]
 					     [(= (bytes-utf-8-length (string->bytes/utf-8 str)) 64)
 					      (input 'type: "checkbox" 'form: "main" 'name: str 'value: str "X")]
-					     [(regexp-match? #px"^http" str) (a 'href: str 'target: "_blank" "-> link")]
+					     [(regexp-match? #px"^http" str)
+					      (a 'href: str 'target: "_blank" 'rel: "noopener noreferrer" "-> link")]
 					     [else str]))))
 				  (drop-right row drop-amount))))
 			  input-list)))))
@@ -188,5 +189,8 @@
 	 (list-update scan position (lambda (type)
 				      (if (sql-null? (last scan))
 					  type
-					  (a 'href: (string-append "/dscan/" (last scan)) 'target: "_blank" type)))))
+					  (a 'href: (string-append "/dscan/" (last scan))
+					     'target: "_blank"
+					     'rel: "noopener noreferrer"
+					     type)))))
        lst))
