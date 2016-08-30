@@ -53,9 +53,10 @@
 (define (sql-moon-update-empty lst)
   (for-each (lambda (x)
 	      (query sqlc (string-append "UPDATE moonScanRaw "
-					 "SET datetime=?,typeID=NULL,online=NULL "
+					 "SET datetime=?,typeID=NULL,online=NULL,scanID=? "
 					 "WHERE solarSystemID = ? AND planet = ? AND moon = ?")
 		     (sql-moon-datetime x)
+		     (sql-moon-scanid x)
 		     (sql-moon-system x)
 		     (sql-moon-planet x)
 		     (sql-moon-moon x)))

@@ -187,10 +187,15 @@
 (define (entry-add-scanid lst #:position [position 10])
   (map (lambda (scan)
 	 (list-update scan position (lambda (type)
-				      (if (sql-null? (last scan))
-					  type
-					  (a 'href: (string-append "/dscan/" (last scan))
-					     'target: "_blank"
-					     'rel: "noopener noreferrer"
-					     type)))))
+				      (cond [(sql-null? (last scan)) type]
+					    [(sql-null? type)
+					     (a 'href: (string-append "/dscan/" (last scan))
+						'target: "_blank"
+						'rel: "noopener noreferrer"
+						"None")]
+					    [else
+					     (a 'href: (string-append "/dscan/" (last scan))
+						'target: "_blank"
+						'rel: "noopener noreferrer"
+						type)]))))
        lst))
