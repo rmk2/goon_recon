@@ -57,8 +57,8 @@
     ((_ a b c d)
      (format "~a , Alliance (~a)"
 	     (print-filters a b c)
-	     (string-join (map (lambda (x) (parse-alliance :ticker x)) d) "|")))
+	     (string-join (map (lambda (x) (parse-alliance :ticker (string-upcase x))) d) "|")))
     ((_ a b c d e)
      (format "~a, Corporation (~a)"
 	     (print-filters a b c d)
-	     (string-join (map (lambda (x) (parse-corporation :ticker x)) e) "|")))))
+	     (string-join (map (lambda (x) (parse-corporation :ticker x)) (string-upcase e)) "|")))))
