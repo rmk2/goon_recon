@@ -99,10 +99,8 @@
      [(region? str) (sql-build-query columns : table -> "regionName" = str)]
      [(constellation? str) (sql-build-query columns : table -> "constellationName" = str)]
      [(system? str) (sql-build-query columns : table -> "solarSystemName" = str)]
-     [(alliance? str) (sql-build-query columns : table -> "allianceName" = str)]
-     [(corporation? str) (sql-build-query columns : table -> "corporationName" = str)]
-     [(alliance? str) (sql-build-query columns : table -> "allianceTicker" + "allianceName" = str)]
-     [(corporation? str) (sql-build-query columns : table -> "corporationTicker" + "corporationName" = str)]
+     [(alliance? str) (sql-build-query columns : table -> "allianceName" + "allianceTicker" = str)]
+     [(corporation? str) (sql-build-query columns : table -> "corporationName" + "corporationTicker" = str)]
      [else null]))
   (let* ([origin lst]
 	 [result
