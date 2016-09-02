@@ -4,7 +4,13 @@
 
 (require "common.rkt")
 
-(provide (all-defined-out))
+(provide (except-out (all-defined-out)
+		     sql-columns))
+
+(define sql-columns
+  (string-append "regionName,constellationName,solarsystemName,planet,moon,"
+		 "allianceTicker,allianceName,corporationTicker,corporationName,"
+		 "datetime,typeName,moonType,online,checkStatus,scanID"))
 
 (define (exec-moon-database req)
   (define response-generator
@@ -38,20 +44,40 @@
 	  (div 'id: "content"
 	       (h1 "Moon Scan Data")
 	       (output:create-html-hint (output:create-html-legend :moon))
-	       (output:create-html-hint (format "Results filtered for: Region (~a)"
-						(string-join (query-regions filter_region)  "|")))
+	       (output:create-html-hint (print-filters filter-region
+						       filter-constellation
+						       filter-system
+						       filter-alliance
+						       filter-corporation))
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table #:ticker->class #t
 					 #:drop-right 3
 					 #:head (list "Region" "Constellation" "System" "Planet" "Moon" "AT"
 						      "Alliance" "CT" "Corporation" "Date" "Tower" "Goo")
-					 (output:entry-add-scanid #:position 10
-					  (user-filter-regions filter_region
-							       #:filter-function sql-moon-region-towers
-							       #:function (map vector->list (sql-moon-get-towers)))))
+					 (output:entry-add-scanid
+					  #:position 10
+					  (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
+						 (sql-get-by-filter user-filter #:table "moonScanView" #:union? #f #:columns sql-columns)]
+						[(not (null? user-filter))
+						 (sql-get-by-filter user-filter #:table "moonScanView" #:columns sql-columns)]
+						[else (map vector->list (sql-build-query sql-columns : "moonScanView"))])))
 	       (output:create-html-hint :updated))))
 	port))))
 
-  (define filter_region (get-filter req #"region"))
+  ;; Parse user input (URL parameters)
+  (sql-bind-user-input "region" #:request req)
+  (sql-bind-user-input "constellation" #:request req)
+  (sql-bind-user-input "system" #:request req)
+  (sql-bind-user-input "alliance" #:request req)
+  (sql-bind-user-input "corporation" #:request req)
+
+  (define f-mode (get-filter req #"mode"))
+
+  (define user-filter
+    (append filter-region
+	    filter-constellation
+	    filter-system
+	    filter-alliance
+	    filter-corporation))
 
   (send/back response-generator))

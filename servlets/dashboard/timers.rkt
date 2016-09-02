@@ -4,7 +4,10 @@
 
 (require "common.rkt")
 
-(provide (all-defined-out))
+(provide (except-out (all-defined-out)
+		     sql-columns))
+
+(define sql-columns "allianceName,structureType,solarSystemName,constellationName,regionName,datetime")
 
 (define (exec-timers req)
   (define response-generator
@@ -23,16 +26,31 @@
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Timer Board")
 	       (output:create-html-hint "Note: Sovereignty data is updated every 10 minutes")
+	       (output:create-html-hint (print-filters filter-region
+						       filter-constellation
+						       filter-system))
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table #:id "timers"
 					 #:head (list "Alliance" "Structure" "System"
 						      "Constellation" "Region" "Date")
-					 (user-filter-regions filter_region
-							      #:filter-function timerboard-query-region
-							      #:function (timerboard-query)))
+					 (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
+						(sql-get-by-filter user-filter #:table "customTimerboard" #:union? #f #:columns sql-columns)]
+					       [(not (null? user-filter))
+						(sql-get-by-filter user-filter #:table "customTimerboard" #:columns sql-columns)]
+					       [else (map vector->list (sql-build-query sql-columns : "customTimerboard"))]))
 	       (output:create-html-hint :updated))))
 	port))))
 
-  (define filter_region (get-filter req #"region"))
+  ;; Parse user input (URL parameters)
+  (sql-bind-user-input "region" #:request req)
+  (sql-bind-user-input "constellation" #:request req)
+  (sql-bind-user-input "system" #:request req)
+
+  (define f-mode (get-filter req #"mode"))
+
+  (define user-filter
+    (append filter-region
+	    filter-constellation
+	    filter-system))
 
   (send/back response-generator))
