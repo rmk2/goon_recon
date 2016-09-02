@@ -29,9 +29,12 @@
     [(_ columns FROM table) #'(sql-build-query columns : table)]
     [(_ table WHERE query IS param) #'(sql-build-query table -> query = param)]
     [(_ FROM table WHERE query IS param) #'(sql-build-query table -> query = param)]
+    [(_ table WHERE query OR alt IS param) #'(sql-build-query table -> query + alt = param)]
+    [(_ FROM table WHERE query OR alt IS param) #'(sql-build-query table -> query + alt = param)]
     [(_ table WHERE query IS NOT param) #'(sql-build-query table -> query != param)]
     [(_ FROM table WHERE query IS NOT param) #'(sql-build-query table -> query != param)]
     [(_ columns FROM table WHERE query IS param) #'(sql-build-query table -> query = param)]
+    [(_ columns FROM table WHERE query OR alt IS param) #'(sql-build-query table -> query + alt = param)]
     [(_ columns FROM table WHERE query IS NOT param) #'(sql-build-query table -> query != param)]
     ;; Main functions
     [(_ table)
@@ -40,10 +43,14 @@
      #'(query-rows sqlc (format "SELECT ~a FROM ~a" columns table))]
     [(_ table -> query = param)
      #'(query-rows sqlc (format "SELECT * FROM ~a WHERE ~a = ?" table query) param)]
+    [(_ table -> query + alt = param)
+     #'(query-rows sqlc (format "SELECT * FROM ~a WHERE ~a = ? OR ~a = ?" table query alt) param param)]
     [(_ table -> query != param)
      #'(query-rows sqlc (format "SELECT * FROM ~a WHERE ~a != ?" table query) param)]
     [(_ columns : table -> query = param)
      #'(query-rows sqlc (format "SELECT ~a FROM ~a WHERE ~a = ?" columns table query) param)]
+    [(_ columns : table -> query + alt = param)
+     #'(query-rows sqlc (format "SELECT ~a FROM ~a WHERE ~a = ? OR ~a = ?" columns table query alt) param param)]
     [(_ columns : table -> query != param)
      #'(query-rows sqlc (format "SELECT ~a FROM ~a WHERE ~a != ?" columns table query) param)]))
 
@@ -63,6 +70,16 @@
 	 (if (false? (query-maybe-value sqlc (format "SELECT ~a FROM ~a WHERE ~a = ?" column table column) query))
 	     #f
 	     query))]
+    [(_ id :direct column1 column2 table)
+     ;; Check query directly against database, column1 OR column2
+     #'(define/contract (id query)
+	 (-> string? any)
+	 (if (false? (query-maybe-value
+		      sqlc
+		      (format "SELECT ~a FROM ~a WHERE ~a = ? OR ~a = ?" column1 table column1 column2)
+		      query query))
+	     #f
+	     query))]
     [(_ id column table) #'(sql-build-test id :known-good column table)]))
 
 ;; Define filter conditionals
@@ -70,10 +87,8 @@
 (sql-build-test system? :known-good "solarSystemName" "mapSolarSystems")
 (sql-build-test constellation? :known-good "constellationName" "mapConstellations")
 (sql-build-test region? :known-good "regionName" "mapRegions")
-(sql-build-test alliance? :known-good "allianceName" "customAlliances")
-(sql-build-test alliance-ticker? :known-good "allianceTicker" "customAlliances")
-(sql-build-test corporation? :direct "corporationName" "customCorporations")
-(sql-build-test corporation-ticker? :direct "corporationTicker" "customCorporations")
+(sql-build-test alliance? :direct "allianceName" "allianceTicker" "customAlliances")
+(sql-build-test corporation? :direct "corporationName" "corporationTicker" "customCorporations")
 
 ;; Query "columns" in SQL "table" for a list/string
 
@@ -86,8 +101,8 @@
      [(system? str) (sql-build-query columns : table -> "solarSystemName" = str)]
      [(alliance? str) (sql-build-query columns : table -> "allianceName" = str)]
      [(corporation? str) (sql-build-query columns : table -> "corporationName" = str)]
-     [(alliance-ticker? str) (sql-build-query columns : table -> "allianceTicker" = str)]
-     [(corporation-ticker? str) (sql-build-query columns : table -> "corporationTicker" = str)]
+     [(alliance? str) (sql-build-query columns : table -> "allianceTicker" + "allianceName" = str)]
+     [(corporation? str) (sql-build-query columns : table -> "corporationTicker" + "corporationName" = str)]
      [else null]))
   (let* ([origin lst]
 	 [result
