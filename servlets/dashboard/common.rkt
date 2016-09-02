@@ -13,17 +13,6 @@
 (define (sql-get-scanned-regions table)
   (map vector->values (query-rows sqlc (string-append "SELECT DISTINCT regionName FROM " table " ORDER BY regionName"))))
 
-(define (query-regions lst) (cond [(empty? lst) null]
-				  [(and (not (empty? lst)) (string-empty? (car lst))) null]
-				  [else (filter-map region? (string-split (car lst) ","))]))
-
-(define (user-filter-regions lst #:filter-function filter-function #:function function)
-  (cond
-   [(not (empty? (query-regions lst)))
-    (append-map (lambda (region) (filter-function region))
-		(query-regions lst))]
-   [else function]))
-
 (define (get-filter req filter)
   (match
     (bindings-assq

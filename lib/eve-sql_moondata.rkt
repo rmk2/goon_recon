@@ -95,22 +95,10 @@
       #t
       (query-exec sqlc "CREATE VIEW moonScanView AS SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus,scanID FROM moonScanMV")))
 
-(define (sql-moon-region-towers param)
-  (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus,scanID FROM moonScanView WHERE regionName LIKE ?" param)))
-
-(define (sql-moon-get-towers)
-  (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,planet,moon,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,moonType,online,checkStatus,scanID FROM moonScanView"))
-
 (define (sql-moon-create-tasks)
   (if (table-exists? sqlc "moonScanTasks")
       #t
       (query-exec sqlc "CREATE VIEW moonScanTasks AS SELECT regionName,constellationName,solarSystemName,planet,moon,allianceTicker,corporationTicker,datetime,typeName FROM moonScanMV WHERE checkStatus = 'RESCAN'")))
-
-(define (sql-moon-get-tasks)
-  (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,allianceTicker,corporationTicker,datetime,typeName FROM moonScanTasks"))
-
-(define (sql-moon-region-tasks param)
-  (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,allianceTicker,corporationTicker,datetime,typeName FROM moonScanTasks WHERE regionName LIKE ?" param)))
 
 (define (sql-goo-create-guess)
   (if (table-exists? sqlc "moonGooGuess")
@@ -146,12 +134,6 @@
 		     (sql-goo-datetime x)
 		     (sql-goo-amount x)))
 	    lst))
-
-(define (sql-goo-get-scans)
-  (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,datetime,moonType FROM moonGooDV"))
-
-(define (sql-goo-region-scans param)
-  (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarSystemName,planet,moon,datetime,moonType FROM moonGooDV WHERE regionName = ?" param)))
 
 ;; Define triggers to update the pseudo-materialized table we created above
 ;; whenever moonScanRaw changes, since a simple view on its own is too slow.

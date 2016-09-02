@@ -102,12 +102,6 @@
 				      "LEFT JOIN customAlliances ON customAlliances.allianceID = citadelKillRaw.allianceID "
 				      "LEFT JOIN invTypes ON invTypes.typeID = citadelKillRaw.typeID"))))
 
-(define (sql-citadel-region-citadels param)
-  (map vector->list (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,citadelID,checkStatus,scanID FROM citadelScanView WHERE regionName LIKE ?" param)))
-
-(define (sql-citadel-get-citadels)
-  (query-rows sqlc "SELECT regionName,constellationName,solarsystemName,locationName,allianceTicker,allianceName,corporationTicker,corporationName,datetime,typeName,citadelID,checkStatus,scanID FROM citadelScanView"))
-
 (define (sql-citadel-create-delete)
   (if (table-exists? sqlc "citadelScanDelete")
       #t

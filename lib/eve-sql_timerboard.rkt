@@ -23,9 +23,3 @@
 		     (fifth x)
 		     (sixth x)))
 	    lst))
-
-(define (timerboard-query)
-  (map vector->list (query-rows sqlc "SELECT allianceName,structureType,solarSystemName,constellationName,regionName,datetime FROM customTimerboard ORDER BY datetime")))
-
-(define (timerboard-query-region query)
-  (map vector->list (query-rows sqlc "SELECT allianceName,structureType,solarSystemName,constellationName,regionName,datetime FROM customTimerboard WHERE regionName = ? ORDER BY datetime" query)))
