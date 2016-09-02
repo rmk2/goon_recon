@@ -7,7 +7,7 @@
 (provide (except-out (all-defined-out)
 		     sql-columns))
 
-(define sql-columns "allianceName,structureType,solarSystemName,constellationName,regionName,datetime")
+(define sql-columns "regionName,constellationName,solarSystemName,structureType,allianceTicker,allianceName,datetime")
 
 (define (exec-timers req)
   (define response-generator
@@ -16,7 +16,7 @@
        (output-xml (doctype 'html) port)
        (output-xml
 	(html
-	 (output:create-html-head #:title "Fuzzysov Timer Board" #:tablesorter #t #:navigation #t #:sort-column 5
+	 (output:create-html-head #:title "Fuzzysov Timer Board" #:tablesorter #t #:navigation #t #:sort-column 6
 				  (list
 				   (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
 				   (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
@@ -28,16 +28,16 @@
 	       (output:create-html-hint "Note: Sovereignty data is updated every 10 minutes")
 	       (output:create-html-hint (print-filters filter-region
 						       filter-constellation
-						       filter-system))
+						       filter-system
+						       filter-alliance))
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table #:id "timers"
-					 #:head (list "Alliance" "Structure" "System"
-						      "Constellation" "Region" "Date")
+					 #:head (list "Region" "Constellation" "System" "Structure" "A-T" "Alliance" "Date")
 					 (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-						(sql-get-by-filter user-filter #:table "customTimerboard" #:union? #f #:columns sql-columns)]
+						(sql-get-by-filter user-filter #:table "customTimerboardView" #:union? #f #:columns sql-columns)]
 					       [(not (null? user-filter))
-						(sql-get-by-filter user-filter #:table "customTimerboard" #:columns sql-columns)]
-					       [else (map vector->list (sql-build-query sql-columns : "customTimerboard"))]))
+						(sql-get-by-filter user-filter #:table "customTimerboardView" #:columns sql-columns)]
+					       [else (map vector->list (sql-build-query sql-columns : "customTimerboardView"))]))
 	       (output:create-html-hint :updated))))
 	port))))
 
@@ -45,12 +45,14 @@
   (sql-bind-user-input "region" #:request req)
   (sql-bind-user-input "constellation" #:request req)
   (sql-bind-user-input "system" #:request req)
+  (sql-bind-user-input "alliance" #:request req)
 
   (define f-mode (get-filter req #"mode"))
 
   (define user-filter
     (append filter-region
 	    filter-constellation
-	    filter-system))
+	    filter-system
+	    filter-alliance))
 
   (send/back response-generator))

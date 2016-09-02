@@ -64,6 +64,7 @@
 ;; Create timerboard table
 
 (timerboard-prepare-table)
+(timerboard-create-view)
 
 ;; Create super canary tables
 

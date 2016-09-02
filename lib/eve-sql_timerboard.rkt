@@ -23,3 +23,8 @@
 		     (fifth x)
 		     (sixth x)))
 	    lst))
+
+(define (timerboard-create-view)
+  (if (table-exists? sqlc "customTimerboardView")
+      #t
+      (query-exec sqlc "CREATE VIEW customTimerboardView AS SELECT t.regionName,t.constellationName,t.solarSystemName,t.structureType,a.allianceTicker,t.allianceName,t.datetime FROM customTimerboard AS t LEFT JOIN customAlliances AS a ON a.allianceName = t.allianceName")))
