@@ -65,17 +65,18 @@
 						       filter-corporation))
 	       (output:create-html-hint :tablesorter)
 	       (form 'method: "POST" 'target: "_self" 'id: "main" 'name: "main"
-		     (output:create-html-table #:ticker->class #t
-					       #:drop-right 2
-					       #:head (list "Region" "Constellation" "System" "Location" "AT"
-							    "Alliance" "CT" "Corporation" "Date" "Type" "")
-					       (output:entry-add-scanid
-						#:position 9
-						(cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-						       (sql-get-by-filter user-filter #:table "moonScanView" #:union? #f #:columns sql-columns)]
-						      [(not (null? user-filter))
-						       (sql-get-by-filter user-filter #:table "citadelScanView" #:columns sql-columns)]
-						      [else (map vector->list (sql-build-query sql-columns : "citadelScanView"))])))
+		     (output:create-html-table
+		      #:ticker->class #t
+		      #:drop-right 2
+		      #:head (list "Region" "Constellation" "System" "Location" "AT"
+				   "Alliance" "CT" "Corporation" "Date" "Type" "")
+		      (output:entry-add-scanid
+		       #:position 9
+		       (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
+			      (sql-get-by-filter user-filter #:table "moonScanView" #:union? #f #:columns sql-columns)]
+			     [(not (null? user-filter))
+			      (sql-get-by-filter user-filter #:table "citadelScanView" #:columns sql-columns)]
+			     [else (map vector->list (sql-build-query sql-columns : "citadelScanView"))])))
 		     (input 'type: "submit" 'id: "submit" 'value: "Delete marked entries"))
 	       (output:create-html-hint :updated))))
 	port))))

@@ -50,17 +50,18 @@
 						       filter-alliance
 						       filter-corporation))
 	       (output:create-html-hint :tablesorter)
-	       (output:create-html-table #:ticker->class #t
-					 #:drop-right 3
-					 #:head (list "Region" "Constellation" "System" "Planet" "Moon" "AT"
-						      "Alliance" "CT" "Corporation" "Date" "Tower" "Goo")
-					 (output:entry-add-scanid
-					  #:position 10
-					  (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-						 (sql-get-by-filter user-filter #:table "moonScanView" #:union? #f #:columns sql-columns)]
-						[(not (null? user-filter))
-						 (sql-get-by-filter user-filter #:table "moonScanView" #:columns sql-columns)]
-						[else (map vector->list (sql-build-query sql-columns : "moonScanView"))])))
+	       (output:create-html-table
+		#:ticker->class #t
+		#:drop-right 3
+		#:head (list "Region" "Constellation" "System" "Planet" "Moon" "AT"
+			     "Alliance" "CT" "Corporation" "Date" "Tower" "Goo")
+		(output:entry-add-scanid
+		 #:position 10
+		 (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
+			(sql-get-by-filter user-filter #:table "moonScanView" #:union? #f #:columns sql-columns)]
+		       [(not (null? user-filter))
+			(sql-get-by-filter user-filter #:table "moonScanView" #:columns sql-columns)]
+		       [else (map vector->list (sql-build-query sql-columns : "moonScanView"))])))
 	       (output:create-html-hint :updated))))
 	port))))
 

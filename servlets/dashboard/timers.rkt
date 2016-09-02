@@ -31,13 +31,14 @@
 						       filter-system
 						       filter-alliance))
 	       (output:create-html-hint :tablesorter)
-	       (output:create-html-table #:id "timers"
-					 #:head (list "Region" "Constellation" "System" "Structure" "A-T" "Alliance" "Date")
-					 (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-						(sql-get-by-filter user-filter #:table "customTimerboardView" #:union? #f #:columns sql-columns)]
-					       [(not (null? user-filter))
-						(sql-get-by-filter user-filter #:table "customTimerboardView" #:columns sql-columns)]
-					       [else (map vector->list (sql-build-query sql-columns : "customTimerboardView"))]))
+	       (output:create-html-table
+		#:id "timers"
+		#:head (list "Region" "Constellation" "System" "Structure" "A-T" "Alliance" "Date")
+		(cond [(and (not (null? user-filter)) (member "intersect" f-mode))
+		       (sql-get-by-filter user-filter #:table "customTimerboardView" #:union? #f #:columns sql-columns)]
+		      [(not (null? user-filter))
+		       (sql-get-by-filter user-filter #:table "customTimerboardView" #:columns sql-columns)]
+		      [else (map vector->list (sql-build-query sql-columns : "customTimerboardView"))]))
 	       (output:create-html-hint :updated))))
 	port))))
 

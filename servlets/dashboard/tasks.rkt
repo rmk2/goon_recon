@@ -37,15 +37,16 @@
 						       filter-constellation
 						       filter-system))
 	       (output:create-html-hint :tablesorter)
-	       (output:create-html-table #:ticker->class #t
-					 #:drop-right 0
-					 #:head (list "Region" "Constellation" "System" "Planet" "Moon"
-						      "A-T*" "C-T*" "Date*" "Tower*")
-					 (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-						(sql-get-by-filter user-filter #:table "moonScanTasks" #:union? #f #:columns sql-columns)]
-					       [(not (null? user-filter))
-						(sql-get-by-filter user-filter #:table "moonScanTasks" #:columns sql-columns)]
-					       [else (map vector->list (sql-build-query sql-columns : "moonScanTasks"))]))
+	       (output:create-html-table
+		#:ticker->class #t
+		#:drop-right 0
+		#:head (list "Region" "Constellation" "System" "Planet" "Moon"
+			     "A-T*" "C-T*" "Date*" "Tower*")
+		(cond [(and (not (null? user-filter)) (member "intersect" f-mode))
+		       (sql-get-by-filter user-filter #:table "moonScanTasks" #:union? #f #:columns sql-columns)]
+		      [(not (null? user-filter))
+		       (sql-get-by-filter user-filter #:table "moonScanTasks" #:columns sql-columns)]
+		      [else (map vector->list (sql-build-query sql-columns : "moonScanTasks"))]))
 	       (output:create-html-hint :updated))))
 	port))))
 
