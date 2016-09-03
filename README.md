@@ -145,7 +145,7 @@ the case of partially entered data from a moon scan) or, ideally, if we simply
 have a corporationID, as is the case with data automatically retrieved from
 zkillboard.com.
 
-### Update all corporation affilitions
+### Update all corporation affiliations
 
 Run (or schedule) `eve-api_corporation-crawl.rkt` periodically, which goes
 through *every* existing alliance and requests *all* corporations that are
