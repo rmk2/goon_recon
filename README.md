@@ -152,8 +152,8 @@ through *every* existing alliance and requests *all* corporations that are
 part of each alliance from the official API. Since CCP supplies a full list of
 existing alliances, this means that we, in turn, are able to generate a full
 mapping of corporations to alliances. This script will take a while as it
-loops through alliances and thus runs needs to honour CCP's imposed rate
-limits. If you would like additional output, run it via `racket -W debug
+loops through alliances and thus needs to honour CCP's imposed rate limits. If
+you would like additional output, run it via `racket -W debug
 src/eve-api_corporation-crawl.rkt`, which will show you on which iterative
 step inside the loop we currently are. If this script fails for some reason
 (API dies, CCP hates you etc.), you can rerun it and it will pick up where it
