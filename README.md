@@ -53,7 +53,7 @@ mapSolarSystems
 
 EVE player Steve Ronuken (CSM 9 & 10 Member) hosts individual tables as well
 as full conversions to a number of formats, including mySQL, on his website,
-which is recommend especially since CCP started shipping the SDE as YAML
+which is recommended especially since CCP started shipping the SDE as YAML
 files, rather than direct SQL exports as they used to in the past. Tables can
 be found here: [fuzzwork.co.uk](https://www.fuzzwork.co.uk/dump/latest/)
 
@@ -80,7 +80,7 @@ There is an alternative form that uses short options, as well:
 
 ```
 # Alternative short options
-eve-digest.rkt -LRm -g "Control Tower" | eve-towers_sql.rkt
+eve-digest.rkt -lRm -g "Control Tower" | eve-towers_sql.rkt
 ```
 
 It is easiest to simply schedule running the parser via cron, where hourly
@@ -92,6 +92,24 @@ because we only care about dead towers, not things killed *by* a tower; we are
 using `--raw` because we need to pipe the input into another racket utility
 which expects raw lists, and we are using `--moons` to properly parse not just
 a killmail's solar system, but its precise moon location.
+
+### Update citadel-database with recently killed citadels
+
+Much like for towers, a similar system exists to take indicate dead citadels,
+though some of the inherent limitations in how citadels can be attributed and
+identified, this will mark all citadels of a given type in a given system as
+needing rescan if *and* citadel of that type dies in a scanned system. Once
+again, we are using `eve-digest.rkt` to query zkillboard.com, this time piping
+the output to another utility which deals with updating the appropriate
+database tables:
+
+```
+# Long options
+eve-digest.rkt --losses --raw --location --group "Citadel" | eve-citadels_sql.rkt
+
+# Alternative short options
+eve-digest.rkt -lRM -g "Citadel" | eve-citadels_sql.rkt
+```
 
 ### Update sovereignty timers
 
