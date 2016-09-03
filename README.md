@@ -64,6 +64,10 @@ scripts listed below.
 
 ## Automated intel gathering
 
+**Hint:** I would suggest adding the whole `src` directory to the executing
+  user's PATH to be able to simply call of the utilities directly, since they
+  use a shebang to call racket internally.
+
 ### Update moon-database with recently killed towers
 
 We can use `eve-digest.rkt` to query zkillboard.com for a list of dead towers
@@ -140,3 +144,17 @@ resolve unknown corporations if we either have a valid alliance for them (in
 the case of partially entered data from a moon scan) or, ideally, if we simply
 have a corporationID, as is the case with data automatically retrieved from
 zkillboard.com.
+
+### Update all corporation affilitions
+
+Run (or schedule) `eve-api_corporation-crawl.rkt` periodically, which goes
+through *every* existing alliance and requests *all* corporations that are
+part of each alliance from the official API. Since CCP supplies a full list of
+existing alliances, this means that we, in turn, are able to generate a full
+mapping of corporations to alliances. This script will take a while as it
+loops through alliances and thus runs needs to honour CCP's imposed rate
+limits. If you would like additional output, run it via `racket -W debug
+src/eve-api_corporation-crawl.rkt`, which will show you on which iterative
+step inside the loop we currently are. If this script fails for some reason
+(API dies, CCP hates you etc.), you can rerun it and it will pick up where it
+was before.
