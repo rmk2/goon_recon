@@ -101,12 +101,12 @@ a killmail's solar system, but its precise moon location.
 ### Update citadel-database with recently killed citadels
 
 Much like for towers, a similar system exists to indicate dead citadels,
-though some of the inherent limitations in how citadels can be attributed and
-identified, this will mark all citadels of a given type in a given system as
-needing rescan if *and* citadel of that type dies in a scanned system. Once
-again, we are using `eve-digest.rkt` to query zkillboard.com, this time piping
-the output to another utility which deals with updating the appropriate
-database tables:
+though due to some of the inherent limitations in how citadels can be
+attributed and identified, this will mark all citadels of a given type in a
+given system as needing a rescan if *any* citadel of that type dies in a
+scanned system. Once again, we are using `eve-digest.rkt` to query
+zkillboard.com, this time piping the output to another utility which deals
+with updating the appropriate database tables:
 
 ```
 # Long options
