@@ -43,6 +43,7 @@ partial set of tables from CCP's Static Data Export (SDE) in order to retrieve
 and resolve static inventory and map data. The required tables are:
 
 ```
+invCategories
 invGroups
 invTypes
 mapConstellations
