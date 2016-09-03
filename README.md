@@ -100,7 +100,7 @@ a killmail's solar system, but its precise moon location.
 
 ### Update citadel-database with recently killed citadels
 
-Much like for towers, a similar system exists to take indicate dead citadels,
+Much like for towers, a similar system exists to indicate dead citadels,
 though some of the inherent limitations in how citadels can be attributed and
 identified, this will mark all citadels of a given type in a given system as
 needing rescan if *and* citadel of that type dies in a scanned system. Once
