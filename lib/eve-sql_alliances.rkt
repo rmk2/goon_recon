@@ -16,14 +16,17 @@
 (define (sql-create-alliances)
   (if (table-exists? sqlc "customAlliances")
       #t
-      (query-exec sqlc "CREATE TABLE customAlliances ( allianceID INT NOT NULL, allianceName VARCHAR(255) NOT NULL, allianceTicker VARCHAR(5) NOT NULL, PRIMARY KEY (allianceID) )")))
+      (query-exec sqlc "CREATE TABLE customAlliances ( allianceID INT NOT NULL, allianceTicker VARCHAR(5) NOT NULL, allianceName VARCHAR(255) NOT NULL, PRIMARY KEY ( allianceID ), UNIQUE KEY ( allianceTicker ) )")))
 
 (define (sql-replace-alliances lst)
   (for-each (lambda (x)
-	      (query sqlc "REPLACE INTO customAlliances VALUES (?, ?, ?)"
+	      (query sqlc "INSERT INTO customAlliances VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE allianceID=?,allianceTicker=?,allianceName=?"
 		     (hash-ref x 'allianceID)
+		     (hash-ref x 'shortName)
 		     (hash-ref x 'name)
-		     (hash-ref x 'shortName)))
+		     (hash-ref x 'allianceID)
+		     (hash-ref x 'shortName)
+		     (hash-ref x 'name)))
 	    lst))
 
 (define (sql-query-alliances)
