@@ -53,6 +53,9 @@
 ;; dscan
 (struct dscan (name type distance) #:prefab #:extra-constructor-name parse-dscan)
 
+;; sql-character-maybe-ids & sql-character-update-ids (local scan)
+(struct sql-character (id name corporationid corporation allianceid alliance datetime) #:prefab)
+
 ;; type-association-list
 (struct typeAssociation (typeid typename groupid groupname category) #:prefab)
 
