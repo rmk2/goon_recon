@@ -14,7 +14,9 @@
 
 (define (exec-citadel-database-delete req)
   (let* ([bind-raw (request-bindings/raw req)]
-  	 [bind-filter (remove (bindings-assq #"region" bind-raw) bind-raw)]
+  	 [bind-filter (append-map (lambda (name) (let ([name-bind (bindings-assq name bind-raw)])
+						   (if (false? name-bind) null (remove name-bind bind-raw))))
+				  (list #"region" #"constellation" #"system" #"alliance" #"corporation"))]
 	 [referer (headers-assq* #"referer" (request-headers/raw req))])
     (begin
       (sql-citadel-delete-scan
