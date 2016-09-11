@@ -9,6 +9,8 @@
 
 (define sql-columns "regionName,constellationName,solarSystemName,structureType,allianceTicker,allianceName,datetime")
 
+(define update-interval (make-parameter 600))
+
 (define (exec-timers req)
   (define response-generator
     (response/output
@@ -25,7 +27,7 @@
 	  (output:create-region-filter (sql-get-scanned-regions "customTimerboard"))
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Timer Board")
-	       (output:create-html-hint "Note: Sovereignty data is updated every 10 minutes")
+	       (output:create-html-hint (format "Note: Sovereignty data is updated every ~a minutes" (/ (update-interval) 60)))
 	       (output:create-html-hint (print-filters filter-region
 						       filter-constellation
 						       filter-system
@@ -39,7 +41,7 @@
 		      [(not (null? user-filter))
 		       (sql-get-by-filter user-filter #:table "customTimerboardView" #:columns sql-columns)]
 		      [else (map vector->list (sql-build-query sql-columns : "customTimerboardView"))]))
-	       (output:create-html-hint :updated))))
+	       (output:create-html-hint :updated (update-interval)))))
 	port))))
 
   ;; Parse user input (URL parameters)

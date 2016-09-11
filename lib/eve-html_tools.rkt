@@ -89,7 +89,10 @@
 (define-syntax create-html-hint
   (syntax-rules (:tablesorter :updated)
     ((_ :tablesorter) (create-html-hint "Hint: hold down SHIFT to select multiple columns for sorting"))
-    ((_ :updated) (create-html-hint (string-append "Last updated: " (date->string (current-date) "~4"))))
+    ((_ :updated) (create-html-hint (format "Last updated: ~a" (date->string (current-date) "~4"))))
+    ((_ :updated interval) (create-html-hint
+			    (format "Last updated: ~a"
+				    (date->string (seconds->date (* (quotient (current-seconds) interval) interval)) "~4"))))
     ((_ str) (p 'style: "padding-left:.2em" str))))
 
 (define-syntax create-html-legend
