@@ -78,6 +78,7 @@
   (list
    (style/inline 'type: "text/css" "body { margin: 0; }")
    (style/inline 'type: "text/css" "#nav { width: 100%; display: flex; flex-direction: row; flex-wrap: wrap; border-bottom: 1px solid indianred; }")
+   (style/inline 'type: "text/css" "@media (max-width: 680px) { #nav { flex-flow: column nowrap; } }")
    (style/inline 'type: "text/css" "#content { margin: 0.5em; clear: left; }")
    (style/inline 'type: "text/css" ".active { background: lightgray; }")
    (style/inline 'type: "text/css" ".nav-title { font-weight: bold; padding: 0.75em; color: indianred; margin-right: 4em; }")
@@ -118,10 +119,15 @@
 	     (input 'type: "submit"))))
 
 (define (create-html-navigation #:title [nav-title "GoonSwarm Recon"]
-				#:links [nav-list '(("Report" . "report")
+				#:links [nav-list '(("Dashboard" . "dscan")
+						    ("Report" . "report")
 						    ("Tasks" . "tasks")
-						    ("Timerboard" . "timers"))]
-				#:active [active-url null])
+						    ("Timerboard" . "timers")
+						    ("Citadel Database" . "citadel-database")
+						    ("Goo Database" . "goo-database")
+						    ("Moon Database" . "moon-database"))]
+				#:active [active-url null]
+				#:audience [nav-audience null])
   (div 'id: "nav"
        (div 'class: "nav-title" nav-title)
        (map (lambda (x) (make-element
@@ -129,7 +135,10 @@
 			 (if (equal? active-url (cdr x)) (list (cons 'class "active nav-element"))
 			     (list (cons 'class "nav-element")))
 			 (a 'href: (cdr x) (car x))))
-	    nav-list)))
+	    (cond [(equal? nav-audience "recon-l") nav-list]
+		  [(equal? nav-audience "recon") (drop-right nav-list 3)]
+		  [(and (null? nav-audience) (not (= (length nav-list) 7))) nav-list]
+		  [else (take nav-list 1)]))))
 
 (define (create-html-dscan-rows main info structures starbases #:local-scan [local-scan? #f])
   (define (colorise-div #:picker n #:class [class "dscan-element"] body)
