@@ -135,9 +135,9 @@
 			 (if (equal? active-url (cdr x)) (list (cons 'class "active nav-element"))
 			     (list (cons 'class "nav-element")))
 			 (a 'href: (cdr x) (car x))))
-	    (cond [(equal? nav-audience "recon-l") nav-list]
+	    (cond [(not (= (length nav-list) 7)) nav-list]
+		  [(equal? nav-audience "recon-l") nav-list]
 		  [(equal? nav-audience "recon") (drop-right nav-list 3)]
-		  [(and (null? nav-audience) (not (= (length nav-list) 7))) nav-list]
 		  [else (take nav-list 1)]))))
 
 (define (create-html-dscan-rows main info structures starbases #:local-scan [local-scan? #f])
