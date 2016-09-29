@@ -8,28 +8,30 @@
 
 (provide (prefix-out auth: (all-defined-out)))
 
-(define (create-token #:audiences audiences
+(define (create-token #:secret [secret (getenv "JWT_SECRET")]
+		      #:audiences audiences
 		      #:issuer issuer
 		      #:subject subject
 		      #:username [name ""])
   (encode/sign "HS256"
-	       (getenv "JWT_SECRET")
+	       secret
 	       #:iss issuer
 	       #:sub subject
 	       #:aud audiences
-	       #:exp (+ (current-seconds) 120)
+	       #:exp (+ (current-seconds) 600)
 	       #:iat (current-seconds)
 	       #:nbf (current-seconds)
 	       #:other (hasheq 'username name)))
 
 (define (verify-token token
 		      #:audiences audiences
-		      #:issuer issuer)
-  (verify-jwt (decode-jwt token)
-	      "HS256"
-	      (getenv "JWT_SECRET")
-	      #:iss issuer
-	      #:aud audiences))
+		      #:issuer issuer
+		      #:secret [secret (getenv "JWT_SECRET")])
+  (decode/verify token
+		 "HS256"
+		 secret
+		 #:iss issuer
+		 #:aud audiences))
 
 (define (extract-data token)
   (cond
@@ -45,6 +47,9 @@
 
 (define (extract-authorization-header lst)
   (let ([header-auth (req:headers-assq* #"authorization" lst)])
-    (if header-auth
-	(bytes->string/utf-8 (subbytes (req:header-value header-auth) 4))
-	null)))
+    (cond [(req:header? header-auth)
+	   (bytes->string/utf-8 (subbytes (req:header-value header-auth) 4))]
+	  [(list? header-auth) 
+	   (let ([header-filter (filter (lambda (x) (bytes=? #"JWT" (req:header-value (subbytes x 0 3)))) header-auth)])
+	     (bytes->string/utf-8 (subbytes (req:header-value header-filter) 4)))]
+	  [else null])))
