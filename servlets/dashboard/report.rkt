@@ -11,7 +11,7 @@
        (output-xml (doctype 'html) port)
        (output-xml
 	(html
-	 (output:create-html-head #:title "Dashboard" #:tablesorter #f #:navigation #t)
+	 (output:create-html-head #:title "Recon Structure Reporting" #:tablesorter #f #:navigation #t)
 	 (body
 	  (output:create-html-navigation #:title "GoonSwarm Recon"
 					 #:active "report"
@@ -19,7 +19,7 @@
 						   ("Tasks" . "tasks")
 						   ("Timerboard" . "timers")))
 	  (div 'id: "content"
-	       (h1 "Dashboard")
+	       (h1 "Recon Structure Reporting")
 	       (form 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
 		     (fieldset
 		      (legend "D-Scan reporting")
