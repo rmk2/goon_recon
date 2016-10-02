@@ -119,7 +119,7 @@
 	     (input 'type: "submit"))))
 
 (define (create-html-navigation #:title [nav-title "GoonSwarm Recon"]
-				#:links [nav-list '(("Dashboard" . "dscan")
+				#:links [nav-list '(("Dashboard" . "/dscan")
 						    ("Report" . "report")
 						    ("Tasks" . "tasks")
 						    ("Timerboard" . "timers")
@@ -138,6 +138,7 @@
 	    (cond [(not (= (length nav-list) 7)) nav-list]
 		  [(equal? nav-audience "recon-l") nav-list]
 		  [(equal? nav-audience "recon") (drop-right nav-list 3)]
+		  [(or (false? nav-audience) (null? nav-audience)) nav-list]
 		  [else (take nav-list 1)]))))
 
 (define (create-html-dscan-rows main info structures starbases #:local-scan [local-scan? #f])
