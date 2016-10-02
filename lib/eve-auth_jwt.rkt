@@ -8,9 +8,13 @@
 
 (provide (prefix-out auth: (all-defined-out)))
 
-(define (create-token #:secret [secret (getenv "JWT_SECRET")]
-		      #:audiences audiences
-		      #:issuer issuer
+(define jwt-secret (make-parameter (getenv "JWT_SECRET")))
+(define jwt-audiences (make-parameter (getenv "JWT_AUDIENCES")))
+(define jwt-issuer (make-parameter (getenv "JWT_ISSUER")))
+
+(define (create-token #:secret [secret (jwt-secret)]
+		      #:audiences [audiences (jwt-audiences)]
+		      #:issuer [issuer (jwt-issuer)]
 		      #:subject subject
 		      #:username [name ""])
   (encode/sign "HS256"
@@ -24,9 +28,9 @@
 	       #:other (hasheq 'username name)))
 
 (define (verify-token token
-		      #:audiences audiences
-		      #:issuer issuer
-		      #:secret [secret (getenv "JWT_SECRET")])
+		      #:secret [secret (jwt-secret)]
+		      #:audiences [audiences (jwt-audiences)]
+		      #:issuer [issuer (jwt-issuer)])
   (decode/verify token
 		 "HS256"
 		 secret
@@ -53,3 +57,18 @@
 	   (let ([header-filter (filter (lambda (x) (bytes=? #"JWT" (req:header-value (subbytes x 0 3)))) header-auth)])
 	     (bytes->string/utf-8 (subbytes (req:header-value header-filter) 4)))]
 	  [else null])))
+
+(define-syntax try-authorization-header
+  (syntax-rules (:subject :username)
+    ((_ req) (let* ([auth-header (extract-authorization-header (req:request-headers/raw req))]
+		    [auth-try (if (null? auth-header)
+				  #f
+				  (extract-data
+				   (verify-token auth-header)))])
+	       auth-try))
+    ((_ :subject req) (let ([auth-subject (try-authorization-header req)])
+			(cond [(not (false? auth-subject)) (recon-jwt-subject auth-subject)]
+			      [else null])))
+    ((_ :username req) (let ([auth-username (try-authorization-header req)])
+			 (cond [(not (false? auth-username)) (recon-jwt-subject auth-username)]
+			       [else null])))))
