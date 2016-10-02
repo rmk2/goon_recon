@@ -138,6 +138,8 @@
 			   (a 'href: (cdr x) (car x))))
 	      (cond [(equal? nav-audience "recon-l") nav-default]
 		    [(equal? nav-audience "recon") (drop-right nav-default 3)]
+		    [(equal? nav-audience "corporation") (take nav-default 2)]
+		    [(equal? nav-audience "alliance") (take nav-default 2)]
 		    [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
 		    [else (take nav-default 1)])))))
 
