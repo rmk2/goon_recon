@@ -70,5 +70,5 @@
 			(cond [(not (false? auth-subject)) (recon-jwt-subject auth-subject)]
 			      [else null])))
     ((_ :username req) (let ([auth-username (try-authorization-header req)])
-			 (cond [(not (false? auth-username)) (recon-jwt-subject auth-username)]
+			 (cond [(not (false? auth-username)) (recon-jwt-username auth-username)]
 			       [else null])))))
