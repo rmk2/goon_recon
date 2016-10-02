@@ -49,3 +49,16 @@
    (lambda (out)
      (gunzip-through-ports (open-input-file (build-path prefix (dscan-id->filename id)))
 			   out))))
+
+;; Wrapper to read/write local scans as parsed structs to disk
+
+(define-syntax (dscan-local->string stx)
+  (syntax-case stx (:id :write :read :read-id)
+    [(_ param) #'(with-output-to-string (lambda () (write param)))]
+    [(_ :id param) #'(dscan-data->id (dscan-local->string param))]
+    [(_ :write param) #'(dscan-gzip-write (dscan-local->string param) "./")]
+    [(_ :write param prefix) #'(dscan-gzip-write (dscan-local->string param) prefix)]
+    [(_ :read param) #'(read (open-input-bytes (dscan-gunzip-read (dscan-data->id (dscan-local->string param)) "./")))]
+    [(_ :read param prefix) #'(read (open-input-bytes (dscan-gunzip-read (dscan-data->id (dscan-local->string param)) prefix)))]
+    [(_ :read-id id) #'(read (open-input-bytes (dscan-gunzip-read id)))]
+    [(_ :read-id id prefix) #'(read (open-input-bytes (dscan-gunzip-read id prefix)))]))

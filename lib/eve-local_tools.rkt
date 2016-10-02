@@ -91,11 +91,7 @@
 	 [known (filter sql-character? query)]
 	 [outdated (filter hash? query)]
 	 [unknown (filter string? query)]
-	 [lookup (if (empty? unknown)
-		     null
-		     (flatten
-		      (for/list ([i (split-list unknown (round (/ (length unknown) 2)))])
-			(touch (future (lambda () (poll-charid-helper i)))))))])
+	 [lookup (if (empty? unknown) null (poll-charid-helper unknown))])
     (list known (append outdated lookup))))
 
 ;; Count duplicate corporations/alliances

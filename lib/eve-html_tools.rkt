@@ -169,7 +169,20 @@
 	     (if (empty? main) (list null null)
 		 (list (car main) (cdr main))))
 	(if local-scan?
-	    null
+	    (div 'class: "dscan vertical"
+		 (map (lambda (heading column)
+			(div 'class: "dscan-column"
+			     (h3 heading)
+			     (map (lambda (detail)
+				    (colorise-div #:picker (cadr detail) #:class "dscan-element"
+						  (list
+						   (div 'class: "dscan-count" (cdr detail))
+						   (div 'class: "dscan-type" (car detail)))))
+				  column)))
+		      (list "Local Count" "Characters" "Statistics")
+		      info))
+		      ;; (car info)
+		      ;; (cdr info)))
 	    (div 'class: "dscan vertical"
 		 (map (lambda (heading column)
 			(div 'class: "dscan-column"
