@@ -20,6 +20,7 @@
 	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "/dscan" #:links '(("Dashboard" . "/dscan")))
 	  (div 'id: "content"
 	       (h1 "Dashboard")
+	       (output:create-html-hint "Note: Local scans with lots of (non-prefetched) characters will take a long while.")
 	       (form 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
 		     (fieldset
 		      (legend "D-Scan reporting")
