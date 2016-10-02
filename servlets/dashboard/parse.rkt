@@ -5,6 +5,8 @@
 (require "common.rkt")
 (require "dscan.rkt")
 
+(require racket/future)
+
 (provide (all-defined-out))
 
 ;; Read dscan, write it to disk, redirect to id, which sends execution on to
@@ -24,18 +26,22 @@
 	 (begin
 	   (when persist-dscan? (dscan-gzip-write dscan))
 	   (send/back (redirect-to (string-append "/dscan/" (dscan-data->id dscan)))))]
+	[(and persist-dscan? (> (length (string-split dscan "\r\n")) 1))
+	 (exec-write-local #:dscan dscan)]
 	[else (exec-dscan #:dscan "No D-Scan found!" #:location null)]))
 
 ;; Read dscan from disk, send it on to get parsed
 
 (define (exec-parse-archive req id)
   (if (file-exists? (build-path (dscan-id->filename id)))
-      (exec-parse #:dscan (bytes->string/locale (dscan-gunzip-read id)))
+      (if (sql-character? (car (dscan-local->string :read-id id)))
+	  (exec-prepare-local #:dscan (dscan-local->string :read-id id))
+	  (exec-prepare-dscan #:dscan (bytes->string/locale (dscan-gunzip-read id))))
       (exec-dscan #:dscan "No D-Scan found!" #:location null)))
 
 ;; Parse dscan, send it on to display its output
 
-(define (exec-parse #:dscan dscan)
+(define (exec-prepare-dscan #:dscan dscan)
 
   (define data-full
     (dscan-list->hash
@@ -70,3 +76,55 @@
   (define location (guess->location (dscan-guess-location data-normalised)))
 
   (exec-dscan #:dscan dscan-data #:location location))
+
+;; Parse local scan, write it to disk, redirect to dscan/<id>
+
+(define (exec-write-local #:dscan dscan)
+
+  (chunk-size 120)
+  (define time-diff (make-parameter (* 6 3600)))
+
+  (define (poll-affiliation-helper lst)
+    (exec-limit-api-rate #:function (lambda (a) (hash-poll-affiliation (map (lambda (x) (hash-ref x 'characterID)) a)))
+			 #:input lst
+			 #:delay 1
+			 #:digest map-character-hash->struct
+			 #:limit 1500))
+
+  (define local-result
+    (future
+     (lambda ()
+       (let ([input (map-hash-parse-unknown (string-split dscan "\r\n"))])
+	 (append (car input)
+		 (if (empty? (cadr input))
+		     null
+		     (poll-affiliation-helper (cadr input))))))))
+
+  (sql-character-update-ids (touch local-result)) ;; Update SQL character data
+
+  (dscan-local->string :write (touch local-result)) ;; Write local scan to disk
+  
+  (send/back (redirect-to (string-append "/dscan/" (dscan-local->string :id (touch local-result))))))
+
+;; Parse local, send it on to display its output
+
+(define (exec-prepare-local #:dscan dscan)
+
+  (define dscan-data
+    (output:create-html-dscan-rows
+     #:local-scan #t
+     (cons
+      (count-affiliations (map sql-character-corporation dscan))
+      (count-affiliations (map sql-character-alliance dscan)))
+     (list (list
+	    (list "Total" (length (map sql-character-name dscan))))
+	   (list
+	    (list "...in PC alliances" (length (filter-not string-empty? (map sql-character-alliance dscan))))
+	    (list "...in NPC alliances" (length (filter string-empty? (map sql-character-alliance dscan)))))
+	   (list
+	    (list "Alliances" (length (remove-duplicates (filter-not string-empty? (map sql-character-alliance dscan)))))
+	    (list "Corporations" (length (remove-duplicates (map sql-character-corporation dscan))))))
+     null
+     null))
+
+  (exec-dscan #:dscan dscan-data #:location null))
