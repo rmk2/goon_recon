@@ -34,7 +34,7 @@
 
 (define (exec-parse-archive req id)
   (if (file-exists? (build-path (dscan-id->filename id)))
-      (if (sql-character? (car (dscan-local->string :read-id id)))
+      (if (list? (dscan-local->string :read-id id))
 	  (exec-prepare-local #:dscan (dscan-local->string :read-id id))
 	  (exec-prepare-dscan #:dscan (bytes->string/locale (dscan-gunzip-read id))))
       (exec-dscan #:dscan "No D-Scan found!" #:location null)))
