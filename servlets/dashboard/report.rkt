@@ -13,7 +13,11 @@
 	(html
 	 (output:create-html-head #:title "Dashboard" #:tablesorter #f #:navigation #t)
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "report")
+	  (output:create-html-navigation #:title "GoonSwarm Recon"
+					 #:active "report"
+					 #:links '(("Report" . "report")
+						   ("Tasks" . "tasks")
+						   ("Timerboard" . "timers")))
 	  (div 'id: "content"
 	       (h1 "Dashboard")
 	       (form 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f

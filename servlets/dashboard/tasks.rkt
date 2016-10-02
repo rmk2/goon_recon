@@ -28,7 +28,11 @@
 		(literal (style/inline 'type: "text/css" "td { white-space: normal; }"))
 		(literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "tasks")
+	  (output:create-html-navigation #:title "GoonSwarm Recon"
+					 #:active "tasks"
+					 #:links '(("Report" . "report")
+						   ("Tasks" . "tasks")
+						   ("Timerboard" . "timers")))
 	  (output:create-region-filter (sql-get-scanned-regions "moonScanTasks"))
 	  (div 'id: "content"
 	       (h1 "Recon Moon Scanning Tasks")

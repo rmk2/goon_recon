@@ -23,7 +23,11 @@
 				   (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
 				   (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "timers")
+	  (output:create-html-navigation #:title "GoonSwarm Recon"
+					 #:active "timers"
+					 #:links '(("Report" . "report")
+						   ("Tasks" . "tasks")
+						   ("Timerboard" . "timers")))
 	  (output:create-region-filter (sql-get-scanned-regions "customTimerboard"))
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Timer Board")
