@@ -119,27 +119,27 @@
 	     (input 'type: "submit"))))
 
 (define (create-html-navigation #:title [nav-title "GoonSwarm Recon"]
-				#:links [nav-list '(("Dashboard" . "/dscan")
-						    ("Report" . "report")
-						    ("Tasks" . "tasks")
-						    ("Timerboard" . "timers")
-						    ("Citadel Database" . "citadel-database")
-						    ("Goo Database" . "goo-database")
-						    ("Moon Database" . "moon-database"))]
+				#:links [nav-list null]
 				#:active [active-url null]
 				#:audience [nav-audience null])
-  (div 'id: "nav"
-       (div 'class: "nav-title" nav-title)
-       (map (lambda (x) (make-element
-			 'div
-			 (if (equal? active-url (cdr x)) (list (cons 'class "active nav-element"))
-			     (list (cons 'class "nav-element")))
-			 (a 'href: (cdr x) (car x))))
-	    (cond [(not (= (length nav-list) 7)) nav-list]
-		  [(equal? nav-audience "recon-l") nav-list]
-		  [(equal? nav-audience "recon") (drop-right nav-list 3)]
-		  [(or (false? nav-audience) (null? nav-audience)) nav-list]
-		  [else (take nav-list 1)]))))
+  (let ([nav-default '(("Dashboard" . "/dscan")
+		       ("Report" . "report")
+		       ("Tasks" . "tasks")
+		       ("Timerboard" . "timers")
+		       ("Citadel Database" . "citadel-database")
+		       ("Goo Database" . "goo-database")
+		       ("Moon Database" . "moon-database"))])
+    (div 'id: "nav"
+	 (div 'class: "nav-title" nav-title)
+	 (map (lambda (x) (make-element
+			   'div
+			   (if (equal? active-url (cdr x)) (list (cons 'class "active nav-element"))
+			       (list (cons 'class "nav-element")))
+			   (a 'href: (cdr x) (car x))))
+	      (cond [(equal? nav-audience "recon-l") nav-default]
+		    [(equal? nav-audience "recon") (drop-right nav-default 3)]
+		    [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
+		    [else (take nav-default 1)])))))
 
 (define (create-html-dscan-rows main info structures starbases #:local-scan [local-scan? #f])
   (define (colorise-div #:picker n #:class [class "dscan-element"] body)
