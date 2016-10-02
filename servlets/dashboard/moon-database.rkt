@@ -37,6 +37,7 @@
 	  (output:create-html-navigation
 	   #:title "GoonSwarm Recon L"
 	   #:active "moon-database"
+	   #:audience (auth:try-authorization-header :subject req)
 	   #:links '(("Citadel Database" . "citadel-database")
 		     ("Goo Database" . "goo-database")
 		     ("Moon Database" . "moon-database")))

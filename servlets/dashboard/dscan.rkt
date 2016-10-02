@@ -17,7 +17,10 @@
 	(html
 	 (output:create-html-head #:title "Dashboard" #:tablesorter #f #:navigation #t)
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon" #:active "/dscan" #:links '(("Dashboard" . "/dscan")))
+	  (output:create-html-navigation #:title "GoonSwarm Recon"
+					 #:active "/dscan"
+					 #:audience (auth:try-authorization-header :subject req)
+					 #:links '(("Dashboard" . "/dscan")))
 	  (div 'id: "content"
 	       (h1 "Dashboard")
 	       (output:create-html-hint "Note: Local scans with lots of (non-prefetched) characters will take a long while.")

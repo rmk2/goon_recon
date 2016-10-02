@@ -15,6 +15,7 @@
 	 (body
 	  (output:create-html-navigation #:title "GoonSwarm Recon"
 					 #:active "report"
+					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Report" . "report")
 						   ("Tasks" . "tasks")
 						   ("Timerboard" . "timers")))
