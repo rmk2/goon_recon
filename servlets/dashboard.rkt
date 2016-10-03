@@ -44,7 +44,10 @@
    [("dscan" (string-arg)) exec-parse-archive]
    [("timers") exec-timers]))
 
+;; Revive SQL connection if it disconnected, then dispatch
+
 (define (main req)
+  (sql-revive-connection)
   (main-dispatch req))
 
 ;; Parameters
