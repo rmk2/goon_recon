@@ -28,20 +28,20 @@
 	   (send/back (redirect-to (string-append "/dscan/" (dscan-data->id dscan)))))]
 	[(and persist-dscan? (> (length (string-split dscan "\r\n")) 1))
 	 (exec-write-local #:dscan dscan)]
-	[else (exec-dscan #:dscan "No D-Scan found!" #:location null)]))
+	[else (exec-dscan #:dscan "No D-Scan found!" #:location null #:request req)]))
 
 ;; Read dscan from disk, send it on to get parsed
 
 (define (exec-parse-archive req id)
   (if (file-exists? (build-path (dscan-id->filename id)))
       (if (list? (dscan-local->string :read-id id))
-	  (exec-prepare-local #:dscan (dscan-local->string :read-id id))
-	  (exec-prepare-dscan #:dscan (bytes->string/locale (dscan-gunzip-read id))))
-      (exec-dscan #:dscan "No D-Scan found!" #:location null)))
+	  (exec-prepare-local #:dscan (dscan-local->string :read-id id) #:request req)
+	  (exec-prepare-dscan #:dscan (bytes->string/locale (dscan-gunzip-read id)) #:request req))
+      (exec-dscan #:dscan "No D-Scan found!" #:location null #:request req)))
 
 ;; Parse dscan, send it on to display its output
 
-(define (exec-prepare-dscan #:dscan dscan)
+(define (exec-prepare-dscan #:dscan dscan #:request [req null])
 
   (define data-full
     (dscan-list->hash
@@ -75,7 +75,7 @@
 
   (define location (guess->location (dscan-guess-location data-normalised)))
 
-  (exec-dscan #:dscan dscan-data #:location location))
+  (exec-dscan #:dscan dscan-data #:location location #:request req))
 
 ;; Parse local scan, write it to disk, redirect to dscan/<id>
 
@@ -108,7 +108,7 @@
 
 ;; Parse local, send it on to display its output
 
-(define (exec-prepare-local #:dscan dscan)
+(define (exec-prepare-local #:dscan dscan #:request [req null])
 
   (define dscan-data
     (output:create-html-dscan-rows
@@ -127,4 +127,4 @@
      null
      null))
 
-  (exec-dscan #:dscan dscan-data #:location null))
+  (exec-dscan #:dscan dscan-data #:location null #:request req))
