@@ -70,3 +70,7 @@
 
 (sql-canary-create-corporations)
 (sql-canary-create-alliances)
+
+;; Create local scan character tables
+
+(sql-character-create-raw)
