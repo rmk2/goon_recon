@@ -46,11 +46,11 @@
    [else #f]))
 
 (define (create-authorization-header token)
-  (req:header #"Authorization"
+  (req:header #"X-Auth"
 	      (string->bytes/utf-8 (string-append "JWT " token))))
 
 (define (extract-authorization-header lst)
-  (let ([header-auth (req:headers-assq* #"authorization" lst)])
+  (let ([header-auth (req:headers-assq* #"x-auth" lst)])
     (cond [(req:header? header-auth)
 	   (bytes->string/utf-8 (subbytes (req:header-value header-auth) 4))]
 	  [(list? header-auth) 
