@@ -17,16 +17,11 @@
   	 [bind-filter (let ([raw-filter (append-map (lambda (name) (let ([name-bind (bindings-assq name bind-raw)])
 								     (if (false? name-bind) null (remove name-bind bind-raw))))
 						    (list #"region" #"constellation" #"system" #"alliance" #"corporation"))])
-			(if (empty? raw-filter) bind-raw raw-filter))]
-	 [referer (headers-assq* #"referer" (request-headers/raw req))])
+			(if (empty? raw-filter) bind-raw raw-filter))])
     (begin
       (sql-citadel-delete-scan
        (map (lambda (x) (bytes->string/utf-8 (binding:form-value x))) bind-filter))
-      (cond [(and (not (false? referer))
-		  (regexp-match? "(?:http|https)://recon.tendollarbond.com/.*"
-				 (bytes->string/utf-8 (header-value referer))))
-	     (redirect-to (string-replace (url->string (request-uri req)) "/recon" ""))]
-	    [else (redirect-to (url->string (request-uri req)))]))))
+      (redirect-to (url->string (request-uri req))))))
 
 (define (exec-citadel-database req)
   (define response-generator
