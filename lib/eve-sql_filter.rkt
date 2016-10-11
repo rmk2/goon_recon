@@ -33,9 +33,9 @@
     [(_ FROM table WHERE query OR alt IS param) #'(sql-build-query table -> query + alt = param)]
     [(_ table WHERE query IS NOT param) #'(sql-build-query table -> query != param)]
     [(_ FROM table WHERE query IS NOT param) #'(sql-build-query table -> query != param)]
-    [(_ columns FROM table WHERE query IS param) #'(sql-build-query table -> query = param)]
-    [(_ columns FROM table WHERE query OR alt IS param) #'(sql-build-query table -> query + alt = param)]
-    [(_ columns FROM table WHERE query IS NOT param) #'(sql-build-query table -> query != param)]
+    [(_ columns FROM table WHERE query IS param) #'(sql-build-query columns : table -> query = param)]
+    [(_ columns FROM table WHERE query OR alt IS param) #'(sql-build-query columns : table -> query + alt = param)]
+    [(_ columns FROM table WHERE query IS NOT param) #'(sql-build-query columns : table -> query != param)]
     ;; Main functions
     [(_ table)
      #'(query-rows sqlc (format "SELECT * FROM ~a" table))]
