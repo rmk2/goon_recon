@@ -41,17 +41,29 @@
    [("dscan") exec-dscan-report]
    [("dscan") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
    [("dscan" "intel") (send/back (redirect-to "/dscan" permanently))]
-   [("dscan" (string-arg)) exec-parse-archive]
-   [("timers") exec-timers]))
+   [("dscan" (string-arg)) exec-parse-archive]))
+
+;; Embed valid JSON X-Auth header in every request for local testing
+
+(define (auth-add-header req)
+  (let ([group (if (string-empty? (cl-group)) "recon-l" (cl-group))])
+    (cond [(not (false? (cl-auth)))
+	   (struct-copy request req
+			[headers/raw (append
+				      (list (auth:create-authorization-header (auth:create-token #:subject group)))
+				      (request-headers/raw req))])]
+	  [else req])))
 
 ;; Revive SQL connection if it disconnected, then dispatch
 
 (define (main req)
   (sql-revive-connection)
-  (main-dispatch req))
+  (main-dispatch (auth-add-header req)))
 
 ;; Parameters
 
+(define cl-auth (make-parameter #f))
+(define cl-group (make-parameter ""))
 (define cl-port (make-parameter 8000))
 (define cl-prefix (make-parameter null))
 (define cl-persist (make-parameter #f))
@@ -61,6 +73,10 @@
 (define parse-args
   (command-line
    #:once-each
+   [("-a" "--auth" "--local-auth") "Create valid JSON header for ALL requests, default: false"
+    (cl-auth #t)]
+   [("-g" "--group" "--local-group") group "Specify JSON user group, default: none"
+    (if (string? group) (cl-group group) (cl-group))]
    [("-d" "--persist-dscan" "--save-dscan") "Save raw dscans to disk, default: false"
     (cl-persist #t)]
    [("-P" "--port") port "Use specified port, default: 8000"
