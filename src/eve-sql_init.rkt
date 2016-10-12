@@ -32,6 +32,13 @@
 (sql-goo-create-view)
 (sql-goo-create-descriptive-view)
 
+;; Create tower kill tables
+
+(sql-tower-create-raw)
+(sql-tower-create-view)
+
+(sql-tower-create-triggers)
+
 ;; Create moon scan tables
 
 (sql-moon-create-raw)
@@ -44,13 +51,6 @@
 ;; Create type association view
 
 (sql-type-create-associations)
-
-;; Create tower kill tables
-
-(sql-tower-create-raw)
-(sql-tower-create-view)
-
-(sql-tower-create-triggers)
 
 ;; Create citadel scan/kill tables
 
