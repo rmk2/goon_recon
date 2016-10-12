@@ -8,6 +8,10 @@
 (sql-create-alliances)
 (sql-replace-alliances (api-fetch-alliances))
 
+;; Create corporation table
+
+(sql-corporation-create-raw)
+
 ;; Create corporation affiliation table
 
 (sql-corporation-create-affiliations)
