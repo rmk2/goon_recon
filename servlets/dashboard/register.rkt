@@ -62,16 +62,16 @@
      (extract-post-data req #"pass")))
 
   (define user-exists?
-    (cond [(false? (auth:sql-auth-get-user (bytes->string/utf-8 user))) #f]
+    (cond [(false? (auth:sql-auth-get-user user)) #f]
 	  [else #t]))
 
   (when (false? user-exists?)
     (begin
       (auth:sql-auth-insert-user (struct-copy scrypt-hash
-					      (auth:scrypt-input->hash pass #:length 32)
-					      [user (bytes->string/utf-8 user)]))
+					      (auth:scrypt-input->hash (string->bytes/utf-8 pass) #:length 32)
+					      [user user]))
       (auth:sql-auth-insert-mail (struct-copy scrypt-hash
-					      (auth:scrypt-input->hash email #:length 32)
-					      [user (bytes->string/utf-8 user)]))))
+					      (auth:scrypt-input->hash (string->bytes/utf-8 email) #:length 32)
+					      [user user]))))
 
   (send/back response-generator))
