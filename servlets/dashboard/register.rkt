@@ -49,7 +49,7 @@
 	  (h1 "User Registration")
 	  (cond [(false? user-exists?)
 		 (list
-		  (p (format "User '~a' (~a) created!" user email)))]
+		  (p (format "User '~a' (~a) created!" (string-downcase user) email)))]
 		[else
 		 (list
 		  (p 'style: "color:red;" (format "[Error] User '~a' already exists!" user)))])))
@@ -69,9 +69,9 @@
     (begin
       (auth:sql-auth-insert-user (struct-copy scrypt-hash
 					      (auth:scrypt-input->hash (string->bytes/utf-8 pass) #:length 32)
-					      [user user]))
+					      [user (string-downcase user)]))
       (auth:sql-auth-insert-mail (struct-copy scrypt-hash
 					      (auth:scrypt-input->hash (string->bytes/utf-8 email) #:length 32)
-					      [user user]))))
+					      [user (string-downcase user)]))))
 
   (send/back response-generator))
