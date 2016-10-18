@@ -61,3 +61,9 @@
 
 ;; JWT token for (recon) usernames
 (struct recon-jwt (issuer audiences subject username))
+
+;; Basic auth user, input+salt
+(struct scrypt-hash (user input salt) #:prefab)
+
+;; Basic auth user, email+salt, password+salt
+(struct scrypt-full (user email email-salt password password-salt) #:prefab)
