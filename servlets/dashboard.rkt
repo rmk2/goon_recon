@@ -4,11 +4,13 @@
 
 (require web-server/servlet
          web-server/servlet-env
-	 web-server/private/mime-types)
+	 web-server/private/mime-types
+	 web-server/http/basic-auth)
 
 (require net/uri-codec)
 
 (require eve)
+(require "../lib/eve-auth_basic.rkt")
 
 ;; Include servlet component
 
@@ -22,7 +24,32 @@
 	 "dashboard/report.rkt"
 	 "dashboard/result.rkt"
 	 "dashboard/tasks.rkt"
-	 "dashboard/timers.rkt")
+	 "dashboard/timers.rkt"
+	 "dashboard/register.rkt")
+
+;; Auth dispatch
+
+(define-values (auth-dispatch auth-url)
+  (dispatch-rules
+   [("register") exec-register]
+   [("register") #:method "post" exec-register-post]
+   [else exec-auth]))
+
+(define (exec-auth req)
+  (cond [(and (pair? (request->basic-credentials req))
+	      (let* ([user (car (request->basic-credentials req))]
+		     [pass (cdr (request->basic-credentials req))]
+		     [data (auth:sql-auth-get-user (bytes->string/utf-8 user))])
+		(and (scrypt-hash? data)
+		     (auth:scrypt-check-hash data pass #:length 32))))
+	 (main-dispatch (auth-add-header req))]
+	[else
+	 (response
+	  401 #"Unauthorized" (current-seconds) TEXT/HTML-MIME-TYPE
+	  (list
+	   (make-basic-auth-header
+	    (format "Basic Auth Test: ~a" (gensym))))
+	  void)]))
 
 ;; URL dispatch
 
@@ -47,22 +74,24 @@
 
 (define (auth-add-header req)
   (let ([group (if (string-empty? (cl-group)) "recon-l" (cl-group))])
-    (cond [(not (false? (cl-auth)))
+    (cond [(not (false? (cl-json)))
 	   (struct-copy request req
 			[headers/raw (append
 				      (list (auth:create-authorization-header (auth:create-token #:subject group)))
 				      (request-headers/raw req))])]
 	  [else req])))
 
-;; Revive SQL connection if it disconnected, then dispatch
+;; Intermediate steps, then dispatch
 
 (define (main req)
-  (sql-revive-connection)
-  (main-dispatch (auth-add-header req)))
+  (if (cl-auth)
+      (auth-dispatch req)
+      (main-dispatch (auth-add-header req))))
 
 ;; Parameters
 
 (define cl-auth (make-parameter #f))
+(define cl-json (make-parameter #f))
 (define cl-group (make-parameter ""))
 (define cl-port (make-parameter 8000))
 (define cl-prefix (make-parameter null))
@@ -73,9 +102,11 @@
 (define parse-args
   (command-line
    #:once-each
-   [("-a" "--auth" "--local-auth") "Create valid JSON header for ALL requests, default: false"
+   [("-a" "--auth" "--basic-auth") "Use basic auth, default: false"
     (cl-auth #t)]
-   [("-g" "--group" "--local-group") group "Specify JSON user group, default: none"
+   [("-j" "--json" "--json-auth" "--json-test") "Create valid JSON header for ALL requests, default: false"
+    (cl-json #t)]
+   [("-g" "--group" "--json-group") group "Specify JSON user group, default: none"
     (if (string? group) (cl-group group) (cl-group))]
    [("-d" "--persist-dscan" "--save-dscan") "Save raw dscans to disk, default: false"
     (cl-persist #t)]
