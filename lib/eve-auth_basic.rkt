@@ -17,15 +17,15 @@
 
 ;; Create tables
 
-(define (sql-auth-create-raw)
+(define (sql-auth-create-user-raw)
   (if (table-exists? sqlc "authBasic")
       #t
-      (query-exec sqlc "CREATE TABLE authBasic ( user VARCHAR(255) NOT NULL, password VARCHAR(64) NOT NULL, salt VARCHAR(64) NOT NULL, date DATETIME NOT NULL, PRIMARY KEY (user) )")))
+      (query-exec sqlc "CREATE TABLE authBasic ( user VARCHAR(255) NOT NULL, password VARCHAR(64) NOT NULL, salt VARCHAR(64) NOT NULL, datetime DATETIME NOT NULL, PRIMARY KEY (user) )")))
 
 (define (sql-auth-create-mail-raw)
   (if (table-exists? sqlc "authBasicMail")
       #t
-      (query-exec sqlc "CREATE TABLE authBasicMail ( user VARCHAR(255) NOT NULL, email VARCHAR(64) NOT NULL, salt VARCHAR(64) NOT NULL, date DATETIME NOT NULL, PRIMARY KEY (user) )")))
+      (query-exec sqlc "CREATE TABLE authBasicMail ( user VARCHAR(255) NOT NULL, email VARCHAR(64) NOT NULL, salt VARCHAR(64) NOT NULL, datetime DATETIME NOT NULL, PRIMARY KEY (user) )")))
 
 ;; Insert data into tables
 
