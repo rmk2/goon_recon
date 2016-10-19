@@ -46,25 +46,34 @@
 				   (div 'class: "group-entry"
 					(div 'class: "group-name" (string-titlecase user))
 					(div 'class: "group-select"
-					     (select 'name: user
-						     (optgroup 'label: "Unaffiliated"
-							       (map (lambda (x)
-								      (make-group-options (car x) (cdr x) audience))
-								    '(("public" . "Public"))))
-						     (optgroup 'label: "Affiliated"
-							       (map (lambda (x)
-								      (make-group-options (car x) (cdr x) audience))
-								    '(("corporation" . "Corporation")
-								      ("alliance" . "Alliance"))))
-						     (optgroup 'label: "Recon"
-							       (map (lambda (x)
-								      (make-group-options (car x) (cdr x) audience))
-								    '(("recon-l" . "Recon Leadership")
-								      ("recon" . "Recon Member"))))
-						     (optgroup 'label: "Command"
-							       (map (lambda (x)
-								      (make-group-options (car x) (cdr x) audience))
-								    '(("admin" . "Administrator")))))))))
+					     (html:make-element
+					      'select
+					      (list (cons 'name user)
+						    (if (equal? audience "owner")
+						    	(cons 'disabled #t)
+						    	(cons 'disabled #f)))
+					      (list
+					       (if (equal? audience "owner")
+						   (make-group-options "owner" "Owner" audience)
+						   null)
+					       (optgroup 'label: "Unaffiliated"
+							 (map (lambda (x)
+								(make-group-options (car x) (cdr x) audience))
+							      '(("public" . "Public"))))
+					       (optgroup 'label: "Affiliated"
+							 (map (lambda (x)
+								(make-group-options (car x) (cdr x) audience))
+							      '(("alliance" . "Alliance")
+								("corporation" . "Corporation"))))
+					       (optgroup 'label: "Recon"
+							 (map (lambda (x)
+								(make-group-options (car x) (cdr x) audience))
+							      '(("recon" . "Recon Member")
+								("recon-l" . "Recon Leadership"))))
+					       (optgroup 'label: "Command"
+							 (map (lambda (x)
+								(make-group-options (car x) (cdr x) audience))
+							      '(("admin" . "Administrator"))))))))))
 		     	       (auth:sql-auth-get-groups)))
 		     (hr)
 		     (input 'type: "submit" 'id: "submit" 'value: "Save group memberships")))))

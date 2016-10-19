@@ -128,9 +128,19 @@
 		    "WHERE authBasicGroups.user=OLD.user; "
 		    "END;")))
 
+(define (sql-auth-trigger-protect) ;; Protect users in the "owner" group from being demoted
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER protect_authBasicGroups BEFORE UPDATE ON authBasicGroups "
+		    "FOR EACH ROW "
+		    "IF OLD.audience = 'owner' THEN "
+		    "SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot update locked record';"
+		    "END IF;")))
+
 (define (sql-auth-create-triggers)
   (begin
     (query-exec sqlc "DROP TRIGGER IF EXISTS insert_authBasicGroups")
     (sql-auth-trigger-insert)
     (query-exec sqlc "DROP TRIGGER IF EXISTS delete_authBasicGroups")
-    (sql-auth-trigger-delete)))
+    (sql-auth-trigger-delete)
+    (query-exec sqlc "DROP TRIGGER IF EXISTS protect_authBasicGroups")
+    (sql-auth-trigger-protect)))
