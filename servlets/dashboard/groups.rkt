@@ -30,9 +30,8 @@
 	(html
 	 (output:create-html-head
 	  #:title "Auth Group Management"
-	  #:tablesorter #t
+	  #:tablesorter #f
 	  #:navigation #f
-	  #:sort-column 0
 	  (list (style/inline 'type: "text/css" ".group-name { font-weight: bold; margin: 0 0 .1em; max-width: 9.5em; overflow: hidden; }")
 		(style/inline 'type: "text/css" ".group-list { display: flex; flex-flow: row wrap; margin-bottom: 0.5em; }")
 		(style/inline 'type: "text/css" ".group-entry { display: flex; flex-flow: column nowrap; margin: 0 1em .5em 0; padding: .25em; background-color: whitesmoke; border: 1px solid lightgrey; }")))
