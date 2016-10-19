@@ -85,3 +85,52 @@
 (define (scrypt-check-hash hash input #:length [length 32] #:N [N 16] #:r [r 8] #:p [p 1])
   (equal? (scrypt-hash-input hash)
 	  (bytes->hex-string (scrypt input (hex-string->bytes (scrypt-hash-salt hash)) N r p length))))
+
+;; Group handling
+
+(define (sql-auth-create-groups-raw)
+  (if (table-exists? sqlc "authBasicGroups")
+      #t
+      (query-exec sqlc "CREATE TABLE authBasicGroups ( user VARCHAR(255) NOT NULL, audience VARCHAR(255) NOT NULL DEFAULT 'public', datetime DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', PRIMARY KEY (user) )")))
+
+(define (sql-auth-update-groups lst)
+  (for-each (lambda (x)
+	      (query sqlc "UPDATE authBasicGroups SET audience=?,datetime=? WHERE user=?"
+		     (second x)
+		     (srfi-date->sql-timestamp (current-date))
+		     (first x)))
+	    lst))
+
+(define (sql-auth-get-groups)
+  (query-rows sqlc "SELECT user,audience FROM authBasicGroups ORDER BY user"))
+
+(define (sql-auth-get-user-group user)
+  (query-maybe-value sqlc "SELECT audience FROM authBasicGroups WHERE user = ?" user))
+
+;; Define SQL triggers for authBasicGroups
+
+(define (sql-auth-trigger-insert)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER insert_authBasicGroups AFTER INSERT ON authBasic "
+		    "FOR EACH ROW BEGIN "
+		    "INSERT INTO authBasicGroups "
+		    "SELECT "
+		    "NEW.user,'public',NEW.datetime "
+		    "FROM authBasic "
+		    "WHERE authBasic.user=NEW.user; "
+		    "END;")))
+
+(define (sql-auth-trigger-delete)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER delete_authBasicGroups AFTER DELETE ON authBasic "
+		    "FOR EACH ROW BEGIN "
+		    "DELETE authBasicGroups FROM authBasicGroups "
+		    "WHERE authBasicGroups.user=OLD.user; "
+		    "END;")))
+
+(define (sql-auth-create-triggers)
+  (begin
+    (query-exec sqlc "DROP TRIGGER IF EXISTS insert_authBasicGroups")
+    (sql-auth-trigger-insert)
+    (query-exec sqlc "DROP TRIGGER IF EXISTS delete_authBasicGroups")
+    (sql-auth-trigger-delete)))
