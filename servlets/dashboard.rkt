@@ -25,6 +25,7 @@
 	 "dashboard/result.rkt"
 	 "dashboard/tasks.rkt"
 	 "dashboard/timers.rkt"
+	 "dashboard/groups.rkt"
 	 "dashboard/register.rkt")
 
 ;; Auth dispatch
@@ -68,7 +69,9 @@
    [("dscan") exec-dscan-report]
    [("dscan") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
    [("dscan" "intel") (send/back (redirect-to "/dscan" permanently))]
-   [("dscan" (string-arg)) exec-parse-archive]))
+   [("dscan" (string-arg)) exec-parse-archive]
+   [("management" "groups") exec-groups]
+   [("management" "groups") #:method "post" exec-groups-modify]))
 
 ;; Embed valid JSON X-Auth header in every request for local testing
 
