@@ -78,3 +78,16 @@
 ;; Create local scan character tables
 
 (sql-character-create-raw)
+
+;; Create local auth tables
+
+(sql-auth-create-user-raw)
+(sql-auth-create-mail-raw)
+
+(sql-auth-create-groups-raw)
+(sql-auth-create-groups-view)
+
+(sql-auth-create-group-ids)
+(sql-auth-insert-group-ids)
+
+(sql-auth-create-triggers)
