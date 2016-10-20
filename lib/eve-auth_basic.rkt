@@ -131,7 +131,7 @@
   (syntax-rules (:id :name)
     ((_ user) (query-maybe-value sqlc "SELECT groupID FROM authBasicGroups WHERE user = ?" user))
     ((_ :id user) (sql-auth-get-user-group user))
-    ((_ :name user) (query-maybe-value sqlc "SELECT g.groupName FROM authBasicGroups AS u LEFT JOIN authGroups AS g ON u.groupID=g.groupID WHERE user = ?" user))))
+    ((_ :name user) (query-maybe-value sqlc "SELECT groupName FROM authBasicGroupsView WHERE user = ?" user))))
 
 ;; Define SQL triggers for authBasicGroups
 
