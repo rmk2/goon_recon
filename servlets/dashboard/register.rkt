@@ -22,7 +22,7 @@
 	  (list (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
 		(style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column nowrap; margin-bottom: 1em; }")
 		(style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
-		(style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 2em;  }")))
+		(style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 1em; }")))
 	 (body
 	  (div 'id: "content"
 	       (h1 "User Registration")
@@ -55,17 +55,16 @@
 	  #:navigation #f
 	  (list
 	   (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
-	   (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 2em;  }")))
+	   (style/inline 'type: "text/css" ".info { border: 1px solid black; background-color: whitesmoke; padding: 1.5em; }")))
 	 (body
 	  (div 'id: "content"
 	       (h1 "User Registration")
-	       (cond [(false? user-exists?)
-		      (list
-		       (p (format "User '~a' (~a) created!" (string-downcase user) email)))]
-		     [else
-		      (list
-		       (p 'style: "color:red;" (format "[Error] User '~a' already exists!" user))
-		       (p (a 'href: "login" "Continue to login")))]))))
+	       (div 'class: "info"
+		    (cond [(false? user-exists?)
+			   (p (format "User '~a' (~a) created!" (string-downcase user) email))]
+			  [else
+			   (p 'style: "color:crimson;" (format "[Error] User '~a' already exists!" user))]))
+	       (p (a 'href: "login" "Continue to login")))))
 	out))))
 
   (define-values (user email pass)
