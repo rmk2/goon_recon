@@ -87,7 +87,7 @@
 			[headers/raw (append
 				      (list (auth:create-authorization-header
 					     (auth:create-token
-					      #:subject (auth:sql-auth-get-user-group
+					      #:subject (auth:sql-auth-get-user-group :name
 							 (bytes->string/utf-8
 							  (car (request->basic-credentials req)))))))
 				      (request-headers/raw req))])]

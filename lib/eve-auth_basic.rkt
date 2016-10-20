@@ -91,21 +91,47 @@
 (define (sql-auth-create-groups-raw)
   (if (table-exists? sqlc "authBasicGroups")
       #t
-      (query-exec sqlc "CREATE TABLE authBasicGroups ( user VARCHAR(255) NOT NULL, audience VARCHAR(255) NOT NULL DEFAULT 'public', datetime DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', PRIMARY KEY (user) )")))
+      (query-exec sqlc "CREATE TABLE authBasicGroups ( user VARCHAR(255) NOT NULL, groupID INT NOT NULL DEFAULT 1, datetime DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', PRIMARY KEY (user) )")))
+
+(define (sql-auth-create-groups-view)
+  (if (table-exists? sqlc "authBasicGroupsView")
+      #t
+      (query-exec sqlc "CREATE VIEW authBasicGroupsView AS SELECT u.user,u.groupID,g.groupName,u.datetime FROM authBasicGroups AS u LEFT JOIN authGroups AS g ON u.groupID=g.groupID")))
+
+(define (sql-auth-create-group-ids)
+  (if (table-exists? sqlc "authGroups")
+      #t
+      (query-exec sqlc "CREATE TABLE authGroups ( groupID INT NOT NULL, groupName VARCHAR(255) NOT NULL, PRIMARY KEY (groupID) )")))
+
+(define (sql-auth-insert-group-ids)
+  (for-each (lambda (x)
+	      (query sqlc "INSERT INTO authGroups VALUES (?, ?)"
+		     (car x)
+		     (cdr x)))
+	    '((1 . "public")
+	      (4 . "alliance")
+	      (8 . "corporation")
+	      (32 . "recon")
+	      (64 . "recon-l")
+	      (256 . "admin")
+	      (1024 . "owner"))))
 
 (define (sql-auth-update-groups lst)
   (for-each (lambda (x)
-	      (query sqlc "UPDATE authBasicGroups SET audience=?,datetime=? WHERE user=?"
+	      (query sqlc "UPDATE authBasicGroups SET groupID=?,datetime=? WHERE user=?"
 		     (second x)
 		     (srfi-date->sql-timestamp (current-date))
 		     (first x)))
 	    lst))
 
 (define (sql-auth-get-groups)
-  (query-rows sqlc "SELECT user,audience FROM authBasicGroups ORDER BY user"))
+  (query-rows sqlc "SELECT user,groupID FROM authBasicGroups ORDER BY user"))
 
-(define (sql-auth-get-user-group user)
-  (query-maybe-value sqlc "SELECT audience FROM authBasicGroups WHERE user = ?" user))
+(define-syntax sql-auth-get-user-group
+  (syntax-rules (:id :name)
+    ((_ user) (query-maybe-value sqlc "SELECT groupID FROM authBasicGroups WHERE user = ?" user))
+    ((_ :id user) (sql-auth-get-user-group user))
+    ((_ :name user) (query-maybe-value sqlc "SELECT g.groupName FROM authBasicGroups AS u LEFT JOIN authGroups AS g ON u.groupID=g.groupID WHERE user = ?" user))))
 
 ;; Define SQL triggers for authBasicGroups
 
@@ -115,7 +141,7 @@
 		    "FOR EACH ROW BEGIN "
 		    "INSERT INTO authBasicGroups "
 		    "SELECT "
-		    "NEW.user,'public',NEW.datetime "
+		    "NEW.user,1,NEW.datetime "
 		    "FROM authBasic "
 		    "WHERE authBasic.user=NEW.user; "
 		    "END;")))
@@ -132,7 +158,7 @@
   (query-exec sqlc (string-append
 		    "CREATE TRIGGER protect_authBasicGroups BEFORE UPDATE ON authBasicGroups "
 		    "FOR EACH ROW "
-		    "IF OLD.audience = 'owner' THEN "
+		    "IF OLD.groupID >= 1024 THEN "
 		    "SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot update locked record';"
 		    "END IF;")))
 

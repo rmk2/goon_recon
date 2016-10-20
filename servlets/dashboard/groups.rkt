@@ -16,11 +16,12 @@
   (let ([orig-data (map vector->list (auth:sql-auth-get-groups))]
 	[update-data (map (lambda (x)
 			    (list (bytes->string/utf-8 (binding-id x))
-				  (bytes->string/utf-8 (binding:form-value x))))
+				  (string->number (bytes->string/utf-8 (binding:form-value x)))))
 			  (request-bindings/raw req))])
     (begin
       (auth:sql-auth-update-groups (set-subtract update-data orig-data))
       (redirect-to (url->string (request-uri req))))))
+
 
 (define (exec-groups req)
   (define response-generator
@@ -49,31 +50,31 @@
 					     (html:make-element
 					      'select
 					      (list (cons 'name user)
-						    (if (equal? audience "owner")
+						    (if (>= audience 1024)
 						    	(cons 'disabled #t)
 						    	(cons 'disabled #f)))
 					      (list
-					       (if (equal? audience "owner")
-						   (make-group-options "owner" "Owner" audience)
+					       (if (>= audience 1024)
+						   (make-group-options 1024 "Owner" audience)
 						   null)
 					       (optgroup 'label: "Unaffiliated"
 							 (map (lambda (x)
 								(make-group-options (car x) (cdr x) audience))
-							      '(("public" . "Public"))))
+							      '((1 . "Public"))))
 					       (optgroup 'label: "Affiliated"
 							 (map (lambda (x)
 								(make-group-options (car x) (cdr x) audience))
-							      '(("alliance" . "Alliance")
-								("corporation" . "Corporation"))))
+							      '((4 . "Alliance")
+								(8 . "Corporation"))))
 					       (optgroup 'label: "Recon"
 							 (map (lambda (x)
 								(make-group-options (car x) (cdr x) audience))
-							      '(("recon" . "Recon Member")
-								("recon-l" . "Recon Leadership"))))
+							      '((32 . "Recon Member")
+								(64 . "Recon Leadership"))))
 					       (optgroup 'label: "Command"
 							 (map (lambda (x)
 								(make-group-options (car x) (cdr x) audience))
-							      '(("admin" . "Administrator"))))))))))
+							      '((256 . "Administrator"))))))))))
 		     	       (auth:sql-auth-get-groups)))
 		     (hr)
 		     (input 'type: "submit" 'id: "submit" 'value: "Save group memberships")))))
