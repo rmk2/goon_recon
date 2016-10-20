@@ -27,7 +27,6 @@
 		(literal (style/inline 'type: "text/css" "span { margin: 0 .25em; }"))))
 	 (body
 	  (output:create-html-navigation
-	   #:title "GoonSwarm Recon L"
 	   #:active "goo-database"
 	   #:audience (auth:try-authorization-header :subject req)
 	   #:links '(("Citadel Database" . "citadel-database")

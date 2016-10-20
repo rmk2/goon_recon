@@ -47,7 +47,6 @@
 		(literal (style/inline 'type: "text/css" "tr.empty.rescan { background-color: gray; color: orange; }"))))
 	 (body
 	  (output:create-html-navigation
-	   #:title "GoonSwarm Recon L"
 	   #:active "citadel-database"
 	   #:audience (auth:try-authorization-header :subject req)
 	   #:links '(("Citadel Database" . "citadel-database")
