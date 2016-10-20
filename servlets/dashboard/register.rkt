@@ -10,29 +10,32 @@
 ;; User registration (main)
 
 (define (exec-register req)
-  (response/output
-   (lambda (out)
-     (output-xml
-      (html
-       (output:create-html-head
-	#:title "User Registration"
-	#:tablesorter #f
-	#:navigation #f
-	(list (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
-	      (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column nowrap; margin-bottom: 1em; }")))
-       (body (h1 "User Registration")
-	     (form 'method: "POST"
-		   (div 'class: "form-entry"
-			(div 'class: "form-description" "Username")
-			(div 'class: "form-field" (input 'type: "text" 'name: "user" 'required: #t)))
-		   (div 'class: "form-entry"
-			(div 'class: "form-description" "Email")
-			(div 'class: "form-field" (input 'type: "text" 'name: "email" 'required: #t)))
-		   (div 'class: "form-entry"
-			(div 'class: "form-description" "Password")
-			(div 'class: "form-field" (input 'type: "password" 'name: "pass" 'required: #t)))
-		   (input 'type: "submit" 'value: "Register"))))
-      out))))
+  (define response-generator
+    (response/output
+     (lambda (out)
+       (output-xml
+	(html
+	 (output:create-html-head
+	  #:title "User Registration"
+	  #:tablesorter #f
+	  #:navigation #f
+	  (list (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
+		(style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column nowrap; margin-bottom: 1em; }")))
+	 (body (h1 "User Registration")
+	       (form 'method: "POST"
+		     (div 'class: "form-entry"
+			  (div 'class: "form-description" "Username")
+			  (div 'class: "form-field" (input 'type: "text" 'name: "user" 'required: #t)))
+		     (div 'class: "form-entry"
+			  (div 'class: "form-description" "Email")
+			  (div 'class: "form-field" (input 'type: "text" 'name: "email" 'required: #t)))
+		     (div 'class: "form-entry"
+			  (div 'class: "form-description" "Password")
+			  (div 'class: "form-field" (input 'type: "password" 'name: "pass" 'required: #t)))
+		     (input 'type: "submit" 'value: "Register"))))
+	out))))
+
+  (send/back response-generator))
 
 ;; User registration (POST data)
 
