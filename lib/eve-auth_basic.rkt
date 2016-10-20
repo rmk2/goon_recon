@@ -104,17 +104,19 @@
       (query-exec sqlc "CREATE TABLE authGroups ( groupID INT NOT NULL, groupName VARCHAR(255) NOT NULL, PRIMARY KEY (groupID) )")))
 
 (define (sql-auth-insert-group-ids)
-  (for-each (lambda (x)
-	      (query sqlc "INSERT INTO authGroups VALUES (?, ?)"
-		     (car x)
-		     (cdr x)))
-	    '((1 . "public")
-	      (4 . "alliance")
-	      (8 . "corporation")
-	      (32 . "recon")
-	      (64 . "recon-l")
-	      (256 . "admin")
-	      (1024 . "owner"))))
+  (if (not (empty? (query-rows sqlc "SELECT groupID,groupName FROM authGroups")))
+      #t
+      (for-each (lambda (x)
+		  (query sqlc "INSERT INTO authGroups VALUES (?, ?)"
+			 (car x)
+			 (cdr x)))
+		'((1 . "public")
+		  (4 . "alliance")
+		  (8 . "corporation")
+		  (32 . "recon")
+		  (64 . "recon-l")
+		  (256 . "admin")
+		  (1024 . "owner")))))
 
 (define-syntax sql-auth-get-group-association
   (syntax-rules (:id :name)
