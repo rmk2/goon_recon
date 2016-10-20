@@ -20,8 +20,12 @@
 	  #:tablesorter #f
 	  #:navigation #f
 	  (list (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
-		(style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column nowrap; margin-bottom: 1em; }")))
-	 (body (h1 "User Registration")
+		(style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column nowrap; margin-bottom: 1em; }")
+		(style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
+		(style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 2em;  }")))
+	 (body
+	  (div 'id: "content"
+	       (h1 "User Registration")
 	       (form 'method: "POST"
 		     (div 'class: "form-entry"
 			  (div 'class: "form-description" "Username")
@@ -32,7 +36,7 @@
 		     (div 'class: "form-entry"
 			  (div 'class: "form-description" "Password")
 			  (div 'class: "form-field" (input 'type: "password" 'name: "pass" 'required: #t)))
-		     (input 'type: "submit" 'value: "Register"))))
+		     (input 'type: "submit" 'value: "Register")))))
 	out))))
 
   (send/back response-generator))
@@ -45,17 +49,23 @@
      (lambda (out)
        (output-xml
 	(html
-	 (output:create-html-head #:title "User Registration"
-				  #:tablesorter #f
-				  #:navigation #f)
+	 (output:create-html-head
+	  #:title "User Registration"
+	  #:tablesorter #f
+	  #:navigation #f
+	  (list
+	   (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
+	   (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 2em;  }")))
 	 (body
-	  (h1 "User Registration")
-	  (cond [(false? user-exists?)
-		 (list
-		  (p (format "User '~a' (~a) created!" (string-downcase user) email)))]
-		[else
-		 (list
-		  (p 'style: "color:red;" (format "[Error] User '~a' already exists!" user)))])))
+	  (div 'id: "content"
+	       (h1 "User Registration")
+	       (cond [(false? user-exists?)
+		      (list
+		       (p (format "User '~a' (~a) created!" (string-downcase user) email)))]
+		     [else
+		      (list
+		       (p 'style: "color:red;" (format "[Error] User '~a' already exists!" user))
+		       (p (a 'href: "login" "Continue to login")))]))))
 	out))))
 
   (define-values (user email pass)
