@@ -3,7 +3,6 @@
 (require racket/set)
 
 (require eve)
-(require "../../lib/eve-auth_basic.rkt")
 
 (require (prefix-in html: (only-in scribble/html/xml
 				   make-element)))
