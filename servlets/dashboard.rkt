@@ -83,14 +83,14 @@
 				      (list (auth:create-authorization-header (auth:create-token #:subject group)))
 				      (request-headers/raw req))])]
 	  [(pair? (request->basic-credentials req))
-	   (struct-copy request req
-			[headers/raw (append
-				      (list (auth:create-authorization-header
-					     (auth:create-token
-					      #:subject (auth:sql-auth-get-user-group :name
-							 (bytes->string/utf-8
-							  (car (request->basic-credentials req)))))))
-				      (request-headers/raw req))])]
+	   (let ([user (bytes->string/utf-8 (car (request->basic-credentials req)))])
+	     (struct-copy request req
+			  [headers/raw (append
+					(list (auth:create-authorization-header
+					       (auth:create-token
+						#:subject (auth:sql-auth-get-user-group :name user)
+						#:username user)))
+				      (request-headers/raw req))]))]
 	  [else req])))
 
 ;; Intermediate steps, then dispatch
