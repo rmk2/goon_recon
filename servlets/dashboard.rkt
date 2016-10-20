@@ -117,9 +117,7 @@
 (define (auth-add-header req)
   (let ([group (if (string-empty? (cl-test)) "recon-l" (cl-test))]
 	[auth-cookie (findf (lambda (c) (string=? "access_token" (client-cookie-name c))) (request-cookies req))])
-    (cond [(not (null? (auth:extract-authorization-header (request-headers/raw req))))
-	   req]
-	  [(not (false? auth-cookie))
+    (cond [(not (false? auth-cookie))
 	   (struct-copy request req
 			[headers/raw (append
 				      (list (auth:create-authorization-header
