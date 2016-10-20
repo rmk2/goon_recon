@@ -18,7 +18,7 @@
 	 (output:create-html-head #:title "Dashboard" #:tablesorter #f #:navigation #t)
 	 (body
 	  (output:create-html-navigation #:title "GoonSwarm Recon"
-					 #:active "/dscan"
+					 #:active "dscan"
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Dashboard" . "/dscan")))
 	  (div 'id: "content"

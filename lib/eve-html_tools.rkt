@@ -123,17 +123,18 @@
 				#:active [active-url null]
 				#:audience [nav-audience null])
   (let ([nav-default '(("Dashboard" . "/dscan")
-		       ("Report" . "report")
-		       ("Tasks" . "tasks")
-		       ("Timerboard" . "timers")
-		       ("Citadel Database" . "citadel-database")
-		       ("Goo Database" . "goo-database")
-		       ("Moon Database" . "moon-database"))])
+		       ("Report" . "/report")
+		       ("Tasks" . "/tasks")
+		       ("Timerboard" . "/timers")
+		       ("Citadel Database" . "/citadel-database")
+		       ("Goo Database" . "/goo-database")
+		       ("Moon Database" . "/moon-database"))])
     (div 'id: "nav"
 	 (div 'class: "nav-title" nav-title)
 	 (map (lambda (x) (make-element
 			   'div
-			   (if (equal? active-url (cdr x)) (list (cons 'class "active nav-element"))
+			   (if (equal? active-url (string-replace (cdr x)  "/" ""))
+			       (list (cons 'class "active nav-element"))
 			       (list (cons 'class "nav-element")))
 			   (a 'href: (cdr x) (car x))))
 	      (match nav-audience
