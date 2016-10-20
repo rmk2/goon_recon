@@ -81,13 +81,13 @@
 
 ;; Create local auth tables
 
-(sql-auth-create-user-raw)
-(sql-auth-create-mail-raw)
+(auth:sql-auth-create-user-raw)
+(auth:sql-auth-create-mail-raw)
 
-(sql-auth-create-groups-raw)
-(sql-auth-create-groups-view)
+(auth:sql-auth-create-groups-raw)
+(auth:sql-auth-create-groups-view)
 
-(sql-auth-create-group-ids)
-(sql-auth-insert-group-ids)
+(auth:sql-auth-create-group-ids)
+(auth:sql-auth-insert-group-ids)
 
-(sql-auth-create-triggers)
+(auth:sql-auth-create-triggers)
