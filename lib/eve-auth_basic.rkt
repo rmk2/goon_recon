@@ -116,6 +116,15 @@
 	      (256 . "admin")
 	      (1024 . "owner"))))
 
+(define-syntax sql-auth-get-group-association
+  (syntax-rules (:id :name)
+    ((_ param) (cond [(number? param)
+		      (query-row sqlc "SELECT groupID,groupName FROM authGroups WHERE groupID = ?" param)]
+		     [(string? param)
+		      (query-row sqlc "SELECT groupID,groupName FROM authGroups WHERE groupName = ?" param)]))
+    ((_ :id param) (vector-ref (sql-auth-get-group-association param) 0))
+    ((_ :name param) (vector-ref (sql-auth-get-group-association param) 1))))
+
 (define (sql-auth-update-groups lst)
   (for-each (lambda (x)
 	      (query sqlc "UPDATE authBasicGroups SET groupID=?,datetime=? WHERE user=?"

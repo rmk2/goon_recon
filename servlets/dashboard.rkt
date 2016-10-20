@@ -114,7 +114,9 @@
 ;; Intermediate steps, then dispatch
 
 (define (group-dispatch req)
-  (let ([user-group (auth:sql-auth-get-user-group :id (auth:try-authorization-header :username req))])
+  (let ([user-group (if (string-empty? (auth:try-authorization-header :username req))
+			(auth:sql-auth-get-group-association :id (auth:try-authorization-header :subject req))
+			(auth:sql-auth-get-user-group :id (auth:try-authorization-header :username req)))])
     (cond [(>= user-group 256) (admin-dispatch req)]
 	  [(>= user-group 64) (recon-l-dispatch req)]
 	  [(>= user-group 32) (recon-dispatch req)]
@@ -123,6 +125,7 @@
 
 (define (main req)
   (cond [(cl-auth) (auth-dispatch req)]
+	[(cl-group) (group-dispatch (auth-add-header req))]
 	[else (admin-dispatch (auth-add-header req))]))
 
 ;; Parameters
