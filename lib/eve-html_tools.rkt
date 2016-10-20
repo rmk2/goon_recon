@@ -136,12 +136,19 @@
 			   (if (equal? active-url (cdr x)) (list (cons 'class "active nav-element"))
 			       (list (cons 'class "nav-element")))
 			   (a 'href: (cdr x) (car x))))
-	      (cond [(equal? nav-audience "recon-l") nav-default]
-		    [(equal? nav-audience "recon") (drop-right nav-default 3)]
-		    [(equal? nav-audience "corporation") (take nav-default 2)]
-		    [(equal? nav-audience "alliance") (take nav-default 2)]
-		    [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
-		    [else (take nav-default 1)])))))
+	      (match nav-audience
+		[(? number? nav-audience)
+		 (cond [(>= nav-audience 64) nav-default] ;; recon-l+
+		       [(>= nav-audience 32) (drop-right nav-default 3)] ;; recon+
+		       [(>= nav-audience 4) (take nav-default 2)] ;; alliance+
+		       [else (take nav-default 1)])]
+		[(pregexp #px"recon-l|admin|owner") nav-default]
+		["recon" (drop-right nav-default 3)]
+		[(pregexp #px"alliance|corporation") (take nav-default 2)]
+		[else
+		 (cond
+		  [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
+		  [else (take nav-default 1)])])))))
 
 (define (create-html-dscan-rows main info structures starbases #:local-scan [local-scan? #f])
   (define (colorise-div #:picker n #:class [class "dscan-element"] body)
