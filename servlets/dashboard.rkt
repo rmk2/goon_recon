@@ -26,7 +26,27 @@
 	 "dashboard/tasks.rkt"
 	 "dashboard/timers.rkt"
 	 "dashboard/groups.rkt"
+	 "dashboard/login.rkt"
 	 "dashboard/register.rkt")
+
+;; Login dispatch
+
+(define (login-add-referer req)
+  (struct-copy request req
+	       [headers/raw (append
+			     (list (make-header
+				    #"X-Referer"
+				    (string->bytes/utf-8 (url->string (request-uri req)))))
+			     (request-headers/raw req))]))
+
+(define-values (login-dispatch login-url)
+  (dispatch-rules
+   [("dscan" (string-arg)) exec-parse-archive]
+   [("register") exec-register]
+   [("register") #:method "post" exec-register-post]
+   [("login") exec-login]
+   [((string-arg)) #:method "post" exec-login-post]
+   [else (lambda (req) (exec-login (login-add-referer req)))]))
 
 ;; Auth dispatch
 
@@ -88,15 +108,23 @@
    [("dscan") exec-dscan-report]
    [("dscan") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
    [("dscan" "intel") (send/back (redirect-to "/dscan" permanently))]
-   [("dscan" (string-arg)) exec-parse-archive]))
+   [("dscan" (string-arg)) exec-parse-archive]
+   [else login-dispatch]))
 
 ;; Embed valid JSON X-Auth header in every request for local testing or read
 ;; from basic auth groups
 
 (define (auth-add-header req)
-  (let ([group (if (string-empty? (cl-test)) "recon-l" (cl-test))])
+  (let ([group (if (string-empty? (cl-test)) "recon-l" (cl-test))]
+	[auth-cookie (findf (lambda (c) (string=? "access_token" (client-cookie-name c))) (request-cookies req))])
     (cond [(not (null? (auth:extract-authorization-header (request-headers/raw req))))
 	   req]
+	  [(not (false? auth-cookie))
+	   (struct-copy request req
+			[headers/raw (append
+				      (list (auth:create-authorization-header
+					     (client-cookie-value auth-cookie)))
+				      (request-headers/raw req))])]
 	  [(not (false? (cl-json)))
 	   (struct-copy request req
 			[headers/raw (append
@@ -119,10 +147,10 @@
 
 (define (group-dispatch req)
   (let ([user-group (cond [(null? (auth:extract-authorization-header (request-headers/raw req)))
-			  1]
+			   1]
 			  [(string-empty? (auth:try-authorization-header :username req))
-		    	   (auth:sql-auth-get-group-association :id (auth:try-authorization-header :subject req))]
-		    	  [else
+			   (auth:sql-auth-get-group-association :id (auth:try-authorization-header :subject req))]
+			  [else
 			   (auth:sql-auth-get-user-group :id (auth:try-authorization-header :username req))])])
     (cond [(>= user-group 256) (admin-dispatch req)]
 	  [(>= user-group 64) (recon-l-dispatch req)]
@@ -131,7 +159,10 @@
 	  [else (public-dispatch req)])))
 
 (define (main req)
-  (cond [(cl-auth) (auth-dispatch req)]
+  (cond [(and (cl-login)
+	      (false? (findf (lambda (c) (string=? "access_token" (client-cookie-name c))) (request-cookies req))))
+	 (login-dispatch req)]
+	[(cl-auth) (auth-dispatch req)]
 	[(cl-group) (group-dispatch (auth-add-header req))]
 	[else (admin-dispatch (auth-add-header req))]))
 
@@ -140,6 +171,7 @@
 (define cl-auth (make-parameter #f))
 (define cl-group (make-parameter #f))
 (define cl-json (make-parameter #f))
+(define cl-login (make-parameter #f))
 (define cl-test (make-parameter ""))
 (define cl-port (make-parameter 8000))
 (define cl-prefix (make-parameter null))
@@ -154,6 +186,8 @@
     (cl-auth #t)]
    [("-g" "--group" "--group-auth") "Use basic group auth, default: false"
     (cl-group #t)]
+   [("-l" "--login" "--login-auth") "Use internal auth via login page, default: false"
+    (cl-login #t)]
    [("-j" "--json" "--json-auth" "--json-test") "Create valid JSON header for ALL requests, default: false"
     (cl-json #t)]
    [("-G" "--test-group" "--json-group") group "Specify JSON user group, default: none"
