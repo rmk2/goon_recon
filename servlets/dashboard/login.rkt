@@ -1,7 +1,6 @@
 #lang racket
 
 (require eve)
-(require "../../lib/eve-auth_basic.rkt")
 
 (require "common.rkt")
 

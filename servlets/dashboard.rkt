@@ -10,7 +10,6 @@
 (require net/uri-codec)
 
 (require eve)
-(require "../lib/eve-auth_basic.rkt")
 
 ;; Include servlet component
 

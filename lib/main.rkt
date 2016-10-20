@@ -15,6 +15,7 @@
 		  output-xml))
 
 (require "eve-api_tools.rkt")
+(require "eve-auth_basic.rkt")
 (require "eve-auth_jwt.rkt")
 (require "eve-dscan_filesystem.rkt")
 (require "eve-dscan_tools.rkt")
@@ -50,6 +51,7 @@
 	 output-xml)
 
 (provide (all-from-out "eve-api_tools.rkt"))
+(provide (all-from-out "eve-auth_basic.rkt"))
 (provide (all-from-out "eve-auth_jwt.rkt"))
 (provide (all-from-out "eve-dscan_filesystem.rkt"))
 (provide (all-from-out "eve-dscan_tools.rkt"))
