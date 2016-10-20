@@ -95,10 +95,14 @@
 
 (define (auth-add-header req)
   (let ([group (if (string-empty? (cl-test)) "recon-l" (cl-test))])
-    (cond [(not (false? (cl-json)))
+    (cond [(not (null? (auth:extract-authorization-header (request-headers/raw req))))
+	   req]
+	  [(not (false? (cl-json)))
 	   (struct-copy request req
 			[headers/raw (append
-				      (list (auth:create-authorization-header (auth:create-token #:subject group)))
+				      (list (auth:create-authorization-header
+					     (auth:create-token
+					      #:subject group)))
 				      (request-headers/raw req))])]
 	  [(pair? (request->basic-credentials req))
 	   (let ([user (bytes->string/utf-8 (car (request->basic-credentials req)))])
@@ -114,9 +118,12 @@
 ;; Intermediate steps, then dispatch
 
 (define (group-dispatch req)
-  (let ([user-group (if (string-empty? (auth:try-authorization-header :username req))
-			(auth:sql-auth-get-group-association :id (auth:try-authorization-header :subject req))
-			(auth:sql-auth-get-user-group :id (auth:try-authorization-header :username req)))])
+  (let ([user-group (cond [(null? (auth:extract-authorization-header (request-headers/raw req)))
+			  1]
+			  [(string-empty? (auth:try-authorization-header :username req))
+		    	   (auth:sql-auth-get-group-association :id (auth:try-authorization-header :subject req))]
+		    	  [else
+			   (auth:sql-auth-get-user-group :id (auth:try-authorization-header :username req))])])
     (cond [(>= user-group 256) (admin-dispatch req)]
 	  [(>= user-group 64) (recon-l-dispatch req)]
 	  [(>= user-group 32) (recon-dispatch req)]
