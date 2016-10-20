@@ -44,7 +44,7 @@
 		(and (scrypt-hash? data)
 		     (auth:scrypt-check-hash data pass #:length 32))))
 	 (cond [(cl-group) (group-dispatch (auth-add-header req))]
-	       [else (main-dispatch (auth-add-header req))])]
+	       [else (admin-dispatch (auth-add-header req))])]
 	[else
 	 (response
 	  401 #"Unauthorized" (current-seconds) TEXT/HTML-MIME-TYPE
@@ -54,25 +54,6 @@
 	  void)]))
 
 ;; URL dispatch
-
-(define-values (main-dispatch main-url)
-  (dispatch-rules
-   [("report") exec-report]
-   [("report") #:method "post" (lambda (req) (exec-result req #:persist-dscan (cl-persist)))]
-   [("citadel-database") exec-citadel-database]
-   [("citadel-database") #:method "post" exec-citadel-database-delete]
-   [("goo-database") exec-goo-database]
-   [("moon-database") exec-moon-database]
-   [("tasks") exec-tasks]
-   [("timers") exec-timers]
-   [("input" "corporation" (integer-arg)) exec-input-corporation]
-   [("input" "corporation" (string-arg)) exec-input-corporation]
-   [("dscan") exec-dscan-report]
-   [("dscan") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
-   [("dscan" "intel") (send/back (redirect-to "/dscan" permanently))]
-   [("dscan" (string-arg)) exec-parse-archive]
-   [("management" "groups") exec-groups]
-   [("management" "groups") #:method "post" exec-groups-modify]))
 
 (define-values (admin-dispatch admin-url)
   (dispatch-rules
@@ -142,7 +123,7 @@
 
 (define (main req)
   (cond [(cl-auth) (auth-dispatch req)]
-	[else (main-dispatch (auth-add-header req))]))
+	[else (admin-dispatch (auth-add-header req))]))
 
 ;; Parameters
 
