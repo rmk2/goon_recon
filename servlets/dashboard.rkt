@@ -109,7 +109,10 @@
    [("dscan") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
    [("dscan" "intel") (send/back (redirect-to "/dscan" permanently))]
    [("dscan" (string-arg)) exec-parse-archive]
-   [else login-dispatch]))
+   [("register") exec-register]
+   [("register") #:method "post" exec-register-post]
+   [("login") exec-login]
+   [("login") #:method "post" exec-login-post]))
 
 ;; Embed valid JSON X-Auth header in every request for local testing or read
 ;; from basic auth groups
