@@ -60,7 +60,7 @@
 (struct typeAssociation (typeid typename groupid groupname category) #:prefab)
 
 ;; JWT token for (recon) usernames
-(struct recon-jwt (issuer audiences subject username))
+(struct recon-jwt (issuer audiences expiration subject username))
 
 ;; Basic auth user, input+salt
 (struct scrypt-hash (user input salt) #:prefab)

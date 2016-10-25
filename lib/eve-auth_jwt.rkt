@@ -42,7 +42,7 @@
    [(and (VerifiedJWT? token)
 	 (>= (current-seconds) (date->seconds (not-before token)))
 	 (<= (current-seconds) (date->seconds (expiration-date token))))
-    (recon-jwt (issuer token) (audiences token) (subject token) (claims-ref token 'username))]
+    (recon-jwt (issuer token) (audiences token) (expiration-date token) (subject token) (claims-ref token 'username))]
    [else #f]))
 
 (define (create-authorization-header token)
