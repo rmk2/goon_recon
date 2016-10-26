@@ -86,5 +86,5 @@
   (if (not (false? user-token-result))
       (redirect-to (if (string-empty? referer) "/dscan" referer)
   		   #:headers (list (auth:create-authorization-header user-token-result)
-  				   (cookie->header (make-cookie "access_token" user-token-result))))
+  				   (cookie->header (make-cookie "access_token" user-token-result #:max-age 600))))
       (send/back response-generator)))
