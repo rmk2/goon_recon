@@ -8,6 +8,8 @@
 	 web-server/http/basic-auth)
 
 (require net/uri-codec)
+(require (only-in racket/date
+		  date->seconds))
 
 (require eve)
 
@@ -117,13 +119,14 @@
 ;; from basic auth groups
 
 (define (auth-add-header req)
-  (let ([group (if (string-empty? (cl-test)) "recon-l" (cl-test))]
-	[auth-cookie (findf (lambda (c) (string=? "access_token" (client-cookie-name c))) (request-cookies req))])
-    (cond [(not (false? auth-cookie))
+  (let* ([group (if (string-empty? (cl-test)) "recon-l" (cl-test))]
+	 [auth-cookie (findf (lambda (c) (string=? "access_token" (client-cookie-name c))) (request-cookies req))]
+	 [auth-token (if (client-cookie? auth-cookie) (client-cookie-value auth-cookie) #f)]
+	 [auth-struct (if (string? auth-token) (auth:extract-data (auth:verify-token auth-token)) #f)])
+    (cond [(not (false? auth-struct))
 	   (struct-copy request req
 			[headers/raw (append
-				      (list (auth:create-authorization-header
-					     (client-cookie-value auth-cookie)))
+				      (list (auth:create-authorization-header auth-token))
 				      (request-headers/raw req))])]
 	  [(not (false? (cl-json)))
 	   (struct-copy request req
