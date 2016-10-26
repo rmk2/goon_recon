@@ -118,9 +118,27 @@
 ;; Embed valid JSON X-Auth header in every request for local testing or read
 ;; from basic auth groups
 
+(define (auth-cookie? req)
+  (findf (lambda (c) (string=? "access_token" (client-cookie-name c))) (request-cookies req)))
+
+(define (auth-refresh-token req)
+  (let* ([auth-cookie (auth-cookie? req)]
+	 [auth-token (if (client-cookie? auth-cookie) (client-cookie-value auth-cookie) #f)]
+	 [auth-struct (if (string? auth-token) (auth:extract-data (auth:verify-token auth-token)) #f)])
+    (cond
+     [(and (not (false? auth-struct))
+	   (< (- (date->seconds (recon-jwt-expiration auth-struct)) (current-seconds)) 300))
+      (let ([new-token (auth:create-token #:subject (recon-jwt-subject auth-struct)
+					  #:username (recon-jwt-username auth-struct))])
+	(redirect-to (url->string (request-uri req))
+		     #:headers (list (auth:create-authorization-header new-token)
+				     (cookie->header (make-cookie "access_token" new-token #:max-age 600)))))]
+     [(cl-group) (group-dispatch (auth-add-header req))]
+     [else (admin-dispatch (auth-add-header req))])))
+
 (define (auth-add-header req)
   (let* ([group (if (string-empty? (cl-test)) "recon-l" (cl-test))]
-	 [auth-cookie (findf (lambda (c) (string=? "access_token" (client-cookie-name c))) (request-cookies req))]
+	 [auth-cookie (auth-cookie? req)]
 	 [auth-token (if (client-cookie? auth-cookie) (client-cookie-value auth-cookie) #f)]
 	 [auth-struct (if (string? auth-token) (auth:extract-data (auth:verify-token auth-token)) #f)])
     (cond [(not (false? auth-struct))
@@ -162,9 +180,8 @@
 	  [else (public-dispatch req)])))
 
 (define (main req)
-  (cond [(and (cl-login)
-	      (false? (findf (lambda (c) (string=? "access_token" (client-cookie-name c))) (request-cookies req))))
-	 (login-dispatch req)]
+  (cond [(and (cl-login) (false? (auth-cookie? req))) (login-dispatch req)]
+	[(cl-login) (auth-refresh-token req)]
 	[(cl-auth) (auth-dispatch req)]
 	[(cl-group) (group-dispatch (auth-add-header req))]
 	[else (admin-dispatch (auth-add-header req))]))
