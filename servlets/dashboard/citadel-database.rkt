@@ -71,7 +71,7 @@
 		      (output:entry-add-scanid
 		       #:position 9
 		       (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-			      (sql-get-by-filter user-filter #:table "moonScanView" #:union? #f #:columns sql-columns)]
+			      (sql-get-by-filter user-filter #:table "citadelScanView" #:union? #f #:columns sql-columns)]
 			     [(not (null? user-filter))
 			      (sql-get-by-filter user-filter #:table "citadelScanView" #:columns sql-columns)]
 			     [else (map vector->list (sql-build-query sql-columns : "citadelScanView"))])))
