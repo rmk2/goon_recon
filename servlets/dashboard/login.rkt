@@ -19,6 +19,7 @@
 	  (list (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
 		(style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column nowrap; margin-bottom: 1em; }")
 		(style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
+		(style/inline 'type: "text/css" "#links { display:flex; flex-flow: column nowrap; }")
 		(style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 2em;  }")))
 	 ;; (style/inline 'type: "text/css" "h1 { margin-left: 1rem;  }")))
 	 (body
@@ -33,7 +34,7 @@
 			  (div 'class: "form-field" (input 'type: "password" 'name: "pass" 'required: #t)))
 		     (input 'type: "hidden" 'name: "referer" 'value: referer 'readonly: #t)
 		     (input 'type: "submit" 'value: "Submit"))
-	       (div 'style: "display:flex; flex-flow: column nowrap;"
+	       (div 'id: "links"
 		    (a 'href: "register" "Register new user?")))))
 	out))))
 
