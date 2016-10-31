@@ -87,6 +87,8 @@
 (sql-build-test system? :known-good "solarSystemName" "mapSolarSystems")
 (sql-build-test constellation? :known-good "constellationName" "mapConstellations")
 (sql-build-test region? :known-good "regionName" "mapRegions")
+(sql-build-test structure? :known-good "structureType" "customTimerboard")
+(sql-build-test type? :known-good "typeName" "invTypes")
 (sql-build-test alliance? :direct "allianceName" "allianceTicker" "customAlliances")
 (sql-build-test corporation? :direct "corporationName" "corporationTicker" "customCorporations")
 
@@ -99,6 +101,8 @@
      [(region? str) (sql-build-query columns : table -> "regionName" = str)]
      [(constellation? str) (sql-build-query columns : table -> "constellationName" = str)]
      [(system? str) (sql-build-query columns : table -> "solarSystemName" = str)]
+     [(structure? str) (sql-build-query columns : table -> "structureType" = str)]
+     [(type? str) (sql-build-query columns : table -> "moonType" + "typeName" = str)]
      [(alliance? str) (sql-build-query columns : table -> "allianceName" + "allianceTicker" = str)]
      [(corporation? str) (sql-build-query columns : table -> "corporationName" + "corporationTicker" = str)]
      [else null]))
