@@ -48,17 +48,29 @@
 ;; Print a list of applied filters
 
 (define-syntax print-filters
-  (syntax-rules ()
+  (syntax-rules (:list)
+    ((_ :list descriptions filters)
+     (format "Results filtered for: ~a"
+	     (string-join
+	      (map (lambda (desc filter) (format "~a (~a)" desc (string-join filter "|")))
+		   descriptions
+		   filters)
+	      ", ")))
     ((_ a b c)
-     (format "Results filtered for: Region (~a), Constellation (~a), System (~a)"
-	     (string-join a "|")
-	     (string-join b "|")
-	     (string-join c "|")))
+     (print-filters :list (list "Region" "Constellation" "System")
+		    (list a
+			  b
+			  c)))
     ((_ a b c d)
-     (format "~a , Alliance (~a)"
-	     (print-filters a b c)
-	     (string-join (map (lambda (x) (if (string? x) (parse-alliance :ticker (string-upcase x)) x)) d) "|")))
+     (print-filters :list (list "Region" "Constellation" "System" "Alliance")
+		    (list a
+			  b
+			  c
+			  (map (lambda (x) (if (string? x) (parse-alliance :ticker (string-upcase x)) x)) d))))
     ((_ a b c d e)
-     (format "~a, Corporation (~a)"
-	     (print-filters a b c d)
-	     (string-join (map (lambda (x) (if (string? x) (parse-corporation :ticker (string-upcase x)) x)) e) "|")))))
+     (print-filters :list (list "Region" "Constellation" "System" "Alliance" "Corporation")
+		    (list a
+			  b
+			  c
+			  (map (lambda (x) (if (string? x) (parse-alliance :ticker (string-upcase x)) x)) d)
+			  (map (lambda (x) (if (string? x) (parse-corporation :ticker (string-upcase x)) x)) e))))))
