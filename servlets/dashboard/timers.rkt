@@ -33,10 +33,13 @@
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Timer Board")
 	       (output:create-html-hint (format "Note: Sovereignty data is updated every ~a minutes" (/ (update-interval) 60)))
-	       (output:create-html-hint (print-filters filter-region
-						       filter-constellation
-						       filter-system
-						       filter-alliance))
+	       (output:create-html-hint (print-filters :list '("Region" "Constellation" "System" "Structure" "Alliance")
+						       (list
+							filter-region
+							filter-constellation
+							filter-system
+							filter-structure
+							filter-alliance)))
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table
 		#:id "timers"
@@ -53,6 +56,7 @@
   (sql-bind-user-input "region" #:request req)
   (sql-bind-user-input "constellation" #:request req)
   (sql-bind-user-input "system" #:request req)
+  (sql-bind-user-input "structure" #:request req)
   (sql-bind-user-input "alliance" #:request req)
 
   (define f-mode (get-filter req #"mode"))
@@ -61,6 +65,7 @@
     (append filter-region
 	    filter-constellation
 	    filter-system
+	    filter-structure
 	    filter-alliance))
 
   (send/back response-generator))
