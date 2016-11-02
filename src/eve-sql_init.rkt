@@ -84,10 +84,10 @@
 (auth:sql-auth-create-user-raw)
 (auth:sql-auth-create-mail-raw)
 
-(auth:sql-auth-create-groups-raw)
-(auth:sql-auth-create-groups-view)
-
 (auth:sql-auth-create-group-ids)
 (auth:sql-auth-insert-group-ids)
+
+(auth:sql-auth-create-groups-raw)
+(auth:sql-auth-create-groups-view)
 
 (auth:sql-auth-create-triggers)
