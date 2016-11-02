@@ -202,12 +202,8 @@
 (define parse-args
   (command-line
    #:once-each
-   [("-a" "--auth" "--basic-auth") "Use basic auth, default: false"
-    (cl-auth #t)]
    [("-g" "--group" "--group-auth") "Use basic group auth, default: false"
     (cl-group #t)]
-   [("-l" "--login" "--login-auth") "Use internal auth via login page, default: false"
-    (cl-login #t)]
    [("-j" "--json" "--json-auth" "--json-test") "Create valid JSON header for ALL requests, default: false"
     (cl-json #t)]
    [("-G" "--test-group" "--json-group") group "Specify JSON user group, default: none"
@@ -217,7 +213,12 @@
    [("-P" "--port") port "Use specified port, default: 8000"
     (if (number? (string->number port)) (cl-port (string->number port)) (cl-port))]
    [("-w" "--webroot" "-p" "--prefix") dir "Specify webroot directory, alternative: env EVEROOT=dir, default: current dir"
-    (if (directory-exists? dir) (cl-prefix dir) (raise-user-error "[error] Directory does not exist:" dir))]))
+    (if (directory-exists? dir) (cl-prefix dir) (raise-user-error "[error] Directory does not exist:" dir))]
+   #:once-any
+   [("-a" "--auth" "--basic-auth") "Use basic auth, default: false"
+    (cl-auth #t)]
+   [("-l" "--login" "--login-auth") "Use internal auth via login page, default: false"
+    (cl-login #t)]))
 
 ;; Set webroot (used for storing files etc.)
 
