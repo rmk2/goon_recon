@@ -28,8 +28,7 @@
 		(literal (style/inline 'type: "text/css" "td { white-space: normal; }"))
 		(literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon"
-					 #:active "tasks"
+	  (output:create-html-navigation #:active "tasks"
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Report" . "report")
 						   ("Tasks" . "tasks")

@@ -17,8 +17,7 @@
 	(html
 	 (output:create-html-head #:title "Dashboard" #:tablesorter #f #:navigation #t)
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon"
-					 #:active "dscan"
+	  (output:create-html-navigation #:active "dscan"
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Dashboard" . "/dscan")))
 	  (div 'id: "content"
@@ -60,8 +59,7 @@
 	   (literal (style/inline 'type: "text/css" ".dscan-count { margin-right: 0.25em; padding: 0.1em; font-weight: bold; }"))
 	   (script (literal "function toggleClass(c) { var x = document.getElementsByClassName(c); for (var i = 0; i < x.length; ++i) { x[i].classList.toggle('hide'); } }"))))
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon"
-					 #:audience (auth:try-authorization-header :subject req)
+	  (output:create-html-navigation #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Dashboard" . "/dscan")))
 	  (div 'id: "content"
 	       (h1 (pretty-print-location location))

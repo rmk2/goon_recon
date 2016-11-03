@@ -23,8 +23,7 @@
 				   (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
 				   (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon"
-					 #:active "timers"
+	  (output:create-html-navigation #:active "timers"
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Report" . "report")
 						   ("Tasks" . "tasks")

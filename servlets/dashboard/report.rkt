@@ -13,8 +13,7 @@
 	(html
 	 (output:create-html-head #:title "Recon Structure Reporting" #:tablesorter #f #:navigation #t)
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon"
-					 #:active "report"
+	  (output:create-html-navigation #:active "report"
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Report" . "report")
 						   ("Tasks" . "tasks")
