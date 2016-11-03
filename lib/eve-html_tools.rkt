@@ -149,8 +149,7 @@
 		 (cond
 		  [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
 		  [else (take nav-default 1)])]))
-	 (if (or (and (number? nav-audience) (>= nav-audience 4))
-		 (and (string? nav-audience) (not (equal? nav-audience "public"))))
+	 (if (or (number? nav-audience) (string? nav-audience))
 	     (div 'class: "nav-element right" (a 'href: "/logout" "Logout"))
 	     (div 'class: "nav-element right" (a 'href: "/login" "Login"))))))
 
