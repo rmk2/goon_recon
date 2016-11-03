@@ -85,7 +85,35 @@
 	  [else #f]))
 
   (if (not (false? user-token-result))
-      (redirect-to (if (string-empty? referer) "/dscan" referer)
+      (redirect-to (if (or (string-empty? referer) (equal? referer "/logout")) "/dscan" referer)
   		   #:headers (list (auth:create-authorization-header user-token-result)
   				   (cookie->header (make-cookie "access_token" user-token-result #:max-age 600))))
       (send/back response-generator)))
+
+;; Logout page
+
+(define (exec-logout req [param ""])
+  (define response-generator
+    (response/output
+     #:headers (list (cookie->header (make-cookie "access_token" "" #:max-age 0 #:path "/")))
+     (lambda (out)
+       (output-xml
+	(html
+	 (output:create-html-head
+	  #:title "Logout Page"
+	  #:tablesorter #f
+	  #:navigation #f
+	  (list (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
+		(style/inline 'type: "text/css" "#links { display:flex; flex-flow: column nowrap; margin-top: 1em; }")
+		(style/inline 'type: "text/css" ".info { border: 1px solid black; background-color: whitesmoke; padding: 1.5em; }")
+		(literal (style/inline 'type: "text/css" ".info > p { display: flex; justify-content: center; }"))))
+	 (body
+	  (div 'id: "content"
+	       (h1 "Logout Page")
+	       (div 'class: "info"
+		    (p (format "You have been logged out successfully!")))
+	       (div 'id: "links"
+		    (a 'href: "login" "Return to login")))))
+	out))))
+
+  (send/back response-generator))

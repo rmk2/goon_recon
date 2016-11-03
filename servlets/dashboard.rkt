@@ -112,6 +112,7 @@
    [("dscan" (string-arg)) exec-parse-archive]
    [("register") exec-register]
    [("register") #:method "post" exec-register-post]
+   [("logout") exec-logout]
    [("login") exec-login]
    [("login") #:method "post" exec-login-post]))
 

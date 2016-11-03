@@ -149,7 +149,11 @@
 		[else
 		 (cond
 		  [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
-		  [else (take nav-default 1)])])))))
+		  [else (take nav-default 1)])]))
+	 (if (or (and (number? nav-audience) (>= nav-audience 4))
+		 (and (string? nav-audience) (not (equal? nav-audience "public"))))
+	     (div 'class: "nav-element right" (a 'href: "/logout" "Logout"))
+	     (div 'class: "nav-element right" (a 'href: "/login" "Login"))))))
 
 (define (create-html-dscan-rows main info structures starbases #:local-scan [local-scan? #f])
   (define (colorise-div #:picker n #:class [class "dscan-element"] body)
@@ -192,8 +196,8 @@
 				  column)))
 		      (list "Local Count" "Characters" "Statistics")
 		      info))
-		      ;; (car info)
-		      ;; (cdr info)))
+	    ;; (car info)
+	    ;; (cdr info)))
 	    (div 'class: "dscan vertical"
 		 (map (lambda (heading column)
 			(div 'class: "dscan-column"
