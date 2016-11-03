@@ -56,11 +56,11 @@
   (head
    (meta 'charset: "utf-8")
    (title title-str)
-   (literal (style/inline 'type: "text/css" ".data { margin: 1em 0; }"))
-   (literal (style/inline 'type: "text/css" "table { border-collapse: collapse;  border: 1px solid black; width: 100%; }"))
-   (literal (style/inline 'type: "text/css" "thead { border-bottom: 1px solid black; }"))
-   (literal (style/inline 'type: "text/css" "td { padding: 0.3em; border-right: 1px solid black; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 14em; }"))
-   (literal (style/inline 'type: "text/css" "tr:nth-child(2n) { background-color: #efefef; }"))
+   (style/inline 'type: "text/css" ".data { margin: 1em 0; overflow-x: auto; display: block;}")
+   (style/inline 'type: "text/css" "table { border-collapse: collapse;  border: 1px solid black; width: 100%; }")
+   (style/inline 'type: "text/css" "thead { border-bottom: 1px solid black; }")
+   (style/inline 'type: "text/css" "td { padding: 0.3em; border-right: 1px solid black; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 14em; }")
+   (style/inline 'type: "text/css" "tr:nth-child(2n) { background-color: #efefef; }")
    (if tablesorter? (create-html-head-tablesorter sort-column) null)
    (if navigation? (create-html-head-navigation) null)
    extra-fields))
@@ -77,15 +77,14 @@
 (define (create-html-head-navigation)
   (list
    (style/inline 'type: "text/css" "body { margin: 0; }")
-   (style/inline 'type: "text/css" "#nav { width: 100%; display: flex; flex-direction: row; flex-wrap: wrap; border-bottom: 1px solid indianred; }")
-   (style/inline 'type: "text/css" "@media (max-width: 680px) { #nav { flex-flow: column nowrap; } }")
+   (style/inline 'type: "text/css" "#nav { display: flex; flex-flow: column nowrap; border-bottom: 1px solid indianred; }")
    (style/inline 'type: "text/css" "#content { margin: 0.5em; clear: left; }")
    (style/inline 'type: "text/css" ".active { background: lightgray; }")
-   (style/inline 'type: "text/css" ".nav-title { font-weight: bold; padding: 0.75em; color: indianred; margin-right: 4em; }")
+   (style/inline 'type: "text/css" ".nav-title { font-weight: bold; padding: 0.75em; color: indianred; }")
    (style/inline 'type: "text/css" ".nav-element { padding: 0.75em; }")
    (style/inline 'type: "text/css" ".nav-element:hover { background-color: indianred; }")
    (style/inline 'type: "text/css" ".nav-element a { padding: 0.75em; text-decoration: none; color: black; }")
-   (style/inline 'type: "text/css" ".nav-element.right { margin-left: auto; }")))
+   (style/inline 'type: "text/css" "@media (min-width: 960px) { #nav { flex-flow: row nowrap; } .right { margin-left: auto; } }")))
 
 (define-syntax create-html-hint
   (syntax-rules (:tablesorter :updated)
@@ -118,7 +117,7 @@
 			       (map option (filter (lambda (x) (regexp-match "^[A-Z0-9]-" x)) region-list))))
 	     (input 'type: "submit"))))
 
-(define (create-html-navigation #:title [nav-title "GoonSwarm Recon"]
+(define (create-html-navigation #:title [nav-title "The Reconing"]
 				#:links [nav-list null]
 				#:active [active-url null]
 				#:audience [nav-audience null])
