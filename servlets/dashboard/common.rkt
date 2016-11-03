@@ -2,7 +2,8 @@
 
 (require eve)
 
-(require (for-syntax racket/syntax))
+(require (for-syntax racket/syntax)
+	 (for-syntax syntax/parse))
 
 (provide (all-defined-out))
 
@@ -74,3 +75,27 @@
 			  c
 			  (map (lambda (x) (if (string? x) (parse-alliance :ticker (string-upcase x)) x)) d)
 			  (map (lambda (x) (if (string? x) (parse-corporation :ticker (string-upcase x)) x)) e))))))
+
+;; Set HTTP Headers for authed pages to disallow caching. This passes
+;; arguments transparently to response/output, internally adding the required
+;; headers
+
+(define-syntax (response/auth/output stx)
+  (syntax-parse stx
+		[(_ (~optional (~seq #:code code:expr) #:defaults ([code #'200]))
+		    (~optional (~seq #:message message:expr) #:defaults ([message #'#"Okay"]))
+		    (~optional (~seq #:seconds seconds:expr) #:defaults ([seconds #'(current-seconds)]))
+		    (~optional (~seq #:mime-type mime-type:expr) #:defaults ([mime-type #'TEXT/HTML-MIME-TYPE]))
+		    (~optional (~seq #:headers headers:expr) #:defaults ([headers #'null]))
+		    body)
+		 #'(response/output
+		    #:code code
+		    #:message message
+		    #:seconds seconds
+		    #:mime-type mime-type
+		    #:headers (append headers
+				      (list
+				       (make-header #"Cache-Control" #"no-cache, no-store, must-revalidate")
+				       (make-header #"Pragma" #"no-cache")
+				       (make-header #"Expires" #"0")))
+		    body)]))
