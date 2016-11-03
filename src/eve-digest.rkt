@@ -258,7 +258,7 @@
 		km-data)))
 
 ;; Workaround for zkill's limitiation of one region per query, which cannot be
-;; concatened via commas in one request, either. Instead, we have to do
+;; concatenated via commas in one request, either. Instead, we have to do
 ;; sequential polls, which we can however append in order to parse them all
 ;; together. We also re-sort the combined region list by date to keep things
 ;; legible.
