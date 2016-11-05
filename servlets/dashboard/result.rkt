@@ -117,7 +117,7 @@
 	(html
 	 (output:create-html-head #:title "Dashboard Scan Result" #:tablesorter #f #:navigation #t)
 	 (body
-	  (output:create-html-navigation #:title "GoonSwarm Recon")
+	  (output:create-html-navigation #:audience (auth:try-authorization-header :subject req))
 	  (div 'id: "content"
 	       (h1 (pretty-print-location location-guess))
 	       (if (and (null? location-guess) (dscan-proximity (citadel? data)))
