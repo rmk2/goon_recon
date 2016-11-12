@@ -84,7 +84,19 @@
    (style/inline 'type: "text/css" ".nav-element { padding: 0.75em; }")
    (style/inline 'type: "text/css" ".nav-element:hover { background-color: indianred; }")
    (style/inline 'type: "text/css" ".nav-element a { padding: 0.75em; text-decoration: none; color: black; }")
-   (style/inline 'type: "text/css" "@media (min-width: 960px) { #nav { flex-flow: row nowrap; } .right { margin-left: auto; } }")))
+   (style/inline 'type: "text/css" ".nav-selector:hover { background-color: darkgrey; }")
+   (style/inline 'type: "text/css" ".nav-selector::after { content: '↓'; vertical-align: sub; }")
+   (style/inline 'type: "text/css" ".nav-selector { display: none; padding: 0.7em 1.5em; }")
+   (style/inline 'type: "text/css" ".nav-dropdown { display: inline-block; position: static; }")
+   (style/inline 'type: "text/css" ".nav-submenu { display: flex; flex-flow: column nowrap; }")
+   (style/inline 'type: "text/css" ".right .nav-submenu { right: 0; }")
+   (style/inline 'type: "text/css" (string-append "@media (min-width: 960px) { "
+						  "#nav { flex-flow: row nowrap; } "
+						  ".right { margin-left: auto; } "
+						  ".nav-selector { display: inline-block; } "
+						  ".nav-submenu { display: none; border: 1px solid indianred; } "
+						  ".nav-dropdown:hover .nav-submenu { display: flex; position: absolute; } "
+						  "}"))))
 
 (define-syntax create-html-hint
   (syntax-rules (:tablesorter :updated)
