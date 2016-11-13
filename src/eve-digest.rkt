@@ -232,7 +232,7 @@
        id
        (hash-ref victim 'shipTypeID))))))
 
-(define (parse-kills lst #:attackers [run-attackers? #t])
+(define (parse-kills lst #:attackers [run-attackers? #t] #:raw [raw? (cl-raw)])
   (let ([km-data lst])
     (append-map (lambda (km-list)
 		  (let ([victim (hash-ref km-list 'victim)]
@@ -244,7 +244,7 @@
 					0)]
 			[attackers (hash-ref km-list 'attackers)]
 			[id (hash-ref km-list 'killID)])
-		    (filter-map (lambda (a) (if (cl-raw)
+		    (filter-map (lambda (a) (if raw?
 						(call-with-values
 						    (lambda ()
 						      (vector->values
