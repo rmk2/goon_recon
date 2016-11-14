@@ -26,7 +26,7 @@
   (let loop ([query lst] [limit n] [i 1] [result null])
     (if (<= (* i limit) (length query))
 	(loop query limit (+ i 1) (list* (drop (take query (* i limit)) (* (- i 1) limit)) result))
-	(reverse (list* (take-right query (remainder (length query) limit)) result)))))
+	(reverse (filter-not empty? (list* (take-right query (remainder (length query) limit)) result))))))
 
 ;; Count duplicates in a list, shortening the list until we hit length 0
 
