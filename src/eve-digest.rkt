@@ -2,7 +2,6 @@
 #lang racket
 
 (require eve)
-(require racket/set)
 (require racket/future)
 
 (define cl-date (make-parameter (date->string (current-date) "~Y~m~d")))
@@ -73,11 +72,11 @@
    #:multi
    [("-r" "--region") str "Select regions to use in the query, default: false" (cl-regions (cons (region->id str) (cl-regions)))]
    [("-A" "--alliance") str "Filter by alliance ID, default: false"
-    (cl-alliances (cons (id/string->string (parse-alliance :id str)) (cl-alliances)))]
+    (cl-alliances (cons (digest:id/string->string (parse-alliance :id str)) (cl-alliances)))]
    [("-g" "--group") str "Select a groupid, default: false" (cl-groups (cons (group->id str) (cl-groups)))]
    [("-t" "--type") str "Select a typeid, default: false" (cl-shiptypes (cons (type->id str) (cl-shiptypes)))]
    [("-C" "--corporation" "--corp") str "Filter by corporation ID, default: false"
-    (cl-corporations (cons (id/string->string (parse-corporation :id str)) (cl-corporations)))]
+    (cl-corporations (cons (digest:id/string->string (parse-corporation :id str)) (cl-corporations)))]
    #:once-each
    [("-d" "--date") str "Select start date, format: YYYYMMDD" (cl-date str)]
    [("-e" "--end-date") str "Select end date, format: YYYYMMDD" (cl-end str)]
@@ -101,161 +100,26 @@
 
 ;; Parse zkillboard data
 
-(define-syntax id/string->string
-  (syntax-rules (:map)
-    ((_ arg) (if (number? arg) (number->string arg) arg))
-    ((_ :map lst) (map (lambda (x) (id/string->string x)) lst))))
-
-(define (pull-url #:date [date (cl-date)]
-		  #:groups [groups (cl-groups)]
-		  #:types [types (cl-shiptypes)]
-		  #:regions [regions (cl-regions)]
-		  #:alliances [alliances (cl-alliances)]
-		  #:corporations [corporations (cl-corporations)]
-		  #:kills [show-kills? (cl-kills)]
-		  #:losses [show-losses? (cl-losses)]
-		  #:id [killid (cl-id)])
-  (let ([built-url
-	 (string-append
-	  "https://zkillboard.com/api/no-items"
-	  (cond
-	   [(and show-losses? show-kills?) ""]
-	   [show-losses? "/losses"]
-	   [show-kills? "/kills"]
-	   [else (error "Use either \"#:kills #t\" or \"#:losses #t\" when calling the pull-url function")])
-	  (if (not (null? groups))
-	      (string-append "/groupID/" (string-join groups ","))
-	      "")
-	  (if (not (null? types))
-	      (string-append "/shipTypeID/" (string-join types ","))
-	      "")
-	  (if (not (null? regions))
-	      (string-append "/regionID/" regions)
-	      "")
-	  (if (not (null? alliances))
-	      (string-append "/allianceID/" (string-join alliances ","))
-	      "")
-	  (if (not (null? corporations))
-	      (string-append "/corporationID/" (string-join corporations ","))
-	      "")
-	  (if (not (null? date)) (string-append "/startTime/" (id/string->string date) "0000") "")
-	  (if (not (null? (cl-end))) (string-append "/endTime/" (cl-end) "0000") "")
-	  (if (not (null? killid))
-	      (string-append "/orderDirection/asc/afterKillID/" (id/string->string killid))
-	      "")
-	  "/")])
-    (json-api built-url)))
-
-(define (groupid->list lst)
-  (append-map (lambda (i) (map (lambda (n) (vector-ref n 0)) (parse-type :members (string->number i)))) lst))
-
-(define-syntax concat-data
-  (syntax-rules (:alliance :corporation :group :shiptype :check)
-    ((_ :alliance lst) (filter-map (lambda (x)
-				     (cond
-				      [(member (number->string (hash-ref x 'allianceID)) (cl-alliances)) x]
-				      [else #f]))
-				   lst))
-    ((_ :corporation lst) (filter-map (lambda (x)
-					(cond
-					 [(member (number->string (hash-ref x 'corporationID)) (cl-corporations)) x]
-					 [else #f]))
-				      lst))
-    ((_ :group lst) (filter-map (lambda (x)
-				  (cond
-				   [(member (hash-ref x 'shipTypeID) (groupid->list (cl-groups))) x]
-				   [else #f]))
-				lst))
-    ((_ :shiptype lst) (filter-map (lambda (x)
-				     (cond
-				      [(member (hash-ref x 'shipTypeID) (map string->number (cl-shiptypes))) x]
-				      [else #f]))
-				   lst))
-    ((_ :check lst) (set-intersect (if (null? (cl-alliances)) lst (concat-data :alliance lst))
-				   (if (null? (cl-corporations)) lst (concat-data :corporation lst))
-				   (if (null? (cl-groups)) lst (concat-data :group lst))
-				   (if (null? (cl-shiptypes)) lst (concat-data :shiptype lst))))))
-
-(define (id-tower? hash)
-  (if (member (hash-ref hash 'shipTypeID) (groupid->list '("365")))
-      #t
-      #f))
-
-(define-syntax parse-helper
-  (syntax-rules ()
-    ((_ hash)
-     (list
-      (parse-type :name (hash-ref hash 'shipTypeID))
-      (hash-ref hash 'characterName)
-      (hash-ref hash 'corporationName)
-      (hash-ref hash 'allianceName)))
-    ((_ hash location moonid locationid date id)
-     (let ([location-base (parse-solarsystem location)])
-       (filter string?
-	       (append
-		(parse-helper hash)
-		(list
-		 (cond
-		  [(and (id-tower? hash) (cl-moons)) (simplify-moon-display (parse-moon :name moonid))]
-		  [(and (id-tower? hash) (cl-location)) (parse-moon :name moonid)]
-		  [(cl-location) (let ([locationid-base (parse-moon :name locationid)])
-				   (if (string? locationid-base)
-				       locationid-base
-				       (parse-universe :name location-base)))]
-		  [else (parse-universe :name location-base)])
-		 (parse-region :name (parse-universe :region location-base))
-		 date
-		 (if (cl-href) (string-append "https://zkillboard.com/kill/" (number->string id) "/") #f))))))))
-
-(define-syntax parse-helper-raw
-  (syntax-rules ()
-    ((_ hash)
-     (list
-      (hash-ref hash 'shipTypeID)
-      (hash-ref hash 'characterID)
-      (hash-ref hash 'characterName)
-      (hash-ref hash 'corporationID)
-      (hash-ref hash 'corporationName)
-      (hash-ref hash 'allianceID)
-      (hash-ref hash 'allianceName)))
-    ((_ hash location moonid locationid date id victim)
-     (append
-      (parse-helper-raw hash)
-      (list
-       (cond
-	[(id-tower? hash) moonid]
-	[(cl-location) locationid]
-	[else 0])
-       location
-       (parse-region :id (parse-solarsystem :region location))
-       date
-       id
-       (hash-ref victim 'shipTypeID))))))
-
-(define (parse-kills lst #:attackers [run-attackers? #t] #:raw [raw? (cl-raw)])
-  (let ([km-data lst])
-    (append-map (lambda (km-list)
-		  (let ([victim (hash-ref km-list 'victim)]
-			[date (hash-ref km-list 'killTime)]
-			[location (hash-ref km-list 'solarSystemID)]
-			[moonid (hash-ref km-list 'moonID)]
-			[locationid (if (hash-has-key? (hash-ref km-list 'zkb) 'locationID)
-					(hash-ref (hash-ref km-list 'zkb) 'locationID)
-					0)]
-			[attackers (hash-ref km-list 'attackers)]
-			[id (hash-ref km-list 'killID)])
-		    (filter-map (lambda (a) (if raw?
-						(call-with-values
-						    (lambda ()
-						      (vector->values
-						       (list->vector
-							(parse-helper-raw a location moonid locationid date id victim))))
-						  sql-killmail)
-						(parse-helper a location moonid locationid date id)))
-				(if run-attackers?
-				    (concat-data :check attackers)
-				    (concat-data :check (list victim))))))
-		km-data)))
+(define (poll-url-wrapper #:date [date (cl-date)]
+			  #:end [end (cl-end)]
+			  #:groups [groups (cl-groups)]
+			  #:types [types (cl-shiptypes)]
+			  #:regions [regions (cl-regions)]
+			  #:alliances [alliances (cl-alliances)]
+			  #:corporations [corporations (cl-corporations)]
+			  #:kills [show-kills? (cl-kills)]
+			  #:losses [show-losses? (cl-losses)]
+			  #:id [killid (cl-id)])
+  (digest:poll-url #:date date
+		   #:end end
+		   #:groups groups
+		   #:types types
+		   #:regions regions
+		   #:alliances alliances
+		   #:corporations corporations
+		   #:kills show-kills?
+		   #:losses show-losses?
+		   #:id killid))
 
 ;; Workaround for zkill's limitiation of one region per query, which cannot be
 ;; concatenated via commas in one request, either. Instead, we have to do
@@ -265,10 +129,10 @@
 
 (define (run-regions lst #:kills [show-kills? #f] #:losses [show-losses? #f])
   (if (empty? lst)
-      (pull-url)
-      (sort (append-map (lambda (current-region) (pull-url #:regions current-region
-							   #:kills show-kills?
-							   #:losses show-losses?))
+      (poll-url-wrapper)
+      (sort (append-map (lambda (current-region) (poll-url-wrapper #:regions current-region
+								   #:kills show-kills?
+								   #:losses show-losses?))
 			lst)
 	    string<?
 	    #:key (lambda (h) (hash-ref h 'killTime))
@@ -346,11 +210,29 @@
 ;; Generic Output
 
 (define cache-kills (if (cl-kills)
-			(future-wrapper :future (parse-kills (run-regions (cl-regions) #:kills #t) #:attackers #t))
+			(future-wrapper :future (digest:parse-kills (run-regions (cl-regions) #:kills #t)
+								    #:attackers #t
+								    #:raw (cl-raw)
+								    #:location (cl-location)
+								    #:moons (cl-moons)
+								    #:href (cl-href)
+								    #:alliances (cl-alliances)
+								    #:corporations (cl-corporations)
+								    #:groups (cl-groups)
+								    #:shiptypes (cl-shiptypes)))
 			null))
 
 (define cache-losses (if (cl-losses)
-			 (future-wrapper :future (parse-kills (run-regions (cl-regions) #:losses #t)  #:attackers #f))
+			 (future-wrapper :future (digest:parse-kills (run-regions (cl-regions) #:losses #t)
+								     #:attackers #f
+								     #:raw (cl-raw)
+								     #:location (cl-location)
+								     #:moons (cl-moons)
+								     #:href (cl-href)
+								     #:alliances (cl-alliances)
+								     #:corporations (cl-corporations)
+								     #:groups (cl-groups)
+								     #:shiptypes (cl-shiptypes)))
 			 null))
 
 (define-values (active attackers victims)
