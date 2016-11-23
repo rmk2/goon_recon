@@ -63,6 +63,16 @@
 	 (findf (lambda (str) (equal? (string-downcase query) (string-downcase str)))
 		(map vector->values
 		     (query-rows sqlc (format "SELECT DISTINCT ~a FROM ~a" column table)))))]
+    [(_ id :known-good column table restriction-column restriction-param)
+     ;; Check query against a list of known-good candidates from database
+     #'(define/contract (id query)
+	 (-> string? any)
+	 (findf (lambda (str) (equal? (string-downcase query) (string-downcase str)))
+		(map vector->values
+		     (query-rows
+		      sqlc
+		      (format "SELECT DISTINCT ~a FROM ~a WHERE ~a = ?" column table restriction-column)
+		      restriction-param))))]
     [(_ id :direct column table)
      ;; Check query directly against database
      #'(define/contract (id query)
@@ -87,7 +97,7 @@
 (sql-build-test system? :known-good "solarSystemName" "mapSolarSystems")
 (sql-build-test constellation? :known-good "constellationName" "mapConstellations")
 (sql-build-test region? :known-good "regionName" "mapRegions")
-(sql-build-test goo? :known-good "typeName" "invTypes")
+(sql-build-test goo? :known-good "typeName" "invTypes" "groupID" "427")
 (sql-build-test structure? :known-good "structureType" "customTimerboard")
 (sql-build-test type? :known-good "typeName" "invTypes")
 (sql-build-test alliance? :direct "allianceName" "allianceTicker" "customAlliances")
