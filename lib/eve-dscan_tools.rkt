@@ -110,7 +110,7 @@
 
 (define (citadel? lst)
   (filter (lambda (hash) (member (hash-ref hash 'type)
-				 (map (lambda (x) (vector-ref x 2)) (parse-type :members 1657)))) lst))
+				 (map (lambda (x) (vector-ref x 1)) (sql-type-parse-association 65)))) lst))
 
 (define (stargate? lst)
   (filter (lambda (hash) (regexp-match? #px"^(?i:stargate)" (hash-ref hash 'type))) lst))
