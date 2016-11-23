@@ -44,11 +44,15 @@
 	  (div 'id: "content"
 	       (h1 "Moon Scan Data")
 	       (output:create-html-hint (output:create-html-legend :moon))
-	       (output:create-html-hint (print-filters filter-region
-						       filter-constellation
-						       filter-system
-						       filter-alliance
-						       filter-corporation))
+	       (output:create-html-hint (print-filters :list '("Region" "Constellation" "System" "Alliance" "Corporation" "Type" "Goo")
+						       (list
+							filter-region
+							filter-constellation
+							filter-system
+							filter-alliance
+							filter-corporation
+							filter-type
+							filter-goo)))
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table
 		#:ticker->class #t
@@ -71,6 +75,8 @@
   (sql-bind-user-input "system" #:request req)
   (sql-bind-user-input "alliance" #:request req)
   (sql-bind-user-input "corporation" #:request req)
+  (sql-bind-user-input "type" #:request req)
+  (sql-bind-user-input "goo" #:request req)
 
   (define f-mode (get-filter req #"mode"))
 
@@ -79,6 +85,8 @@
 	    filter-constellation
 	    filter-system
 	    filter-alliance
-	    filter-corporation))
+	    filter-corporation
+	    filter-type
+	    filter-goo))
 
   (send/back response-generator))

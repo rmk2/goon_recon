@@ -36,9 +36,12 @@
 	  (div 'id: "content"
 	       (h1 "Moon Probing Data")
 	       (output:create-html-hint "Note: Entries without a valid datetime field are imported from external data")
-	       (output:create-html-hint (print-filters filter-region
-						       filter-constellation
-						       filter-system))
+	       (output:create-html-hint (print-filters :list '("Region" "Constellation" "System" "Goo")
+						       (list
+							filter-region
+							filter-constellation
+							filter-system
+							filter-goo)))
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table
 		#:ticker->class #t
@@ -56,12 +59,14 @@
   (sql-bind-user-input "region" #:request req)
   (sql-bind-user-input "constellation" #:request req)
   (sql-bind-user-input "system" #:request req)
+  (sql-bind-user-input "goo" #:request req)
 
   (define f-mode (get-filter req #"mode"))
 
   (define user-filter
     (append filter-region
 	    filter-constellation
-	    filter-system))
+	    filter-system
+	    filter-goo))
 
   (send/back response-generator))

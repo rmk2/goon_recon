@@ -56,11 +56,14 @@
 	  (div 'id: "content"
 	       (h1 "Citadel Scan Data")
 	       (output:create-html-hint (output:create-html-legend :citadel))
-	       (output:create-html-hint (print-filters filter-region
-						       filter-constellation
-						       filter-system
-						       filter-alliance
-						       filter-corporation))
+	       (output:create-html-hint (print-filters :list '("Region" "Constellation" "System" "Alliance" "Corporation" "Type")
+						       (list
+							filter-region
+							filter-constellation
+							filter-system
+							filter-alliance
+							filter-corporation
+							filter-type)))
 	       (output:create-html-hint :tablesorter)
 	       (form 'method: "POST" 'target: "_self" 'id: "main" 'name: "main"
 		     (output:create-html-table
@@ -85,6 +88,7 @@
   (sql-bind-user-input "system" #:request req)
   (sql-bind-user-input "alliance" #:request req)
   (sql-bind-user-input "corporation" #:request req)
+  (sql-bind-user-input "type" #:request req)
 
   (define f-mode (get-filter req #"mode"))
 
@@ -93,6 +97,7 @@
 	    filter-constellation
 	    filter-system
 	    filter-alliance
-	    filter-corporation))
+	    filter-corporation
+	    filter-type))
 
   (send/back response-generator))
