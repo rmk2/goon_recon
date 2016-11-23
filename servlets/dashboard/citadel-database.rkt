@@ -17,7 +17,7 @@
   	 [bind-filter (let ([raw-filter (append-map (lambda (name) (let ([name-bind (bindings-assq name bind-raw)])
 								     (if (false? name-bind) null (remove name-bind bind-raw))))
 						    (list #"region" #"constellation" #"system" #"alliance" #"corporation"))])
-			(if (empty? raw-filter) bind-raw raw-filter))])
+			(if (empty? raw-filter) null raw-filter))])
     (begin
       (sql-citadel-delete-scan
        (map (lambda (x) (bytes->string/utf-8 (binding:form-value x))) bind-filter))
