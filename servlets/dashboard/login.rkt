@@ -58,14 +58,16 @@
 	  #:navigation #f
 	  (list
 	   (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
-	   (style/inline 'type: "text/css" "#links { display:flex; flex-flow: column nowrap; margin-top: 1em; }")
+	   (style/inline 'type: "text/css" "#links { display:flex; flex-flow: column nowrap; margin-top: 1em; align-items: center; }")
 	   (style/inline 'type: "text/css" ".info { border: 1px solid black; background-color: whitesmoke; padding: 1.5em; }")
 	   (literal (style/inline 'type: "text/css" ".info > p { display: flex; justify-content: center; }"))))
 	 (body
 	  (div 'id: "content"
 	       (h1 "Login Page")
 	       (div 'class: "info"
-		    (p "Invalid username and/or password"))
+		    (list
+		     (p 'style: "color:crimson;" "[Error] Invalid username and/or password")
+		     (p (a 'href: "javascript:window.history.back();" "Return?"))))
 	       (div 'id: "links"
 		    (a 'href: "register" "Register new user?")))))
 	out))))
