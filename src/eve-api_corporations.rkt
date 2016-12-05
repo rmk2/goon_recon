@@ -3,24 +3,33 @@
 
 (require eve)
 
+(provide query-scan-unknown-corporations
+	 query-kill-unknown-corporations
+	 query-input-unknown-corporations
+	 extract-corporationids
+	 crest-poll-allianceid
+	 parse-corporationids
+	 scan-unknown
+	 general-unknown-poll)
+
 ;; Database
 
 (define (query-scan-unknown-corporations)
   (flatten
    (filter-not empty?
 	       (list*
-		(query-rows sqlc "SELECT allianceTicker FROM moonScanView WHERE corporationName IS NULL")
-		(query-rows sqlc "SELECT allianceTicker FROM citadelScanView WHERE corporationName IS NULL")))))
+		(query-list sqlc "SELECT allianceTicker FROM moonScanView WHERE corporationName IS NULL")
+		(query-list sqlc "SELECT allianceTicker FROM citadelScanView WHERE corporationName IS NULL")))))
 
 (define (query-kill-unknown-corporations)
   (flatten
    (filter-not empty?
 	       (list*
-		(query-rows sqlc "SELECT towerKillRaw.corporationID FROM towerKillRaw LEFT JOIN customCorporations ON customCorporations.corporationID = towerKillRaw.corporationID WHERE corporationName IS NULL")
-		(query-rows sqlc "SELECT citadelKillRaw.corporationID FROM citadelKillRaw LEFT JOIN customCorporations ON customCorporations.corporationID = citadelKillRaw.corporationID WHERE corporationName IS NULL")))))
+		(query-list sqlc "SELECT towerKillRaw.corporationID FROM towerKillRaw LEFT JOIN customCorporations ON customCorporations.corporationID = towerKillRaw.corporationID WHERE corporationName IS NULL")
+		(query-list sqlc "SELECT citadelKillRaw.corporationID FROM citadelKillRaw LEFT JOIN customCorporations ON customCorporations.corporationID = citadelKillRaw.corporationID WHERE corporationName IS NULL")))))
 
 (define (query-input-unknown-corporations)
-  (query-rows sqlc "SELECT corporationID FROM customCorporationInput"))
+  (query-list sqlc "SELECT corporationID FROM customCorporationInput"))
 
 ;; Extract corporationIDs from CREST allianceSheet
 
@@ -30,7 +39,7 @@
 			   [(eq? "-" x) #f]
 			   [(string-empty? x) #f]
 			   [else x]))
-	      (append-map vector->list v)))
+	      v))
 
 (define (crest-poll-allianceid id)
   (cond [(string-empty? id) null]
@@ -60,7 +69,7 @@
 
 (define (general-unknown-poll lst)
   (exec-limit-api-rate #:function hash-poll-corporations
-		       #:input (map (lambda (x) (number->string (vector->values x))) lst)
+		       #:input (map number->string lst)
 		       #:delay 1
 		       #:digest hash-parse-corporations
 		       #:limit 30))
