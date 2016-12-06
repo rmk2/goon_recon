@@ -160,15 +160,14 @@
      (timers:query-sovereignty-timers))))
 
 (define poll-sovereignty-auto
-  (let* ([interval 10]
+  (let* ([interval 600]
 	 [time (current-date)]
-	 [time-seconds (date-second time)]
-	 [time-diff (remainder (date-minute time) interval)])
+	 [time-diff (remainder (+ (* (date-minute time) 60) (date-second time)) interval)])
     (if (zero? time-diff)
 	(schedule-recurring-task (lambda () (channel-put control 'sovereignty)) (hours->seconds 1/6))
 	(schedule-delayed-task
 	 (lambda () (schedule-recurring-task (lambda () (channel-put control 'sovereignty)) (hours->seconds 1/6)))
-	 (- (* (- interval time-diff) 60) time-seconds)))))
+	 (- interval time-diff)))))
 
 ;; Super updater
 
