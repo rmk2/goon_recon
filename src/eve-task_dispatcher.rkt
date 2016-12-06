@@ -66,7 +66,11 @@
 
 ;; zKillboard killmail poll helper
 
-(define (zkill-poll-helper groupids #:table table #:losses [run-losses? #t])
+(define (zkill-poll-helper groupids
+			   #:table table
+			   #:losses [run-losses? #t]
+			   #:location [location? #t]
+			   #:moons [moons? #f])
   (let ([data (digest:poll-url #:date null
 			       #:groups groupids
 			       #:kills (if run-losses? #f #t)
@@ -76,7 +80,8 @@
 	null
 	(digest:parse-kills #:attackers (if run-losses? #f #t)
 			    #:raw #t
-			    #:location #t
+			    #:location location?
+			    #:moons moons?
 			    #:groups groupids
 			    data))))
 
@@ -207,7 +212,7 @@
 (define (towers-api-helper)
   (sql-tower-update-raw
    (parse-tower-data
-    (zkill-poll-helper '("365") #:table "towerKillRaw" #:losses #t))))
+    (zkill-poll-helper '("365") #:table "towerKillRaw" #:losses #t #:location #f #:moons #t))))
 
 (define poll-towers-auto
   (schedule-recurring-task (lambda () (channel-put control 'towers)) (offset-hours->seconds 2 #:offset 60)))
