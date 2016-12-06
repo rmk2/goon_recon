@@ -51,7 +51,7 @@
     ((_ :id arg) (vector-ref (sql-parse-character arg) 0))
     ((_ :name arg) (vector-ref (sql-parse-character arg) 1))))
 
-(define (sql-character-maybe-ids lst #:difference [difference 7200])
+(define (sql-character-maybe-ids lst #:difference [difference (* 6 3600)])
   (define (sql-character-outdated? query diff)
     (< diff
        (- (current-seconds)
