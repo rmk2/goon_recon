@@ -16,7 +16,10 @@
 
 ;; Workers
 
-(define (log-output str #:id id) (printf "[Thread ~a] ~a → ~a~n" id (date->string (current-date) "~5") str))
+(define (log-output str #:id id)
+  (let ([out (current-output-port)])
+    (fprintf out "[Thread ~a] ~a → ~a~n" id (date->string (current-date) "~5") str)
+    (flush-output out)))
 
 (define (create-worker [id (gensym)])
   (thread (lambda () (let loop ([th (current-thread)])
