@@ -27,7 +27,8 @@
 		  #:corporations [corporations null]
 		  #:kills [show-kills? #f]
 		  #:losses [show-losses? #f]
-		  #:id [killid null])
+		  #:id [killid null]
+		  #:limit [limit null])
   (let ([built-url
 	 (string-append
 	  "https://zkillboard.com/api/no-items"
@@ -55,6 +56,9 @@
 	  (if (not (null? end)) (string-append "/endTime/" end "0000") "")
 	  (if (not (null? killid))
 	      (string-append "/orderDirection/asc/afterKillID/" (id/string->string killid))
+	      "")
+	  (if (not (null? limit))
+	      (string-append "/limit/" (id/string->string limit))
 	      "")
 	  "/")])
     (json-api built-url)))
