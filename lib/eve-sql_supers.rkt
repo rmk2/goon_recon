@@ -43,7 +43,7 @@
   (query-value sqlc "SELECT MAX(datetime) FROM intelSuperRaw"))
 
 (define (sql-super-populate-affiliations)
-  (query-exec sqlc "INSERT IGNORE INTO customCharacters ( characterID,characterName,corporationID,corporationName,allianceID,allianceName,datetime ) SELECT sub.*,0,'',0,'','0000-00-00 00:00:00' FROM ( SELECT DISTINCT characterID,characterName FROM intelSuperRaw ) AS sub"))
+  (query-exec sqlc "INSERT IGNORE INTO customCharacters ( characterID,characterName,corporationID,corporationName,allianceID,allianceName,datetime ) SELECT sub.*,0,'',0,'','0000-01-01 00:00:00' FROM ( SELECT DISTINCT characterID,characterName FROM intelSuperRaw ) AS sub"))
 
 (define (sql-super-create-raw)
   (if (table-exists? sqlc "intelSuperRaw")
