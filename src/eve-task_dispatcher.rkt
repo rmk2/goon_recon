@@ -20,13 +20,13 @@
 
 (define (create-worker [id (gensym)])
   (thread (lambda () (let loop ([th (current-thread)])
-		       (sync/timeout 60
+		       (sync/timeout 180
 				     (wrap-evt character-queue
-					       (lambda (msg) (begin (log-output 'character #:id id)
+					       (lambda (msg) (begin (log-output 'characters #:id id)
 								    (exn-wrapper (characters-api-helper msg))
 								    (sleep 1)))) ;; Limit API accessing speed
 				     (wrap-evt corporation-queue
-					       (lambda (msg) (begin (log-output 'corporation #:id id)
+					       (lambda (msg) (begin (log-output 'corporations #:id id)
 								    (exn-wrapper (corporations-api-helper msg))
 								    (sleep 1)))) ;; Limit API accessing speed
 				     (wrap-evt control
@@ -160,7 +160,15 @@
      (timers:query-sovereignty-timers))))
 
 (define poll-sovereignty-auto
-  (schedule-recurring-task (lambda () (channel-put control 'sovereignty)) (hours->seconds 1/6)))
+  (let* ([interval 10]
+	 [time (current-date)]
+	 [time-seconds (date-second time)]
+	 [time-diff (remainder (date-minute time) interval)])
+    (if (zero? time-diff)
+	(schedule-recurring-task (lambda () (channel-put control 'sovereignty)) (hours->seconds 1/6))
+	(schedule-delayed-task
+	 (lambda () (schedule-recurring-task (lambda () (channel-put control 'sovereignty)) (hours->seconds 1/6)))
+	 (- (* (- interval time-diff) 60) time-seconds)))))
 
 ;; Super updater
 
