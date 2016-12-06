@@ -25,7 +25,9 @@
      (bytes->jsexpr
       (call/input-url (string->url str)
 		      get-pure-port
-		      (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
+		      (lambda (input) (call-with-output-bytes
+				       (lambda (x) (with-handlers ([exn:fail? (lambda (e) (void))])
+						     (gunzip-through-ports input x)))))
 		      '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
     ((_ str) (json-api :gzip str))))
 
