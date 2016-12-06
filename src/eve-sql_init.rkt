@@ -18,6 +18,10 @@
 
 (sql-corporation-create-triggers)
 
+;; Create local scan character tables
+
+(sql-character-create-raw)
+
 ;; Create super tracking/watchlist tables
 
 (sql-super-create-affiliations)
@@ -74,10 +78,6 @@
 
 (sql-canary-create-corporations)
 (sql-canary-create-alliances)
-
-;; Create local scan character tables
-
-(sql-character-create-raw)
 
 ;; Create local auth tables
 
