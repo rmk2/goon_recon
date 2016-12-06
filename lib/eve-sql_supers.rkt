@@ -2,6 +2,7 @@
 
 (require db)
 (require db/util/datetime)
+(require srfi/19)
 
 (require "eve-sql_main.rkt")
 (require "eve-sql_structs.rkt")
