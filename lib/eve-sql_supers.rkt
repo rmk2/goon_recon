@@ -1,6 +1,7 @@
 #lang racket
 
 (require db)
+(require db/util/datetime)
 
 (require "eve-sql_main.rkt")
 (require "eve-sql_structs.rkt")
@@ -10,23 +11,26 @@
 (define (sql-super-create-affiliations)
   (if (table-exists? sqlc "intelSuperAffiliations")
       #t
-      (query-exec sqlc "CREATE TABLE intelSuperAffiliations ( characterID INT NOT NULL, characterName VARCHAR(255) NOT NULL, corporationID INT NOT NULL, corporationName VARCHAR(255) NOT NULL, allianceID INT, allianceName VARCHAR(255), PRIMARY KEY (characterID) )")))
+      (query-exec sqlc "CREATE VIEW intelSuperAffiliations AS SELECT DISTINCT c.characterID,c.characterName,c.corporationID,c.corporationName,c.allianceID,c.allianceName FROM intelSuperRaw AS s LEFT JOIN customCharacters AS c ON s.characterID = c.characterID")))
 
 (define (sql-super-update-affiliations lst)
-  (for-each (lambda (x)
-	      (query sqlc "INSERT INTO intelSuperAffiliations VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE characterName=?,corporationID=?,corporationName=?,allianceID=?,allianceName=?"
-		     (first x)
-		     (second x)
-		     (third x)
-		     (fourth x)
-		     (fifth x)
-		     (sixth x)
-		     (second x)
-		     (third x)
-		     (fourth x)
-		     (fifth x)
-		     (sixth x)))
-	    lst))
+  (let ([timestamp (srfi-date->sql-timestamp (current-date))])
+    (for-each (lambda (x)
+		(query sqlc "INSERT INTO customCharacters VALUES (?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE characterName=?,corporationID=?,corporationName=?,allianceID=?,allianceName=?,datetime=?"
+		       (first x)
+		       (second x)
+		       (third x)
+		       (fourth x)
+		       (fifth x)
+		       (sixth x)
+		       timestamp
+		       (second x)
+		       (third x)
+		       (fourth x)
+		       (fifth x)
+		       (sixth x)
+		       timestamp))
+	      lst)))
 
 (define (sql-super-get-characterids)
   (query-list sqlc "SELECT characterID FROM intelSuperAffiliations"))
@@ -38,7 +42,7 @@
   (query-value sqlc "SELECT MAX(datetime) FROM intelSuperRaw"))
 
 (define (sql-super-populate-affiliations)
-  (query-exec sqlc "INSERT IGNORE INTO intelSuperAffiliations( characterID,characterName,corporationID,corporationName,allianceID,allianceName ) SELECT DISTINCT characterID,characterName,corporationID,corporationName,allianceID,allianceName FROM intelSuperRaw"))
+  (query-exec sqlc "INSERT IGNORE INTO customCharacters ( characterID,characterName,corporationID,corporationName,allianceID,allianceName,datetime ) SELECT sub.*,0,'',0,'','0000-00-00 00:00:00' FROM ( SELECT DISTINCT characterID,characterName FROM intelSuperRaw ) AS sub"))
 
 (define (sql-super-create-raw)
   (if (table-exists? sqlc "intelSuperRaw")
