@@ -180,12 +180,14 @@
 ;; Super updater
 
 (define (supers-api-helper)
-  (sql-super-insert-killmails
-   (append
-    (map (lambda (x) (begin (set-sql-killmail-eventtype! x "Kill") x))
-	 (zkill-poll-helper '("30" "659") #:table "intelSuperRaw" #:losses #f))
-    (map (lambda (x) (begin (set-sql-killmail-eventtype! x "Loss") x))
-	 (zkill-poll-helper '("30" "659") #:table "intelSuperRaw" #:losses #t)))))
+  (begin
+    (sql-super-insert-killmails
+     (append
+      (map (lambda (x) (begin (set-sql-killmail-eventtype! x "Kill") x))
+	   (zkill-poll-helper '("30" "659") #:table "intelSuperRaw" #:losses #f))
+      (map (lambda (x) (begin (set-sql-killmail-eventtype! x "Loss") x))
+	   (zkill-poll-helper '("30" "659") #:table "intelSuperRaw" #:losses #t))))
+    (sql-super-populate-affiliations)))
 
 (define poll-supers-auto
   (schedule-recurring-task (lambda () (channel-put control 'supers)) (offset-hours->seconds 1 #:offset 60)))
