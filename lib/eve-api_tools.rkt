@@ -25,11 +25,9 @@
      (bytes->jsexpr
       (call/input-url (string->url str)
 		      get-pure-port
-		      (lambda (input) (call-with-output-bytes
-				       (lambda (x) (with-handlers ([exn:fail? (lambda (e) (void))])
-						     (gunzip-through-ports input x)))))
+		      (lambda (input) (call-with-output-bytes (lambda (x) (gunzip-through-ports input x))))
 		      '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org"))))
-    ((_ str) (json-api :gzip str))))
+    ((_ str) (with-handlers ([exn:fail? (lambda (e) (void))]) (json-api :gzip str)))))
 
 ;; CREST: root address
 
@@ -49,7 +47,7 @@
 		     get-pure-port
 		     (lambda (input) (call-with-output-string (lambda (x) (gunzip-through-ports input x))))
 		     '("Accept-Encoding: gzip" "User-Agent: ryko@rmk2.org")))
-    ((_ str) (xml-api :plain str))))
+    ((_ str) (with-handlers ([exn:fail? (lambda (e) (void))]) (xml-api :plain str)))))
 
 ;; Extract XML APIv2 response bodies
 
