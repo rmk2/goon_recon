@@ -75,7 +75,7 @@
 			       #:groups groupids
 			       #:kills (if run-losses? #f #t)
 			       #:losses (if run-losses? #t #f)
-			       #:id (sql-super-latest-killid table))])
+			       #:id (sql-get-latest-id table))])
     (if (not (list? data))
 	null
 	(digest:parse-kills #:attackers (if run-losses? #f #t)
