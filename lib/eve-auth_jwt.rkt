@@ -16,13 +16,14 @@
 		      #:audiences [audiences (jwt-audiences)]
 		      #:issuer [issuer (jwt-issuer)]
 		      #:subject subject
-		      #:username [name ""])
+		      #:username [name ""]
+		      #:expiration [expiration 600])
   (encode/sign "HS256"
 	       secret
 	       #:iss issuer
 	       #:sub subject
 	       #:aud audiences
-	       #:exp (+ (current-seconds) 600)
+	       #:exp (+ (current-seconds) expiration)
 	       #:iat (current-seconds)
 	       #:nbf (current-seconds)
 	       #:other (hasheq 'username name)))
