@@ -51,6 +51,8 @@
 
 (struct sovAuth (id password salt datetime) #:transparent)
 
+(struct sovCampaign (system type attacker-score defender-score defender-name datetime) #:transparent)
+
 ;; SQL
 
 ;; Create tables/views
@@ -340,6 +342,47 @@
 	   (append (list id) inner)))
        lst))
 
+;; Get sovereignty campaign status for the current region
+
+(define (get-campaigns current-constellation)
+  (let ([current-seconds-utc (time-second (date->time-utc (current-date)))])
+    (sort
+     (filter-map (lambda (hash)
+		   (let* ([constellation-raw (timers:json-filter :constellation hash)]
+			  [constellation-id (hash-ref constellation-raw 'id)]
+			  [constellation-name (hash-ref constellation-raw 'name)]
+			  [constellation-match? (match current-constellation
+						  [(? number? const) (= constellation-id const)]
+						  [(? string? const) (equal? constellation-name const)])])
+		     (if (and constellation-match?
+			      (<= (time-second (date->time-utc (string->date (timers:json-filter :time hash) "~Y-~m-~dT~H:~M:~S")))
+				  current-seconds-utc))
+			 (sovCampaign (timers:json-filter :system-name hash)
+				      (timers:json-filter :type hash)
+				      (if (hash-has-key? hash 'attackers)
+					  (hash-ref (timers:json-filter :attackers hash) 'score)
+					  "")
+				      (if (hash-has-key? hash 'defender)
+					  (hash-ref (timers:json-filter :defender-raw hash) 'score)
+					  "")
+				      (if (hash-has-key? hash 'defender)
+					  (timers:json-filter :defender-name hash)
+					  "")
+				      (timers:json-filter :time hash))
+			 #f)))
+		 (hash-ref (json-api "https://crest-tq.eveonline.com/sovereignty/campaigns/") 'items))
+     string-ci<=?
+     #:key (lambda (campaign) (sovCampaign-system campaign)))))
+
+(define (get-campaigns->list current-constellation)
+  (map (lambda (x) (list (sovCampaign-system x)
+			 (sovCampaign-type x)
+			 (sovCampaign-attacker-score x)
+			 (sovCampaign-defender-score x)
+			 (sovCampaign-defender-name x)
+			 (sovCampaign-datetime x)))
+       (get-campaigns current-constellation)))
+
 ;; Pages
 
 (define (exec-setup req [constellation ""])
@@ -482,19 +525,19 @@
 
   (define-values (masterID adminID constellation)
     (let* ([maybe-id (sql-sov-get-master master)]
-  	   [maybe-admin (extract-post-data req #"adminID")]
-  	   [maybe-constellation (extract-post-data req #"constellation")]
-  	   [maybe-master (if (false? maybe-id) #f (sql-parse->struct maybe-id #:struct sovMaster))])
+	   [maybe-admin (extract-post-data req #"adminID")]
+	   [maybe-constellation (extract-post-data req #"constellation")]
+	   [maybe-master (if (false? maybe-id) #f (sql-parse->struct maybe-id #:struct sovMaster))])
       (values
        (if (false? maybe-master)
 	   master
-  	   (sovMaster-id maybe-master))
+	   (sovMaster-id maybe-master))
        (if (null? maybe-admin)
-  	   (sql-sov-create-session-id #:length 32)
-  	   maybe-admin)
+	   (sql-sov-create-session-id #:length 32)
+	   maybe-admin)
        (if (and (null? maybe-constellation) (not (false? maybe-master)))
-  	   (parse-constellation :name (sovMaster-constellation maybe-master))
-  	   maybe-constellation))))
+	   (parse-constellation :name (sovMaster-constellation maybe-master))
+	   maybe-constellation))))
 
   (define-values (add-admin-pass add-scout-pass pass-admin pass-admin-confirm pass-scout pass-scout-confirm)
     (values
@@ -513,8 +556,8 @@
 
   (sql-sov-update-session-masters
    (list (apply sovMaster (list masterID
-  				(parse-constellation :id constellation)
-  				(srfi-date->sql-timestamp (current-date))))))
+				(parse-constellation :id constellation)
+				(srfi-date->sql-timestamp (current-date))))))
 
   (sql-sov-update-session-slaves
    (list (apply sovSlave (list adminID
@@ -622,14 +665,47 @@
 	     (lambda (out)
 	       (output-xml (doctype 'html) out)
 	       (output-xml
-	  	(html
-	  	 (head (title "Fuzzysov Node Reporting"))
-	  	 (body
-	  	  (div 'id: "content"
-	  	       (h1 "Fuzzysov Node Reporting")
-	  	       (p "Interesting content, right?!")
-	  	       (p (format "~a" master)))))
-	  	out)))))))
+		(html
+		 (output:create-html-head
+		  #:title "Fuzzysov Node Reporting"
+		  #:tablesorter #t
+		  #:sort-column 0
+		  (list
+		   (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
+		   (meta 'http-equiv: "refresh" 'content: "30")))
+		 (body
+		  (div 'id: "content"
+		       (h1 "Fuzzysov Node Reporting")
+		       (div 'class: "subtitle" (format "~a » ~a" region-name constellation-name))
+		       (output:create-html-hint "Note: this page updates automatically every 30 seconds")
+		       (output:create-html-hint :tablesorter)
+		       (h2 "Scout reports")
+		       (output:create-html-table
+			#:head '("System" "Node" "Type" "Target" "Status" "Datetime" "Scout" "Session")
+			(map (lambda (lst) (let ([data (vector->list lst)])
+					     (if (equal? "NULL" (list-ref data 4))
+						 (list-set data 4 "Inactive")
+						 (list-update data 4 string-titlecase))))
+			     (sql-sov-get-master-data masterID)))
+		       (h2 "Progress (from API)")
+		       (output:create-html-table
+			#:id "api"
+			#:head '("System" "Type" "Attackers" "Defender" "Name" "Datetime")
+			(get-campaigns->list constellation-name))
+		       (output:create-html-hint :updated))))
+		out)))))))
+
+  (define-values (sessionID masterID region-name constellation-name)
+    (let* ([maybe-slave (sql-sov-get-slave session)]
+	   [slave-struct (sql-parse->struct maybe-slave #:struct sovSlave)]
+	   [maybe-master (sql-sov-get-master (sovSlave-masterid slave-struct))]
+	   [master-struct (sql-parse->struct maybe-master #:struct sovMaster)]
+	   [location (sql-constellation->names (sovMaster-constellation master-struct))])
+      (values
+       (sovSlave-sessionid slave-struct)
+       (sovMaster-id master-struct)
+       (first location)
+       (second location))))
 
   (send/back response-generator))
 
@@ -833,27 +909,28 @@
 	       (list
 		(style/inline 'type: "text/css" ".data { max-width: 42em; }")))
 	 (body
-	  (h1 (format "~a » ~a » ~a" region constellation system))
-	  (output:create-html-hint :tablesorter)
-	  (let ([node-count (sql-sov-get-count sessionID)])
-	    (h2 (format "Status: ~a sovereignty ~a" node-count (if (= node-count 1) "node" "nodes"))))
-	  (form 'method: "POST" 'action: "/report"
-		(input 'type: "hidden" 'name: "sessionID" 'value: sessionID 'readonly: #t)
-		(input 'type: "hidden" 'name: "region" 'value: region 'readonly: #t)
-		(input 'type: "hidden" 'name: "constellation" 'value: constellation 'readonly: #t)
-		(input 'type: "hidden" 'name: "system" 'value: system 'readonly: #t)
-		(input 'type: "hidden" 'name: "scout" 'value: scout 'readonly: #t)
-		(div 'class: "form-entry"
-		     (div 'class: "form-description" "Add new nodes")
-		     (div 'class: "form-field"
-			  (input 'type: "number" 'name: "count" 'min: 1 'max: 99 'value: 1))
-		     (input 'type: "submit")))
-	  (form 'method: "POST" 'target: "_self" 'id: "main" 'name: "main"
-		(output:create-html-table #:head '("Name" "Type" "Target" "Datetime" "Status?" "")
-					  #:drop-right 0
-					  (sql-sov-get-nodes->table sessionID))
-		(input 'type: "submit" 'id: "submit" 'value: "Update marked entries"))
-	  (output:create-html-hint :updated)))
+	  (div 'id: "content"
+	       (h1 (format "~a » ~a » ~a" region constellation system))
+	       (output:create-html-hint :tablesorter)
+	       (let ([node-count (sql-sov-get-count sessionID)])
+		 (h2 (format "Status: ~a sovereignty ~a" node-count (if (= node-count 1) "node" "nodes"))))
+	       (form 'method: "POST" 'action: "/report"
+		     (input 'type: "hidden" 'name: "sessionID" 'value: sessionID 'readonly: #t)
+		     (input 'type: "hidden" 'name: "region" 'value: region 'readonly: #t)
+		     (input 'type: "hidden" 'name: "constellation" 'value: constellation 'readonly: #t)
+		     (input 'type: "hidden" 'name: "system" 'value: system 'readonly: #t)
+		     (input 'type: "hidden" 'name: "scout" 'value: scout 'readonly: #t)
+		     (div 'class: "form-entry"
+			  (div 'class: "form-description" "Add new nodes")
+			  (div 'class: "form-field"
+			       (input 'type: "number" 'name: "count" 'min: 1 'max: 99 'value: 1))
+			  (input 'type: "submit")))
+	       (form 'method: "POST" 'target: "_self" 'id: "main" 'name: "main"
+		     (output:create-html-table #:head '("Name" "Type" "Target" "Datetime" "Status?" "")
+					       #:drop-right 0
+					       (sql-sov-get-nodes->table sessionID))
+		     (input 'type: "submit" 'id: "submit" 'value: "Update marked entries"))
+	       (output:create-html-hint :updated))))
 	out))))
 
   (define-values (sessionID region constellation system timestamp scout)
