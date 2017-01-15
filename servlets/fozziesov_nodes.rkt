@@ -14,16 +14,23 @@
 (require (prefix-in html: (only-in scribble/html/xml
 				   make-element)))
 
+(require (for-syntax racket/syntax)
+	 (for-syntax syntax/parse)
+	 (for-syntax scribble/html/html))
+
 (require eve)
 
 ;; URL dispatch
 
 (define-values (main-dispatch main-url)
   (dispatch-rules
+   [("login" (string-arg)) exec-login]
+   [("login" (string-arg)) #:method "post" exec-login-post]
    [("setup") exec-setup]
    [("setup") #:method "post" exec-setup]
    [("setup" (string-arg)) #:method "post" exec-setup-post]
-   [("join" (string-arg)) exec-join]
+   [("admin" (string-arg)) (lambda (req session) (exec-login-pre req session "admin"))]
+   [("join" (string-arg)) (lambda (req master) (exec-login-pre req master "scout"))]
    [("report") exec-report]
    [("report") #:method "post" exec-report-post]
    [("parse") #:method "post" exec-parse]
@@ -83,15 +90,10 @@
       #t
       (query-exec sqlc "CREATE TABLE sovSessionSlaves ( sessionID VARCHAR(64) NOT NULL, masterID VARCHAR(64) NOT NULL, datetime DATETIME, PRIMARY KEY ( sessionID ) )")))
 
-(define (sql-sov-create-session-auth-scout)
-  (if (table-exists? sqlc "sovSessionAuthMasters")
+(define (sql-sov-create-session-auth)
+  (if (table-exists? sqlc "sovSessionAuth")
       #t
-      (query-exec sqlc "CREATE TABLE sovSessionAuthMasters ( masterID VARCHAR(64) NOT NULL, password VARCHAR(64), salt VARCHAR(64), datetime DATETIME, PRIMARY KEY ( masterID ) )")))
-
-(define (sql-sov-create-session-auth-admin)
-  (if (table-exists? sqlc "sovSessionAuthAdmins")
-      #t
-      (query-exec sqlc "CREATE TABLE sovSessionAuthAdmins ( sessionID VARCHAR(64) NOT NULL, password VARCHAR(64), salt VARCHAR(64), datetime DATETIME, PRIMARY KEY ( sessionID ) )")))
+      (query-exec sqlc "CREATE TABLE sovSessionAuth ( id VARCHAR(64) NOT NULL, password VARCHAR(64), salt VARCHAR(64), datetime DATETIME, PRIMARY KEY ( id ) )")))
 
 ;; Update tables
 
@@ -154,21 +156,9 @@
 		     (sovSlave-datetime x)))
 	    lst))
 
-(define (sql-sov-update-auth-masters lst)
+(define (sql-sov-update-auth lst)
   (for-each (lambda (x)
-	      (query sqlc "INSERT INTO sovSessionAuthMasters VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE password=?,salt=?,datetime=?"
-		     (sovAuth-id x)
-		     (sovAuth-password x)
-		     (sovAuth-salt x)
-		     (sovAuth-datetime x)
-		     (sovAuth-password x)
-		     (sovAuth-salt x)
-		     (sovAuth-datetime x)))
-	    lst))
-
-(define (sql-sov-update-auth-admins lst)
-  (for-each (lambda (x)
-	      (query sqlc "INSERT INTO sovSessionAuthAdmins VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE password=?,salt=?,datetime=?"
+	      (query sqlc "INSERT INTO sovSessionAuth VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE password=?,salt=?,datetime=?"
 		     (sovAuth-id x)
 		     (sovAuth-password x)
 		     (sovAuth-salt x)
@@ -246,6 +236,20 @@
 				  "WHERE slave.masterID = ?")
 	      master))
 
+(define (sql-sov-get-slave session)
+  (query-maybe-row sqlc "SELECT sessionID,masterID,datetime FROM sovSessionSlaves WHERE sessionID = ?" session))
+
+(define (sql-sov-get-auth id)
+  (query-maybe-row sqlc "SELECT id,password,salt,datetime FROM sovSessionAuth WHERE id = ?" id))
+
+(define (sql-sov-get-auth-data id)
+  (query-maybe-row sqlc "SELECT id,password,salt FROM sovSessionAuth WHERE id = ?" id))
+
+(define (sql-sov-get-auth->scrypt-hash query)
+  (if (false? query)
+      null
+      (sql-parse->struct query #:struct scrypt-hash)))
+
 ;; SQL helper functions
 
 (define (sql-sov-create-session-id #:length [length 32])
@@ -259,6 +263,7 @@
     (query-exec sqlc "TRUNCATE sovNodesRaw")
     (query-exec sqlc "TRUNCATE sovSessionRaw")
     (query-exec sqlc "TRUNCATE sovSessionNames")
+    (query-exec sqlc "TRUNCATE sovSessionAuth")
     (query-exec sqlc "TRUNCATE sovSessionMasters")
     (query-exec sqlc "TRUNCATE sovSessionSlaves")))
 
@@ -349,8 +354,7 @@
 	       (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column wrap; margin-bottom: 1em; }")
 	       (style/inline 'type: "text/css" ".form-password { margin-bottom: 1em; padding: 1em 1em 0; border: 1px solid lightgrey; }")
 	       (literal (style/inline 'type: "text/css" " input[type='password'], select { width: 100%; }"))
-	       (style/inline 'type: "text/css" ".form-error { margin-bottom: 1em; color: indianred; }")
-	       (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: inherit; font-size: large; }")
+	       (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
 	       (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column wrap; align-items: flex-start;  margin: 0 2em; }")
 	       (style/inline 'type: "text/css" "#main { border: 1px solid black; background-color: whitesmoke; padding: 1em; }"))
 	 (body
@@ -370,6 +374,12 @@
 			  (div 'class: "form-field"
 			       (select 'name: "constellation"
 				       (map (lambda (name) (option 'value: name name)) (region->constellations region)))))
+		     (div 'class: "form-entry"
+			  (div 'class: "form-field"
+			       (input 'type: "checkbox" 'name: "add-admin-pass" 'value: 1 "Admin password?")))
+		     (div 'class: "form-entry"
+			  (div 'class: "form-field"
+			       (input 'type: "checkbox" 'name: "add-scout-pass" 'value: 1 "Scout password?")))
 		     (input 'type: "submit" 'value: "Submit"))
 	       (form 'id: "inner" 'name: "inner" 'method: "POST"))))
 	out))))
@@ -397,9 +407,9 @@
 	       (style/inline 'type: "text/css" ".form-password { margin-bottom: 1em; padding: 1em 1em 0; border: 1px solid lightgrey; }")
 	       (literal (style/inline 'type: "text/css" " input[type='password'], select { width: 100%; }"))
 	       (style/inline 'type: "text/css" ".form-error { margin-bottom: 1em; color: indianred; display: none; }")
-	       (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: inherit; font-size: large; }")
+	       (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
 	       (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column wrap; align-items: flex-start;  margin: 0 2em; }")
-	       (style/inline 'type: "text/css" "#main { border: 1px solid black; background-color: whitesmoke; padding: 1em; }")
+	       (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 1em; }")
 	       (script 'type: "text/javascript" (literal "function checkPW(form,e1,e2,error) { var err = document.getElementById(error); if (form.elements[e1].value == form.elements[e2].value ) { err.style.display = 'none'; form.elements['submit'].disabled = false } else { err.style.display = 'block'; form.elements['submit'].disabled = true } };")))
 	 (body
 	  (div 'id: "content"
@@ -413,42 +423,62 @@
 		  (a 'target: "_blank" 'rel: "noopener noreferrer" 'href: (format "/join/~a" masterID) join-link))
 	       (p "Please use the following link to get to your admin page: "
 		  (a 'target: "_blank" 'rel: "noopener noreferrer" 'href: (format "/admin/~a" adminID) admin-link))
-	       (form 'id: "main" 'name: "main" 'method: "POST"
-		     (div 'class: "form-password"
-		     	  ;; (if (false? pass-admin-match?) (div 'class: "form-error" "Passwords do not match") null)
-			  ;; (div 'class: "form-error" 'id: "admin-error" "Passwords do not match")
-		     	  (div 'class: "form-entry"
-		     	       (div 'class: "form-description" "Admin password")
-		     	       (div 'class: "form-field"
-		     		    (input 'type: "password" 'name: "pass-admin" 'id: "pass-admin")))
-		     	  (div 'class: "form-entry"
-		     	       (div 'class: "form-description" "Confirm password")
-		     	       (div 'class: "form-field"
-		     		    (input 'type: "password"
-					   'name: "pass-admin-confirm"
-					   'id: "pass-admin-confirm"
-					   'onChange: "checkPW(main,'pass-admin',1,'admin-error');")))
-			  (div 'class: "form-error" 'id: "admin-error" "Entries don't match"))
-		     (div 'class: "form-password"
-		     	  ;; (if (false? pass-scout-match?) (div 'class: "form-error" "Passwords do not match") null)
-			  ;; (div 'class: "form-error" 'id: "scout-error" "Passwords do not match")
-		     	  (div 'class: "form-entry"
-		     	       (div 'class: "form-description" "Scout password")
-		     	       (div 'class: "form-field"
-		     		    (input 'type: "password" 'name: "pass-scout" 'id: "pass-scout")))
-		     	  (div 'class: "form-entry"
-		     	       (div 'class: "form-description" "Confirm password")
-		     	       (div 'class: "form-field"
-		     		    (input 'type: "password"
-					   'name: "pass-scout-confirm"
-					   'id: "pass-scout-confirm"
-					   'onChange: "checkPW(main,2,3,'scout-error');")))
-			  (div 'class: "form-error" 'id: "scout-error" "Entries don't match"))
-		     (input 'type: "hidden" 'name: "adminID" 'value: adminID 'readonly: #t)
-		     (input 'type: "hidden" 'name: "constellation" 'value: constellation 'readonly: #t)
-		     ;; (input 'type: "submit" 'id: "submit" 'form: "main" 'disabled: block-submit? 'value: "Submit")))))
-		     (input 'type: "submit" 'id: "submit" 'form: "main" 'value: "Submit")))))
+	       (if (not (and (or (string-empty? add-admin-pass) (null? add-admin-pass))
+			     (or (string-empty? add-scout-pass) (null? add-scout-pass))))
+		   (form 'id: "main" 'name: "main" 'method: "POST"
+			 (create-html-password-form "admin")
+			 (create-html-password-form "scout")
+			 (input 'type: "hidden" 'name: "adminID" 'value: adminID 'readonly: #t)
+			 (input 'type: "hidden" 'name: "constellation" 'value: constellation 'readonly: #t)
+			 (input 'type: "submit" 'id: "submit" 'form: "main" 'value: "Submit"))
+		   null))))
 	out))))
+
+  (define-syntax (create-html-password-form stx)
+    (syntax-case stx ()
+      [(_ name)
+       (with-syntax ([make-name (format "pass-~a" (syntax->datum #'name))]
+		     [make-name-id (format-id #'name "pass-~a" (syntax->datum #'name))]
+		     [make-confirm (format "pass-~a-confirm" (syntax->datum #'name))]
+		     [make-confirm-id (format-id #'name "pass-~a-confirm" (syntax->datum #'name))]
+		     [make-error (format "error-~a" (syntax->datum #'name))]
+		     [make-add (format "add-~a-pass" (syntax->datum #'name))]
+		     [make-add-id (format-id #'name "add-~a-pass" (syntax->datum #'name))]
+		     [make-match (format-id #'name "pass-~a-match?" (syntax->datum #'name))])
+	 #'(cond [(and (not (or (null? make-add-id) (equal? make-add-id "")))
+		       (or (null? make-name-id) (equal? make-name-id "")))
+		  (div 'class: "form-password"
+		       (div 'class: "form-entry"
+			    (div 'class: "form-description"
+				 (format "~a password" (string-titlecase (syntax->datum #'name))))
+			    (div 'class: "form-field"
+				 (input 'type: "password"
+					'name: make-name
+					'id: make-name
+					'required: #t)))
+		       (div 'class: "form-entry"
+			    (div 'class: "form-description" "Confirm password")
+			    (div 'class: "form-field"
+				 (input 'type: "password"
+					'name: make-confirm
+					'id: make-confirm
+					'required: #t
+					'onChange: (format "checkPW(main,'~a','~a','~a');"
+							   make-name
+							   make-confirm
+							   make-error))))
+		       (div 'class: "form-error" 'id: make-error "Entries don't match"))]
+		 ;; (input 'type: "hidden" 'name: make-add 'value: make-add-id 'readonly: #t)
+		 ;; [(and (not (or (null? make-name-id) (equal? make-name-id ""))) (equal? make-name-id make-confirm-id))
+		 ;;  (div 'class: "form-entry"
+		 ;;       (format "~a password set" (string-titlecase (syntax->datum #'name)))
+		 ;;       (input 'type: "hidden" 'name: make-name 'value: make-name-id 'readonly: #t)
+		 ;;       (input 'type: "hidden" 'name: make-confirm 'value: make-confirm-id 'readonly: #t))]
+		 [(and (not (or (null? make-name-id) (equal? make-name-id ""))) (or (null? make-add-id) (equal? make-add-id "")))
+		  (list
+		   (input 'type: "hidden" 'name: make-name 'value: make-name-id 'readonly: #t)
+		   (input 'type: "hidden" 'name: make-confirm 'value: make-confirm-id 'readonly: #t))]
+		 [else null]))]))
 
   (define-values (masterID adminID constellation)
     (let* ([maybe-id (sql-sov-get-master master)]
@@ -457,7 +487,6 @@
   	   [maybe-master (if (false? maybe-id) #f (sql-parse->struct maybe-id #:struct sovMaster))])
       (values
        (if (false? maybe-master)
-  	   ;; (response/full 404 #"Not Found" (current-seconds) TEXT/HTML-MIME-TYPE null null)
 	   master
   	   (sovMaster-id maybe-master))
        (if (null? maybe-admin)
@@ -467,16 +496,17 @@
   	   (parse-constellation :name (sovMaster-constellation maybe-master))
   	   maybe-constellation))))
 
-  ;; (define-values (pass-admin pass-admin-confirm pass-scout pass-scout-confirm)
-  ;;   (values
-  ;;    (extract-post-data req #"pass-admin")
-  ;;    (extract-post-data req #"pass-admin-confirm")
-  ;;    (extract-post-data req #"pass-scout")
-  ;;    (extract-post-data req #"pass-scout-confirm")))
+  (define-values (add-admin-pass add-scout-pass pass-admin pass-admin-confirm pass-scout pass-scout-confirm)
+    (values
+     (extract-post-data req #"add-admin-pass")
+     (extract-post-data req #"add-scout-pass")
+     (extract-post-data req #"pass-admin")
+     (extract-post-data req #"pass-admin-confirm")
+     (extract-post-data req #"pass-scout")
+     (extract-post-data req #"pass-scout-confirm")))
 
-  ;; (define pass-admin-match? (if (equal? pass-admin pass-admin-confirm) #t #f))
-  ;; (define pass-scout-match? (if (equal? pass-scout pass-scout-confirm) #t #f))
-  ;; (define block-submit? (if (or (false? pass-admin-match?) (false? pass-scout-match?)) #t #f))
+  (define pass-admin-match? (and (not (or (null? pass-admin) (string-empty? pass-admin))) (equal? pass-admin pass-admin-confirm)))
+  (define pass-scout-match? (and (not (or (null? pass-scout) (string-empty? pass-scout))) (equal? pass-scout pass-scout-confirm)))
 
   (define join-link (format "~a/join/~a" (header-value (headers-assq* #"host" (request-headers/raw req))) masterID))
   (define admin-link (format "~a/admin/~a" (header-value (headers-assq* #"host" (request-headers/raw req))) adminID))
@@ -486,15 +516,120 @@
   				(parse-constellation :id constellation)
   				(srfi-date->sql-timestamp (current-date))))))
 
-  ;; (when (and pass-admin-match? (false? block-submit?) (string? pass-admin))
-  ;;   (sql-sov-update-auth-admins (list (struct-copy scrypt-hash
-  ;; 						   (auth:scrypt-input->hash (string->bytes/utf-8 pass-admin) #:length 32)
-  ;; 						   [user adminID]))))
-  
-  ;; (when (and pass-scout-match? (false? block-submit?) (string? pass-scout))
-  ;;   (sql-sov-update-auth-masters (list (struct-copy scrypt-hash
-  ;; 						    (auth:scrypt-input->hash (string->bytes/utf-8 pass-scout) #:length 32)
-  ;; 						    [user masterID]))))
+  (sql-sov-update-session-slaves
+   (list (apply sovSlave (list adminID
+			       masterID
+			       (srfi-date->sql-timestamp (current-date))))))
+
+  (define-syntax (update-matching-passwords stx)
+    (syntax-case stx ()
+      [(_ name #:id id)
+       (with-syntax ([make-name-id (format-id #'name "~a" (syntax->datum #'name))]
+		     [make-confirm-id (format-id #'name "~a-confirm" (syntax->datum #'name))])
+	 #'(when (and (equal? make-name-id make-confirm-id) (string? make-name-id))
+	     (let ([pass-hash (auth:scrypt-input->hash (string->bytes/utf-8 make-name-id) #:length 32)])
+	       (sql-sov-update-auth (list (sovAuth id
+						   (scrypt-hash-input pass-hash)
+						   (scrypt-hash-salt pass-hash)
+						   (srfi-date->sql-timestamp (current-date))))))))]))
+
+  (update-matching-passwords "pass-admin" #:id adminID)
+  (update-matching-passwords "pass-scout" #:id masterID)
+
+  (send/back response-generator))
+
+(define (exec-login-pre req [session ""] [type "admin"])
+  (define (dispatch-type type)
+    (match type
+      ["admin" (exec-admin req session)]
+      ["scout" (exec-join req session)]))
+  (let* ([auth-cookie (findf (lambda (c) (string=? "access_token" (client-cookie-name c))) (request-cookies req))]
+	 [auth-token (if (client-cookie? auth-cookie) (client-cookie-value auth-cookie) #f)]
+	 [auth-struct (if (string? auth-token) (auth:extract-data (auth:verify-token auth-token)) #f)]
+	 [maybe-id (if (recon-jwt? auth-struct) (recon-jwt-subject auth-struct) #f)])
+    (cond [(and (or (not (false? (sql-sov-get-slave session)))
+		    (not (false? (sql-sov-get-master session))))
+		(false? (sql-sov-get-auth-data session)))
+	   (dispatch-type type)]
+	  [(and (not (false? auth-struct))
+		(equal? maybe-id session))
+	   (dispatch-type type)]
+	  [else (redirect-to (format "/login/~a" session))])))
+
+(define (exec-login req [session ""])
+  (define response-generator
+    (let ([maybe-slave (sql-sov-get-slave session)]
+	  [maybe-master (sql-sov-get-master session)])
+      (if (and (false? maybe-slave) (false? maybe-master))
+	  (response/full 404 #"Not Found" (current-seconds) TEXT/HTML-MIME-TYPE null null)
+	  (response/output 
+	   (lambda (out)
+	     (output-xml (doctype 'html) out)
+	     (output-xml
+	      (html
+	       (head (title "Fuzzysov Node Reporting")
+		     (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
+		     (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column nowrap; margin-bottom: 1em; }")
+		     (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
+		     (style/inline 'type: "text/css" "#links { display:flex; flex-flow: column nowrap; }")
+		     (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 2em;  }"))
+	       (body
+		(div 'id: "content"
+		     (h1 "Fuzzysov Node Reporting")
+		     (form 'method: "POST"
+			   (div 'class: "form-entry"
+				(div 'class: "form-description" "Password")
+				(div 'class: "form-field" (input 'type: "password" 'name: "pass" 'required: #t)))
+			   (input 'type: "submit" 'value: "Submit")))))
+	      out))))))
+
+  (send/back response-generator))
+
+(define (exec-login-post req [session ""])
+
+  (define-values (pass)
+    (values
+     (extract-post-data req #"pass")))
+
+  (define pass-valid?
+    (let ([maybe-pass (sql-sov-get-auth->scrypt-hash (sql-sov-get-auth-data session))])
+      (cond [(and (scrypt-hash? maybe-pass)
+		  (auth:scrypt-check-hash maybe-pass (string->bytes/utf-8 pass) #:length 32))
+	     #t]
+	    [else #f])))
+
+  (define token-result
+    (cond [pass-valid? (auth:create-token #:subject session #:expiration 86400)]
+	  [else #f]))
+
+  (if (not (false? token-result))
+      (let ([redirect-target (if (false? (sql-sov-get-slave session)) "join" "admin")])
+	(redirect-to (format "/~a/~a" redirect-target session)
+		     #:headers (list (auth:create-authorization-header token-result)
+				     (cookie->header (make-cookie "access_token" token-result
+								  #:max-age 86400
+								  #:path (format "/~a" redirect-target))))))
+      (exec-login req session)))
+
+(define (exec-admin req [session ""])
+  (define response-generator
+    (let* ([maybe-session (sql-sov-get-slave session)]
+	   [maybe-master (sql-sov-get-master (sovSlave-masterid (sql-parse->struct maybe-session #:struct sovSlave)))])
+      (if (false? maybe-master)
+	  (response/full 404 #"Not Found" (current-seconds) TEXT/HTML-MIME-TYPE null null)
+	  (let ([master (sql-parse->struct maybe-master #:struct sovMaster)])
+	    (response/output
+	     (lambda (out)
+	       (output-xml (doctype 'html) out)
+	       (output-xml
+	  	(html
+	  	 (head (title "Fuzzysov Node Reporting"))
+	  	 (body
+	  	  (div 'id: "content"
+	  	       (h1 "Fuzzysov Node Reporting")
+	  	       (p "Interesting content, right?!")
+	  	       (p (format "~a" master)))))
+	  	out)))))))
 
   (send/back response-generator))
 
@@ -519,7 +654,7 @@
 	 (head (title "Fuzzysov Node Reporting")
 	       (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
 	       (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column wrap; margin-bottom: 1em; }")
-	       (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: inherit; font-size: large; }")
+	       (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
 	       (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column wrap; align-items: flex-start;  margin: 0 2em; }")
 	       (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 1em; }"))
 	 (body
