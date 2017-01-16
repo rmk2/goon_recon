@@ -74,6 +74,11 @@
 (timerboard-prepare-table)
 (timerboard-create-view)
 
+;; Create sovereignty tables
+
+(sov:sql-sov-create-campaigns-raw)
+(sov:sql-sov-create-campaigns-view)
+
 ;; Create super canary tables
 
 (sql-canary-create-corporations)
