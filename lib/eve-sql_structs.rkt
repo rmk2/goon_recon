@@ -67,3 +67,9 @@
 
 ;; Basic auth user, email+salt, password+salt
 (struct scrypt-full (user email email-salt password password-salt) #:prefab)
+
+;; CREST sovereignty campaigns full
+(struct sovCampaign-full (campaignid constellationid constellationname systemid systemname typeid typename attackerscore defenderscore defenderid defendername datetime) #:transparent)
+
+;; CREST sovereignty campaigns short (for HTML tables)
+(struct sovCampaign (system type attacker-score defender-score defender-name datetime) #:transparent)

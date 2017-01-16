@@ -40,10 +40,15 @@
 ;; JSON parsing
 
 (define-syntax json-filter
-  (syntax-rules (:name :defender-raw :defender :defender-name :attackers :system
-		       :system-name :constellation :time :score :type-raw :type
-		       :constellation-id :href :region :items)
+  (syntax-rules (:name :score :id :id_str :campaign :defender-raw :defender
+		       :defender-name :attackers :system :system-name
+		       :constellation :time :score :type-raw :type :constellation-id
+		       :href :region :items)
     ((_ :name f) (hash-ref f 'name))
+    ((_ :score f) (hash-ref f 'score))
+    ((_ :id f) (hash-ref f 'id))
+    ((_ :id_str f) (hash-ref f 'id_str))
+    ((_ :campaign hash) (hash-ref hash 'campaignID))
     ((_ :defender-raw hash) (hash-ref hash 'defender))
     ((_ :defender hash) (hash-ref (json-filter :defender-raw hash) 'defender))
     ((_ :defender-name hash) (json-filter :name (json-filter :defender hash)))
