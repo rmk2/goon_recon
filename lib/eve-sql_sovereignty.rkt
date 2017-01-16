@@ -24,6 +24,11 @@
       #t
       (query-exec sqlc "CREATE VIEW sovCampaignsView AS SELECT s.campaignID,r.regionID,r.regionName,s.constellationID,s.constellationName,s.solarSystemID,s.solarSystemName,s.sovTypeID,s.sovTypeName,s.attackerScore,s.defenderScore,s.defenderID,s.defenderName,datetime FROM sovCampaignsRaw AS s LEFT JOIN mapConstellations AS c ON c.constellationID = s.constellationID LEFT JOIN mapRegions AS r ON r.regionID = c.regionID")))
 
+(define (sql-sov-prepare-campaigns-raw)
+  (if (table-exists? sqlc "sovCampaignsRaw")
+      (query-exec sqlc "TRUNCATE sovCampaignsRaw")
+      (sql-sov-create-campaigns-raw)))
+
 ;; Update SQL tables
 
 (define (sql-sov-update-campaigns-raw lst)
