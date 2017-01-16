@@ -51,8 +51,6 @@
 
 (struct sovAuth (id password salt datetime) #:transparent)
 
-(struct sovCampaign (system type attacker-score defender-score defender-name datetime) #:transparent)
-
 ;; SQL
 
 ;; Create tables/views
@@ -341,47 +339,6 @@
 	 (let ([id (car node)] [inner (cadr node)])
 	   (append (list id) inner)))
        lst))
-
-;; Get sovereignty campaign status for the current region
-
-(define (get-campaigns current-constellation)
-  (let ([current-seconds-utc (time-second (date->time-utc (current-date)))])
-    (sort
-     (filter-map (lambda (hash)
-		   (let* ([constellation-raw (timers:json-filter :constellation hash)]
-			  [constellation-id (hash-ref constellation-raw 'id)]
-			  [constellation-name (hash-ref constellation-raw 'name)]
-			  [constellation-match? (match current-constellation
-						  [(? number? const) (= constellation-id const)]
-						  [(? string? const) (equal? constellation-name const)])])
-		     (if (and constellation-match?
-			      (<= (time-second (date->time-utc (string->date (timers:json-filter :time hash) "~Y-~m-~dT~H:~M:~S")))
-				  current-seconds-utc))
-			 (sovCampaign (timers:json-filter :system-name hash)
-				      (timers:json-filter :type hash)
-				      (if (hash-has-key? hash 'attackers)
-					  (hash-ref (timers:json-filter :attackers hash) 'score)
-					  "")
-				      (if (hash-has-key? hash 'defender)
-					  (hash-ref (timers:json-filter :defender-raw hash) 'score)
-					  "")
-				      (if (hash-has-key? hash 'defender)
-					  (timers:json-filter :defender-name hash)
-					  "")
-				      (timers:json-filter :time hash))
-			 #f)))
-		 (hash-ref (json-api "https://crest-tq.eveonline.com/sovereignty/campaigns/") 'items))
-     string-ci<=?
-     #:key (lambda (campaign) (sovCampaign-system campaign)))))
-
-(define (get-campaigns->list current-constellation)
-  (map (lambda (x) (list (sovCampaign-system x)
-			 (sovCampaign-type x)
-			 (sovCampaign-attacker-score x)
-			 (sovCampaign-defender-score x)
-			 (sovCampaign-defender-name x)
-			 (sovCampaign-datetime x)))
-       (get-campaigns current-constellation)))
 
 ;; Pages
 
