@@ -648,7 +648,7 @@
 		       (output:create-html-table
 			#:id "api"
 			#:head '("System" "Type" "Attackers" "Defender" "Name" "Datetime")
-			(get-campaigns->list constellation-name))
+			(sov:get-campaigns->list constellation-name))
 		       (output:create-html-hint :updated))))
 		out)))))))
 
