@@ -59,6 +59,13 @@
 		     (sovCampaign-full-datetime x)))
 	    lst))
 
+;; Replace customTimerboardView with a view based on sovCampaignsView
+
+(define (sql-sov-create-timerboard-view)
+  (if (table-exists? sqlc "sovTimerboardView")
+      #t
+      (query-exec sqlc "CREATE VIEW sovTimerboardView AS SELECT s.regionName,s.constellationName,s.solarSystemName,s.sovTypeName AS structureType,IF(s.sovTypeID=4,'',a.allianceTicker),IF(s.sovTypeID=4,'*free-for-all',a.allianceName),s.datetime FROM sovCampaignsView AS s LEFT JOIN customAlliances AS a ON s.defenderID = a.allianceID")))
+
 ;; Query SQL tables
 
 (define (sql-sov-get-campaigns-constellation constellation)
