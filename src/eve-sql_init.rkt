@@ -11,6 +11,7 @@
 ;; Create corporation table
 
 (sql-corporation-create-raw)
+(sql-corporation-create-input)
 
 ;; Create corporation affiliation table
 
