@@ -71,8 +71,8 @@
 
 ;; Create timerboard table
 
-(timerboard-prepare-table)
-(timerboard-create-view)
+(timers:timerboard-prepare-table)
+(timers:timerboard-create-view)
 
 ;; Create sovereignty tables
 
