@@ -24,9 +24,9 @@
 
 ;; Create super tracking/watchlist tables
 
-(sql-super-create-affiliations)
 (sql-super-create-raw)
 (sql-super-create-view)
+(sql-super-create-affiliations)
 (sql-super-create-latest)
 (sql-super-create-watchlist)
 
