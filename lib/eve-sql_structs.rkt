@@ -73,3 +73,6 @@
 
 ;; CREST sovereignty campaigns short (for HTML tables)
 (struct sovCampaign (system type attacker-score defender-score defender-name datetime) #:transparent)
+
+;; SSO character data and refresh token
+(struct sql-sso-auth (characterid charactername refresh-token datetime))
