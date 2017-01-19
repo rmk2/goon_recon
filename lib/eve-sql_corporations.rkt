@@ -10,7 +10,7 @@
 (define (sql-corporation-create-raw)
   (if (table-exists? sqlc "customCorporations")
       #t
-      (query-exec sqlc "CREATE TABLE customCorporations ( corporationID INT NOT NULL, corporationTicker VARCHAR(5) NOT NULL, corporationName VARCHAR(255) NOT NULL, PRIMARY KEY ( corporationID ), UNIQUE KEY ( corporationTicker ) )")))
+      (query-exec sqlc "CREATE TABLE customCorporations ( corporationID INT NOT NULL, corporationTicker VARCHAR(5) NOT NULL, corporationName VARCHAR(255) NOT NULL, PRIMARY KEY ( corporationID ), UNIQUE KEY ( corporationTicker ), KEY ( corporationName ) )")))
 
 (define (sql-corporation-update-corporations lst)
   (for-each (lambda (x)
