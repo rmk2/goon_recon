@@ -6,7 +6,8 @@
 (require (only-in openssl/sha1 bytes->hex-string))
 
 (require file/gzip
-	 file/gunzip)
+	 file/gunzip
+	 racket/serialize)
 
 (provide (all-defined-out))
 
@@ -54,11 +55,13 @@
 
 (define-syntax (dscan-local->string stx)
   (syntax-case stx (:id :write :read :read-id)
-    [(_ param) #'(with-output-to-string (lambda () (write param)))]
+    [(_ param) #'(with-output-to-string (lambda () (write (serialize param))))]
     [(_ :id param) #'(dscan-data->id (dscan-local->string param))]
     [(_ :write param) #'(dscan-gzip-write (dscan-local->string param) "./")]
     [(_ :write param prefix) #'(dscan-gzip-write (dscan-local->string param) prefix)]
-    [(_ :read param) #'(read (open-input-bytes (dscan-gunzip-read (dscan-data->id (dscan-local->string param)) "./")))]
-    [(_ :read param prefix) #'(read (open-input-bytes (dscan-gunzip-read (dscan-data->id (dscan-local->string param)) prefix)))]
-    [(_ :read-id id) #'(read (open-input-bytes (dscan-gunzip-read id)))]
-    [(_ :read-id id prefix) #'(read (open-input-bytes (dscan-gunzip-read id prefix)))]))
+    [(_ :read param)
+     #'(deserialize (read (open-input-bytes (dscan-gunzip-read (dscan-data->id (dscan-local->string param)) "./"))))]
+    [(_ :read param prefix)
+     #'(deserialize (read (open-input-bytes (dscan-gunzip-read (dscan-data->id (dscan-local->string param)) prefix))))]
+    [(_ :read-id id) #'(deserialize (read (open-input-bytes (dscan-gunzip-read id))))]
+    [(_ :read-id id prefix) #'(deserialize (read (open-input-bytes (dscan-gunzip-read id prefix))))]))
