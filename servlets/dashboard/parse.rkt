@@ -24,8 +24,8 @@
 
   (cond [(> (length (string-split dscan "\t")) 1)
 	 (begin
-	   (when persist-dscan? (dscan-gzip-write dscan))
-	   (send/back (redirect-to (string-append "/dscan/" (dscan-data->id dscan)))))]
+	   (when persist-dscan? (dscan-local->string :write dscan))
+	   (send/back (redirect-to (string-append "/dscan/" (dscan-local->string :id dscan)))))]
 	[(and persist-dscan? (> (length (string-split dscan "\r\n")) 1))
 	 (exec-write-local #:dscan dscan)]
 	[else (exec-dscan #:dscan "No D-Scan found!" #:location null #:request req)]))
@@ -34,9 +34,10 @@
 
 (define (exec-parse-archive req id)
   (if (file-exists? (build-path (dscan-id->filename id)))
-      (if (list? (dscan-local->string :read-id id))
-	  (exec-prepare-local #:dscan (dscan-local->string :read-id id) #:request req)
-	  (exec-prepare-dscan #:dscan (bytes->string/locale (dscan-gunzip-read id)) #:request req))
+      (let ([data (dscan-local->string :read-id id)])
+	(if (list? data)
+	    (exec-prepare-local #:dscan data #:request req)
+	    (exec-prepare-dscan #:dscan data #:request req)))
       (exec-dscan #:dscan "No D-Scan found!" #:location null #:request req)))
 
 ;; Parse dscan, send it on to display its output
