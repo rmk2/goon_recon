@@ -76,3 +76,6 @@
 
 ;; SSO character data and refresh token
 (struct sql-sso-auth (characterid charactername refresh-token datetime))
+
+;; Whitelist addition/removal (+ customAlliances|customCorporations)
+(struct sql-whitelist (action type content datetime username) #:transparent)
