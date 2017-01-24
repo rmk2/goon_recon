@@ -8,6 +8,8 @@
 (require "eve-sql_main.rkt")
 (require "eve-sql_structs.rkt")
 
+(provide (all-defined-out))
+
 ;; SQL
 
 ;; Create tables
