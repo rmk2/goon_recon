@@ -1,6 +1,7 @@
 #lang racket
 
 (require db)
+(require db/util/datetime)
 (require srfi/19)
 
 (require (for-syntax racket/syntax)
