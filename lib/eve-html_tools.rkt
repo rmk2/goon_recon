@@ -112,7 +112,7 @@
    (style/inline 'type: "text/css" ".form-password { margin-bottom: 1em; padding: 1em 1em 0; border: 1px solid lightgrey; }")
    (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
    (style/inline 'type: "text/css" ".info { border: 1px solid black; background-color: whitesmoke; padding: 1.5em; margin-bottom: 1em; }")
-   (literal (style/inline 'type: "text/css" ".info > p { display: flex; justify-content: center; }"))
+   (literal (style/inline 'type: "text/css" ".info > * { display: flex; justify-content: center; }"))
    (if form-background?
        (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 1em; }")
        null)
