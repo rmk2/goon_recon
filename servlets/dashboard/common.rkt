@@ -99,3 +99,11 @@
 				       (make-header #"Pragma" #"no-cache")
 				       (make-header #"Expires" #"0")))
 		    body)]))
+
+;; Try whether request has a header valid JWT token as a cookie
+
+(define (try-auth-cookie req #:type [type "registration_token"])
+  (let* ([auth-cookie (findf (lambda (c) (string=? type (client-cookie-name c))) (request-cookies req))]
+	 [auth-token (if (client-cookie? auth-cookie) (client-cookie-value auth-cookie) #f)]
+	 [auth-struct (if (string? auth-token) (auth:extract-data (auth:verify-token auth-token)) #f)])
+    auth-struct))
