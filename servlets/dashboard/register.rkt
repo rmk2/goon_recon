@@ -26,7 +26,10 @@
 	       (form 'method: "POST"
 		     (div 'class: "form-entry"
 			  (div 'class: "form-description" "Username")
-			  (div 'class: "form-field" (input 'type: "text" 'name: "user" 'required: #t)))
+			  (div 'class: "form-field"
+			       (cond [(not (false? maybe-auth-struct))
+				      (input 'type: "text" 'value: (recon-jwt-username maybe-auth-struct) 'disabled: #t)]
+				     [else (input 'type: "text" 'name: "user" 'required: #t)])))
 		     (div 'class: "form-entry"
 			  (div 'class: "form-description" "Email")
 			  (div 'class: "form-field" (input 'type: "text" 'name: "email" 'required: #t)))
@@ -40,6 +43,8 @@
 	       (div 'id: "links"
 		    (a 'href: "login" "Continue to login")))))
 	out))))
+
+  (define maybe-auth-struct (try-auth-cookie req #:type "registration_token"))
 
   (send/back response-generator))
 
@@ -74,11 +79,12 @@
 	out))))
 
   (define-values (user email pass pass-confirm)
-    (values
-     (extract-post-data req #"user")
-     (extract-post-data req #"email")
-     (extract-post-data req #"pass")
-     (extract-post-data req #"pass-confirm")))
+    (let ([maybe-auth-struct (try-auth-cookie req #:type "registration_token")])
+      (values
+       (if (false? maybe-auth-struct) (extract-post-data req #"user") (recon-jwt-username maybe-auth-struct))
+       (extract-post-data req #"email")
+       (extract-post-data req #"pass")
+       (extract-post-data req #"pass-confirm"))))
 
   (define passwords-match?
     (if (equal? pass pass-confirm)
