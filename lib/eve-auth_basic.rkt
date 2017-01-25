@@ -27,6 +27,11 @@
       #t
       (query-exec sqlc "CREATE TABLE authBasicMail ( user VARCHAR(255) NOT NULL, email VARCHAR(64) NOT NULL, salt VARCHAR(64) NOT NULL, datetime DATETIME NOT NULL, PRIMARY KEY (user) )")))
 
+(define (sql-auth-create-user-characters)
+  (if (table-exists? sqlc "authBasicCharacters")
+      #t
+      (query-exec sqlc "CREATE VIEW authBasicCharacters AS SELECT a.user,c.characterID,c.corporationID,c.corporationName,c.allianceID,c.allianceName,c.datetime FROM authBasic AS a LEFT JOIN customCharacters AS c ON a.user = c.characterName")))
+
 ;; Insert data into tables
 
 (define (sql-auth-insert-user hash)
