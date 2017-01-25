@@ -12,6 +12,7 @@
   (define response-generator
     (response/output
      (lambda (out)
+       (output-xml (doctype 'html) out)
        (output-xml
 	(html
 	 (output:create-html-head
@@ -48,6 +49,7 @@
   (define response-generator
     (response/output
      (lambda (out)
+       (output-xml (doctype 'html) out)
        (output-xml
 	(html
 	 (output:create-html-head
