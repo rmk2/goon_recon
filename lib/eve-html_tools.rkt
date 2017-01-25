@@ -52,6 +52,8 @@
 			  #:sort-column [sort-column 6]
 			  #:tablesorter [tablesorter? #t]
 			  #:navigation [navigation? #f]
+			  #:forms [forms? #f]
+			  #:password-check [password-check? #f]
 			  [extra-fields null])
   (head
    (meta 'charset: "utf-8")
@@ -63,6 +65,8 @@
    (style/inline 'type: "text/css" "tr:nth-child(2n) { background-color: #efefef; }")
    (if tablesorter? (create-html-head-tablesorter sort-column) null)
    (if navigation? (create-html-head-navigation) null)
+   (if forms? (create-html-head-form) null)
+   (if password-check? (create-html-head-check-password) null)
    extra-fields))
 
 (define (create-html-head-tablesorter sort-column)
@@ -97,6 +101,31 @@
 						  ".nav-submenu { display: none; border: 1px solid indianred; } "
 						  ".nav-dropdown:hover .nav-submenu { display: flex; position: absolute; } "
 						  "}"))))
+
+(define (create-html-head-form #:content-flex? [content-flex? #t]
+			       #:form-background? [form-background? #t]
+			       #:password-stretch? [password-stretch? #t])
+  (list
+   (style/inline 'type: "text/css" "#links { display:flex; flex-flow: column nowrap; }")
+   (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
+   (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column wrap; margin-bottom: 1em; }")
+   (style/inline 'type: "text/css" ".form-password { margin-bottom: 1em; padding: 1em 1em 0; border: 1px solid lightgrey; }")
+   (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
+   (style/inline 'type: "text/css" ".info { border: 1px solid black; background-color: whitesmoke; padding: 1.5em; margin-bottom: 1em; }")
+   (literal (style/inline 'type: "text/css" ".info > p { display: flex; justify-content: center; }"))
+   (if form-background?
+       (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 1em; }")
+       null)
+   (if password-stretch?
+       (literal (style/inline 'type: "text/css" " input[type='password'], select { width: 100%; }"))
+       null)
+   (if content-flex?
+       (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
+       null)))
+
+(define (create-html-head-check-password)
+  (list
+   (script 'type: "text/javascript" (literal "function checkPW(form,e1,e2,error) { var err = document.getElementById(error); if (form.elements[e1].value == form.elements[e2].value ) { err.style.display = 'none'; form.elements['submit'].disabled = false } else { err.style.display = 'block'; form.elements['submit'].disabled = true } };"))))
 
 (define-syntax create-html-hint
   (syntax-rules (:tablesorter :updated)
