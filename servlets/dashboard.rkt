@@ -28,7 +28,8 @@
 	 "dashboard/timers.rkt"
 	 "dashboard/groups.rkt"
 	 "dashboard/login.rkt"
-	 "dashboard/register.rkt")
+	 "dashboard/register.rkt"
+	 "dashboard/sso-register.rkt")
 
 ;; Login dispatch
 
@@ -43,7 +44,7 @@
 (define-values (login-dispatch login-url)
   (dispatch-rules
    [("dscan" (string-arg)) exec-parse-archive]
-   [("register") exec-register]
+   [("register") (lambda (req) (if (cl-sso) (exec-auth-token-pre req) (exec-register req)))]
    [("register") #:method "post" exec-register-post]
    [("login") exec-login]
    [((string-arg)) #:method "post" exec-login-post]
@@ -110,11 +111,11 @@
    [("dscan") #:method "post" (lambda (req) (exec-parse-dscan req #:persist-dscan (cl-persist)))]
    [("dscan" "intel") (send/back (redirect-to "/dscan" permanently))]
    [("dscan" (string-arg)) exec-parse-archive]
-   [("register") exec-register]
-   [("register") #:method "post" exec-register-post]
-   [("logout") exec-logout]
-   [("login") exec-login]
-   [("login") #:method "post" exec-login-post]))
+   ;; [("register") exec-register]
+   ;; [("register") #:method "post" exec-register-post]
+   ;; [("login") exec-login]
+   ;; [("login") #:method "post" exec-login-post]
+   [("logout") exec-logout]))
 
 ;; Embed valid JSON X-Auth header in every request for local testing or read
 ;; from basic auth groups
@@ -193,6 +194,7 @@
 (define cl-group (make-parameter #f))
 (define cl-json (make-parameter #f))
 (define cl-login (make-parameter #f))
+(define cl-sso (make-parameter #f))
 (define cl-test (make-parameter ""))
 (define cl-port (make-parameter 8000))
 (define cl-prefix (make-parameter null))
@@ -209,6 +211,8 @@
     (cl-json #t)]
    [("-G" "--test-group" "--json-group") group "Specify JSON user group, default: none"
     (if (string? group) (cl-test group) (cl-test))]
+   [("-s" "--sso" "--sso-auth" "--require-sso") "Require username validation via EVE SSO, default: false"
+    (cl-sso #t)]
    [("-d" "--persist-dscan" "--save-dscan") "Save raw dscans to disk, default: false"
     (cl-persist #t)]
    [("-P" "--port") port "Use specified port, default: 8000"
