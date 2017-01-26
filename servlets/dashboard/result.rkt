@@ -233,7 +233,7 @@
 	     (not (false? moon-empty-result))
 	     (not (false? goo-scan-result))
 	     (not (false? citadel-scan-result))))
-    (dscan-gzip-write dscan)])
+    (dscan-local->string :write dscan)])
 
   (cond
    [(not (false? citadel-scan-result))
