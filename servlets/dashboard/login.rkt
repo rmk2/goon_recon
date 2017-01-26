@@ -93,7 +93,7 @@
   (if (not (false? user-token-result))
       (redirect-to (if (or (string-empty? referer) (equal? referer "/logout")) "/dscan" referer)
   		   #:headers (list (auth:create-authorization-header user-token-result)
-  				   (cookie->header (make-cookie "access_token" user-token-result #:max-age 600))))
+  				   (cookie->header (make-cookie "access_token" user-token-result #:max-age 600 #:path "/"))))
       (send/back response-generator)))
 
 ;; Logout page

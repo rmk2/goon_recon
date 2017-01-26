@@ -48,7 +48,7 @@
    [("register") (lambda (req) (if (cl-sso) (exec-auth-token-pre req) (exec-register req)))]
    [("register") #:method "post" exec-register-post]
    [("login") exec-login]
-   [((string-arg)) #:method "post" exec-login-post]
+   [((string-arg) ...) #:method "post" exec-login-post]
    [else (lambda (req) (exec-login (login-add-referer req)))]))
 
 ;; Auth dispatch
