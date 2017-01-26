@@ -27,6 +27,7 @@
 	 "dashboard/tasks.rkt"
 	 "dashboard/timers.rkt"
 	 "dashboard/groups.rkt"
+	 "dashboard/whitelist.rkt"
 	 "dashboard/login.rkt"
 	 "dashboard/register.rkt"
 	 "dashboard/sso-register.rkt")
@@ -81,6 +82,8 @@
   (dispatch-rules
    [("management" "groups") exec-groups]
    [("management" "groups") #:method "post" exec-groups-modify]
+   [("management" "whitelist") exec-whitelist]
+   [("management" "whitelist") #:method "post" exec-whitelist-post]
    [else recon-l-dispatch]))
 
 (define-values (recon-l-dispatch recon-l-url)

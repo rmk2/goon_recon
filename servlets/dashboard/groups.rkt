@@ -31,7 +31,7 @@
 	 (output:create-html-head
 	  #:title "Auth Group Management"
 	  #:tablesorter #f
-	  #:navigation #f
+	  #:navigation #t
 	  (list (style/inline 'type: "text/css" "select { width: 100%; }")
 		(style/inline 'type: "text/css" ".group-name { font-weight: bold; margin: 0 0 .1em; overflow: hidden; width: 12em; }")
 		(style/inline 'type: "text/css" ".group-list { display: flex; flex-flow: row wrap; margin-bottom: 0.5em; }")
@@ -39,6 +39,11 @@
 		(style/inline 'type: "text/css" ".group-alliance { font-size: small; margin: 0 0 .1em; overflow: hidden; }")
 		(style/inline 'type: "text/css" ".group-entry { display: flex; flex-flow: column nowrap; margin: 0 1em .5em 0; padding: .25em; background-color: whitesmoke; border: 1px solid lightgrey; }")))
 	 (body
+	  (output:create-html-navigation #:active "/management/groups"
+					 #:audience (auth:try-authorization-header :subject req)
+					 #:links '(("Dashboard" . "/dscan")
+						   ("User Groups" . "/management/groups")
+						   ("Whitelist" . "/management/whitelist")))
 	  (div 'id: "content"
 	       (h1 "Auth Group Management")
 	       (form 'method: "POST" 'target: "_self" 'id: "main" 'name: "main"
