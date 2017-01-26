@@ -2,6 +2,7 @@
 #lang racket
 
 (require eve)
+(require eve/eve-whitelist_tools)
 
 ;; Initiate and populate alliance table
 
@@ -99,3 +100,8 @@
 (auth:sql-auth-create-user-characters)
 
 (auth:sql-auth-create-triggers)
+
+;; Create whitelist tables
+
+(sql-auth-create-whitelist-corporations)
+(sql-auth-create-whitelist-alliances)
