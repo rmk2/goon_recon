@@ -92,7 +92,7 @@
    (style/inline 'type: "text/css" ".nav-selector::after { content: '↓'; vertical-align: sub; font-size: x-small; }")
    (style/inline 'type: "text/css" ".nav-selector { display: none; padding: 0.7em 1.5em; }")
    (style/inline 'type: "text/css" ".nav-dropdown { display: inline-block; position: static; }")
-   (style/inline 'type: "text/css" ".nav-submenu { display: flex; flex-flow: column wrap; }")
+   (style/inline 'type: "text/css" ".nav-submenu { display: flex; flex-flow: column wrap; background-color: white; }")
    (style/inline 'type: "text/css" ".right .nav-submenu { right: 0; }")
    (style/inline 'type: "text/css" (string-append "@media (min-width: 960px) { "
 						  "#nav { flex-flow: row nowrap; } "
@@ -173,22 +173,23 @@
 	 (div 'class: "nav-title" nav-title)
 	 (map (lambda (x) (make-element
 			   'div
-			   (if (equal? active-url (string-replace (cdr x)  "/" ""))
+			   (if (equal? active-url (regexp-replace #px"/$" (cdr x) ""))
 			       (list (cons 'class "active nav-element"))
 			       (list (cons 'class "nav-element")))
 			   (a 'href: (cdr x) (car x))))
-	      (match nav-audience
-		[(? number? nav-audience)
-		 (cond [(>= nav-audience 64) nav-default] ;; recon-l+
-		       [(>= nav-audience 32) (drop-right nav-default 3)] ;; recon+
-		       [(>= nav-audience 4) (take nav-default 2)] ;; alliance+
-		       [else (take nav-default 1)])]
-		[(pregexp #px"recon-l|admin|owner") nav-default]
-		["recon" (drop-right nav-default 3)]
-		[(pregexp #px"alliance|corporation") (take nav-default 2)]
-		[else
-		 (cond
-		  [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
+	      (cond
+	       [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
+	       [(and (regexp-match? #px"^/management/.*" active-url) (not (null? nav-list))) nav-list]
+	       [else
+		(match nav-audience
+		  [(? number? nav-audience)
+		   (cond [(>= nav-audience 64) nav-default] ;; recon-l+
+			 [(>= nav-audience 32) (drop-right nav-default 3)] ;; recon+
+			 [(>= nav-audience 4) (take nav-default 2)] ;; alliance+
+			 [else (take nav-default 1)])]
+		  [(pregexp #px"recon-l|admin|owner") nav-default]
+		  ["recon" (drop-right nav-default 3)]
+		  [(pregexp #px"alliance|corporation") (take nav-default 2)]
 		  [else (take nav-default 1)])]))
 	 (if (or (number? nav-audience) (string? nav-audience))
 	     (div 'class: "nav-element right" (a 'href: "/logout" "Logout"))
