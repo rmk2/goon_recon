@@ -18,10 +18,15 @@
        (output-xml (doctype 'html) port)
        (output-xml
 	(html
-	 (output:create-html-head #:title "Fuzzysov Timer Board" #:tablesorter #t #:navigation #t #:sort-column 6
-				  (list
-				   (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
-				   (literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))))
+	 (output:create-html-head
+	  #:title "Fuzzysov Timer Board"
+	  #:tablesorter #t
+	  #:navigation #t
+	  #:sort-column 6
+	  #:colorise-whitelist #t
+	  (list
+	   (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }")
+	   (style/inline 'type: "text/css" "select { margin-right: 0.5em; }")))
 	 (body
 	  (output:create-html-navigation #:active "timers"
 					 #:audience (auth:try-authorization-header :subject req)
@@ -42,6 +47,7 @@
 	       (output:create-html-hint :tablesorter)
 	       (output:create-html-table
 		#:id "timers"
+		#:ticker->class #t
 		#:head (list "Region" "Constellation" "System" "Structure" "A-T" "Alliance" "Date")
 		(cond [(and (not (null? user-filter)) (member "intersect" f-mode))
 		       (sql-get-by-filter user-filter #:table "sovTimerboardView" #:union? #f #:columns sql-columns)]

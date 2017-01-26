@@ -10,6 +10,8 @@
 		  output-xml
 		  make-element))
 
+(require "eve-whitelist_tools.rkt")
+
 (provide (prefix-out output: (all-defined-out)))
 
 (define (create-html-table input-list
@@ -31,7 +33,10 @@
 			      [(member "EMPTY" row) (list (cons 'class "empty"))]
 			      [else null])
 			     (map (lambda (str)
-				    (if (and (string? str) (regexp-match? #px"^[A-Z0-9. -_]{1,5}$" str) ticker->class?)
+				    (if (and ticker->class?
+					     (string? str)
+					     (regexp-match? #px"^[A-Z0-9. -_]{1,5}$" str)
+					     (not (regexp-match? #px"IHUB|TCU" str)))
 					(td 'class: str str)
 					(td (cond
 					     [(sql-null? str) ""]
@@ -54,6 +59,7 @@
 			  #:navigation [navigation? #f]
 			  #:forms [forms? #f]
 			  #:password-check [password-check? #f]
+			  #:colorise-whitelist [colorise-whitelist? #f]
 			  [extra-fields null])
   (head
    (meta 'charset: "utf-8")
@@ -67,6 +73,7 @@
    (if navigation? (create-html-head-navigation) null)
    (if forms? (create-html-head-form) null)
    (if password-check? (create-html-head-check-password) null)
+   (if colorise-whitelist? (create-html-head-colorise-whitelist) null)
    extra-fields))
 
 (define (create-html-head-tablesorter sort-column)
@@ -126,6 +133,14 @@
 (define (create-html-head-check-password)
   (list
    (script 'type: "text/javascript" (literal "function checkPW(form,e1,e2,error) { var err = document.getElementById(error); if (form.elements[e1].value == form.elements[e2].value ) { err.style.display = 'none'; form.elements['submit'].disabled = false } else { err.style.display = 'block'; form.elements['submit'].disabled = true } };"))))
+
+(define (create-html-head-colorise-whitelist)
+  (map (lambda (ticker) (literal (style/inline 'type: "text/css"
+					       (format "tr > td[class=\"~a\"] { background-color: #4D6EFF; color: white; }"
+						       ticker))))
+       (map (lambda (entry) (vector-ref entry 1))
+	    (append (sql-auth-get-whitelist-alliances)
+		    (sql-auth-get-whitelist-corporations)))))
 
 (define-syntax create-html-hint
   (syntax-rules (:tablesorter :updated)

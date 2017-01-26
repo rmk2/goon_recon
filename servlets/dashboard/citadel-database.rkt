@@ -35,8 +35,8 @@
 	  #:tablesorter #t
 	  #:navigation #t
 	  #:sort-column 0
-	  (list (literal (style/inline 'type: "text/css" "tr > td[class=\"LOLTX\"], tr > td[class=\"OHGOD\"] { background-color: #4D6EFF; color: white; }"))
-		(literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
+	  #:colorise-whitelist #t
+	  (list (literal (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }"))
 		(literal (style/inline 'type: "text/css" "#submit { float: right; }"))
 		(literal (style/inline 'type: "text/css" "td { white-space: normal; }"))
 		(literal (style/inline 'type: "text/css" "select { margin-right: 0.5em; }"))
