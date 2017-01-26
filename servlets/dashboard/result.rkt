@@ -173,7 +173,7 @@
 	  (false? (dscan-proximity (moon? data)))
 	  (> (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance)))
       #f]
-     [else (moon-parse-scan data #:corporation corporation #:alliance alliance #:id (dscan-data->id dscan))]))
+     [else (moon-parse-scan data #:corporation corporation #:alliance alliance #:id (dscan-local->string :id dscan))]))
 
   (define moon-empty-result
     (cond
@@ -182,7 +182,7 @@
 	  (false? (dscan-proximity (moon? data)))
 	  (> (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance)))
       #f]
-     [else (moon-parse-empty data #:id (dscan-data->id dscan))]))
+     [else (moon-parse-empty data #:id (dscan-local->string :id dscan))]))
 
   (define goo-scan-result
     (cond
@@ -209,7 +209,7 @@
      [else (citadel-parse-scan data
 			       #:corporation corporation
 			       #:alliance alliance
-			       #:id (dscan-data->id dscan)
+			       #:id (dscan-local->string :id dscan)
 			       #:location (cond [(null? location) (dscan-nearest-celestial data)]
 						[(not (false? location-try)) location]))]))
 
