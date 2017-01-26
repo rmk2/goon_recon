@@ -179,7 +179,7 @@
 			   (a 'href: (cdr x) (car x))))
 	      (cond
 	       [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
-	       [(and (regexp-match? #px"^/management/.*" active-url) (not (null? nav-list))) nav-list]
+	       [(and (string? active-url) (regexp-match? #px"^/management/.*" active-url) (not (null? nav-list))) nav-list]
 	       [else
 		(match nav-audience
 		  [(? number? nav-audience)
