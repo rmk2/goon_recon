@@ -30,7 +30,7 @@
 (define (sql-auth-create-user-characters)
   (if (table-exists? sqlc "authBasicCharacters")
       #t
-      (query-exec sqlc "CREATE VIEW authBasicCharacters AS SELECT a.user,g.groupID,g.groupName,c.characterID,c.corporationID,c.corporationName,c.allianceID,c.allianceName,IF(c.datetime IS NULL,a.datetime,c.datetime) FROM authBasic AS a LEFT JOIN customCharacters AS c ON a.user = c.characterName LEFT JOIN authBasicGroupsView AS g ON a.user = g.user")))
+      (query-exec sqlc "CREATE VIEW authBasicCharacters AS SELECT a.user,g.groupID,g.groupName,c.characterID,c.corporationID,c.corporationName,c.allianceID,c.allianceName,IF(c.datetime IS NULL,a.datetime,c.datetime) AS datetime FROM authBasic AS a LEFT JOIN customCharacters AS c ON a.user = c.characterName LEFT JOIN authBasicGroupsView AS g ON a.user = g.user")))
 
 ;; Insert data into tables
 
