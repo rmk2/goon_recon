@@ -96,4 +96,6 @@
 (auth:sql-auth-create-groups-raw)
 (auth:sql-auth-create-groups-view)
 
+(auth:sql-auth-create-user-characters)
+
 (auth:sql-auth-create-triggers)

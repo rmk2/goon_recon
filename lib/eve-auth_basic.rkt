@@ -30,7 +30,7 @@
 (define (sql-auth-create-user-characters)
   (if (table-exists? sqlc "authBasicCharacters")
       #t
-      (query-exec sqlc "CREATE VIEW authBasicCharacters AS SELECT a.user,c.characterID,c.corporationID,c.corporationName,c.allianceID,c.allianceName,c.datetime FROM authBasic AS a LEFT JOIN customCharacters AS c ON a.user = c.characterName")))
+      (query-exec sqlc "CREATE VIEW authBasicCharacters AS SELECT a.user,g.groupID,g.groupName,c.characterID,c.corporationID,c.corporationName,c.allianceID,c.allianceName,IF(c.datetime IS NULL,a.datetime,c.datetime) FROM authBasic AS a LEFT JOIN customCharacters AS c ON a.user = c.characterName LEFT JOIN authBasicGroupsView AS g ON a.user = g.user")))
 
 ;; Insert data into tables
 
@@ -142,6 +142,9 @@
 
 (define (sql-auth-get-groups)
   (query-rows sqlc "SELECT user,groupID FROM authBasicGroups ORDER BY user"))
+
+(define (sql-auth-get-groups-affiliation)
+  (query-rows sqlc "SELECT user,groupID,corporationName,allianceName FROM authBasicCharacters ORDER BY user"))
 
 (define-syntax sql-auth-get-user-group
   (syntax-rules (:id :name)

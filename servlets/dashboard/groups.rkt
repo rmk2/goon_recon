@@ -32,8 +32,11 @@
 	  #:title "Auth Group Management"
 	  #:tablesorter #f
 	  #:navigation #f
-	  (list (style/inline 'type: "text/css" ".group-name { font-weight: bold; margin: 0 0 .1em; max-width: 9.5em; overflow: hidden; }")
+	  (list (style/inline 'type: "text/css" "select { width: 100%; }")
+		(style/inline 'type: "text/css" ".group-name { font-weight: bold; margin: 0 0 .1em; overflow: hidden; width: 12em; }")
 		(style/inline 'type: "text/css" ".group-list { display: flex; flex-flow: row wrap; margin-bottom: 0.5em; }")
+		(style/inline 'type: "text/css" ".group-corporation { font-size: small; margin: 0 0 .1em; overflow: hidden; }")
+		(style/inline 'type: "text/css" ".group-alliance { font-size: small; margin: 0 0 .1em; overflow: hidden; }")
 		(style/inline 'type: "text/css" ".group-entry { display: flex; flex-flow: column nowrap; margin: 0 1em .5em 0; padding: .25em; background-color: whitesmoke; border: 1px solid lightgrey; }")))
 	 (body
 	  (div 'id: "content"
@@ -42,16 +45,20 @@
 		     (div 'class: "group-list"
 		     	  (map (lambda (x)
 				 (let* ([user (vector-ref x 0)]
-					[audience (vector-ref x 1)])
+					[audience (vector-ref x 1)]
+					[corporation (vector-ref x 2)]
+					[alliance (vector-ref x 3)])
 				   (div 'class: "group-entry"
 					(div 'class: "group-name" (string-titlecase user))
+					(div 'class: "group-corporation" (sanitise-name corporation))
+					(div 'class: "group-alliance" (sanitise-name alliance))
 					(div 'class: "group-select"
 					     (html:make-element
 					      'select
 					      (list (cons 'name user)
 						    (if (>= audience 1024)
-						    	(cons 'disabled #t)
-						    	(cons 'disabled #f)))
+							(cons 'disabled #t)
+							(cons 'disabled #f)))
 					      (list
 					       (if (>= audience 1024)
 						   (make-group-options 1024 "Owner" audience)
@@ -74,10 +81,16 @@
 							 (map (lambda (x)
 								(make-group-options (car x) (cdr x) audience))
 							      '((256 . "Administrator"))))))))))
-		     	       (auth:sql-auth-get-groups)))
+			       (auth:sql-auth-get-groups-affiliation)))
 		     (hr)
 		     (input 'type: "submit" 'id: "submit" 'value: "Save group memberships")))))
 	out))))
+
+  (define (sanitise-name value)
+    (match value
+      [(? sql-null? v) "*non-SSO"]
+      [(? string-empty? v) "-"]
+      [else value]))
 
   (define (make-group-options value str audience)
     (html:make-element
