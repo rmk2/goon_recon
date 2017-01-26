@@ -3,9 +3,9 @@
 
 (require eve)
 
-(let ([data (timers:query-sovereignty-timers)])
+(let ([data (sov:crest-sov-get-campaigns)])
   (if (null? data)
       (exit)
       (begin
-	(timers:timerboard-prepare-table)
-	(timers:timerboard-replace data))))
+	(sov:sql-sov-prepare-campaigns-raw)
+	(sov:sql-sov-update-campaigns-raw data))))

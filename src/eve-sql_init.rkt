@@ -71,15 +71,11 @@
 (sql-citadel-create-triggers)
 (sql-citadel-create-kill-triggers)
 
-;; Create timerboard table
-
-(timers:timerboard-prepare-table)
-(timers:timerboard-create-view)
-
 ;; Create sovereignty tables
 
 (sov:sql-sov-create-campaigns-raw)
 (sov:sql-sov-create-campaigns-view)
+(sov:sql-sov-create-timerboard-view)
 
 ;; Create super canary tables
 

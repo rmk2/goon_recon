@@ -7,6 +7,7 @@
          xml/path
          srfi/19
          db
+	 db/util/datetime
 	 web-server/servlet
          web-server/servlet-env
 	 scribble/html/html
@@ -33,7 +34,6 @@
 (require "eve-sql_filter.rkt")
 (require "eve-sql_moondata.rkt")
 (require "eve-sql_sovereignty.rkt")
-(require "eve-sql_timerboard.rkt")
 (require "eve-sql_towers.rkt")
 (require "eve-sql_types.rkt")
 (require "eve-sql_structs.rkt")
@@ -46,6 +46,7 @@
 		       xml/path
 		       srfi/19
 		       db
+		       db/util/datetime
 		       web-server/servlet
 		       web-server/servlet-env
 		       scribble/html/html)
@@ -71,7 +72,6 @@
 (provide (all-from-out "eve-sql_filter.rkt"))
 (provide (all-from-out "eve-sql_moondata.rkt"))
 (provide (all-from-out "eve-sql_sovereignty.rkt"))
-(provide (all-from-out "eve-sql_timerboard.rkt"))
 (provide (all-from-out "eve-sql_towers.rkt"))
 (provide (all-from-out "eve-sql_types.rkt"))
 (provide (all-from-out "eve-sql_structs.rkt"))

@@ -28,7 +28,7 @@
 					 #:links '(("Report" . "report")
 						   ("Tasks" . "tasks")
 						   ("Timerboard" . "timers")))
-	  (output:create-region-filter (sql-get-scanned-regions "customTimerboard"))
+	  (output:create-region-filter (sql-get-scanned-regions "sovTimerboardView"))
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Timer Board")
 	       (output:create-html-hint (format "Note: Sovereignty data is updated every ~a minutes" (/ (update-interval) 60)))
@@ -44,10 +44,10 @@
 		#:id "timers"
 		#:head (list "Region" "Constellation" "System" "Structure" "A-T" "Alliance" "Date")
 		(cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-		       (sql-get-by-filter user-filter #:table "customTimerboardView" #:union? #f #:columns sql-columns)]
+		       (sql-get-by-filter user-filter #:table "sovTimerboardView" #:union? #f #:columns sql-columns)]
 		      [(not (null? user-filter))
-		       (sql-get-by-filter user-filter #:table "customTimerboardView" #:columns sql-columns)]
-		      [else (map vector->list (sql-build-query sql-columns : "customTimerboardView"))]))
+		       (sql-get-by-filter user-filter #:table "sovTimerboardView" #:columns sql-columns)]
+		      [else (map vector->list (sql-build-query sql-columns : "sovTimerboardView"))]))
 	       (output:create-html-hint :updated (update-interval)))))
 	port))))
 

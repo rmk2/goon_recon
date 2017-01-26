@@ -98,7 +98,7 @@
 (sql-build-test constellation? :known-good "constellationName" "mapConstellations")
 (sql-build-test region? :known-good "regionName" "mapRegions")
 (sql-build-test goo? :known-good "typeName" "invTypes" "groupID" "427")
-(sql-build-test structure? :known-good "structureType" "customTimerboard")
+(sql-build-test structure? :known-good "structureType" "sovTimerboardView")
 (sql-build-test type? :known-good "typeName" "invTypes")
 (sql-build-test alliance? :direct "allianceName" "allianceTicker" "customAlliances")
 (sql-build-test corporation? :direct "corporationName" "corporationTicker" "customCorporations")

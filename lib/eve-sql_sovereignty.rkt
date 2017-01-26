@@ -1,11 +1,11 @@
 #lang racket
 
 (require db)
+(require db/util/datetime)
 (require srfi/19)
 
 (require "eve-sql_main.rkt")
 (require "eve-sql_structs.rkt")
-(require "eve-sql_timerboard.rkt")
 (require "eve-api_tools.rkt")
 
 (provide (prefix-out sov: (all-defined-out)))
@@ -64,7 +64,7 @@
 (define (sql-sov-create-timerboard-view)
   (if (table-exists? sqlc "sovTimerboardView")
       #t
-      (query-exec sqlc "CREATE VIEW sovTimerboardView AS SELECT s.regionName,s.constellationName,s.solarSystemName,s.sovTypeName AS structureType,IF(s.sovTypeID=4,'',a.allianceTicker),IF(s.sovTypeID=4,'*free-for-all',a.allianceName),s.datetime FROM sovCampaignsView AS s LEFT JOIN customAlliances AS a ON s.defenderID = a.allianceID")))
+      (query-exec sqlc "CREATE VIEW sovTimerboardView AS SELECT s.regionName,s.constellationName,s.solarSystemName,s.sovTypeName AS structureType,IF(s.sovTypeID=4,'',a.allianceTicker) AS allianceTicker,IF(s.sovTypeID=4,'*free-for-all',a.allianceName) AS allianceName,s.datetime FROM sovCampaignsView AS s LEFT JOIN customAlliances AS a ON s.defenderID = a.allianceID")))
 
 ;; Query SQL tables
 
@@ -92,25 +92,56 @@
 			 (sovCampaign-datetime x)))
        (get-campaigns->struct current-constellation)))
 
+;; JSON parsing
+
+(define-syntax json-filter
+  (syntax-rules (:name :score :id :id_str :campaign :defender-raw :defender
+		       :defender-name :attackers :system :system-name
+		       :constellation :time :score :type-raw :type :constellation-id
+		       :href :region :items)
+    ((_ :name f) (hash-ref f 'name))
+    ((_ :score f) (hash-ref f 'score))
+    ((_ :id f) (hash-ref f 'id))
+    ((_ :id_str f) (hash-ref f 'id_str))
+    ((_ :campaign hash) (hash-ref hash 'campaignID))
+    ((_ :defender-raw hash) (hash-ref hash 'defender))
+    ((_ :defender hash) (hash-ref (json-filter :defender-raw hash) 'defender))
+    ((_ :defender-name hash) (json-filter :name (json-filter :defender hash)))
+    ((_ :attackers hash) (hash-ref hash 'attackers))
+    ((_ :system hash) (hash-ref hash 'sourceSolarsystem))
+    ((_ :system-name hash) (json-filter :name (json-filter :system hash)))
+    ((_ :constellation hash) (hash-ref hash 'constellation))
+    ((_ :constellation-id hash) (hash-ref (json-filter :constellation hash) 'id_str))
+    ((_ :time hash) (hash-ref hash 'startTime))
+    ((_ :type-raw hash) (hash-ref hash 'eventType))
+    ((_ :type hash) (case (hash-ref hash 'eventType)
+		      [(1) "TCU"]
+		      [(2) "IHUB"]
+		      [(3) "Station"]
+		      [(4) "Freeport"]))
+    ((_ :href hash) (hash-ref hash 'href))
+    ((_ :region hash) (hash-ref hash 'region))
+    ((_ :items hash) (hash-ref hash 'items))))
+
 ;; Fetch sovereignty campaigns from CREST API
 
 (define (crest-sov-get-campaigns)
   (map (lambda (hash)
-	 (let ([constellation-raw (timers:json-filter :constellation hash)]
-	       [system-raw (timers:json-filter :system hash)]
-	       [attackers-raw (if (hash-has-key? hash 'attackers) (timers:json-filter :attackers hash) null)]
-	       [defender-raw (if (hash-has-key? hash 'defender) (timers:json-filter :defender-raw hash) null)]
-	       [defender-inner (if (hash-has-key? hash 'defender) (timers:json-filter :defender hash) null)])
-	   (sovCampaign-full (timers:json-filter :campaign hash)
-			     (timers:json-filter :id constellation-raw)
-			     (timers:json-filter :name constellation-raw)
-			     (timers:json-filter :id system-raw)
-			     (timers:json-filter :name system-raw)
-			     (timers:json-filter :type-raw hash)
-			     (timers:json-filter :type hash)
-			     (if (hash? attackers-raw) (timers:json-filter :score attackers-raw) 0)
-			     (if (hash? defender-raw) (timers:json-filter :score defender-raw) 0)
-			     (if (hash? defender-inner) (timers:json-filter :id defender-inner) 0)
-			     (if (hash? defender-inner) (timers:json-filter :name defender-inner) "")
-			     (timers:json-filter :time hash))))
-       (timers:json-filter :items (json-api (string-append crest-root "/sovereignty/campaigns/")))))
+	 (let ([constellation-raw (json-filter :constellation hash)]
+	       [system-raw (json-filter :system hash)]
+	       [attackers-raw (if (hash-has-key? hash 'attackers) (json-filter :attackers hash) null)]
+	       [defender-raw (if (hash-has-key? hash 'defender) (json-filter :defender-raw hash) null)]
+	       [defender-inner (if (hash-has-key? hash 'defender) (json-filter :defender hash) null)])
+	   (sovCampaign-full (json-filter :campaign hash)
+			     (json-filter :id constellation-raw)
+			     (json-filter :name constellation-raw)
+			     (json-filter :id system-raw)
+			     (json-filter :name system-raw)
+			     (json-filter :type-raw hash)
+			     (json-filter :type hash)
+			     (if (hash? attackers-raw) (json-filter :score attackers-raw) 0)
+			     (if (hash? defender-raw) (json-filter :score defender-raw) 0)
+			     (if (hash? defender-inner) (json-filter :id defender-inner) 0)
+			     (if (hash? defender-inner) (json-filter :name defender-inner) "")
+			     (json-filter :time hash))))
+       (json-filter :items (json-api (string-append crest-root "/sovereignty/campaigns/")))))

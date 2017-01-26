@@ -163,9 +163,9 @@
 
 (define (sovereignty-api-helper)
   (begin
-    (timers:timerboard-prepare-table)
-    (timers:timerboard-replace
-     (timers:query-sovereignty-timers))))
+    (sov:sql-sov-prepare-campaigns-raw)
+    (sov:sql-sov-update-campaigns-raw
+     (sov:crest-sov-get-campaigns))))
 
 (define poll-sovereignty-auto
   (let* ([interval 600]
