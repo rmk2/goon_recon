@@ -48,7 +48,7 @@
 (define (sql-super-create-raw)
   (if (table-exists? sqlc "intelSuperRaw")
       #t
-      (query-exec sqlc "CREATE TABLE intelSuperRaw ( shipTypeID INT NOT NULL, characterID INT NOT NULL, characterName VARCHAR(255) NOT NULL, corporationID INT NOT NULL, corporationName VARCHAR(255) NOT NULL, allianceID INT, allianceName VARCHAR(255), eventType VARCHAR(255), killID INT, victimTypeID INT, moonID INT, systemID INT, regionID INT, datetime DATETIME, UNIQUE KEY (characterID, killID), KEY (datetime), KEY (eventType) )")))
+      (query-exec sqlc "CREATE TABLE intelSuperRaw ( shipTypeID INT NOT NULL, characterID INT NOT NULL, characterName VARCHAR(255) NOT NULL, corporationID INT NOT NULL, corporationName VARCHAR(255) NOT NULL, allianceID INT, allianceName VARCHAR(255), eventType VARCHAR(255), killID INT, victimTypeID INT, moonID INT, solarSystemID INT, regionID INT, datetime DATETIME, UNIQUE KEY (characterID, killID), KEY (datetime), KEY (eventType) )")))
 
 (define (sql-super-insert-killmails lst)
   (for-each (lambda (x)
@@ -81,7 +81,7 @@
 				      "FROM intelSuperRaw "
 				      "LEFT JOIN invTypes AS shipTypes ON shipTypes.typeID = intelSuperRaw.shipTypeID "
 				      "LEFT JOIN invTypes AS victimTypes ON victimTypes.typeID = intelSuperRaw.victimTypeID "
-				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = intelSuperRaw.systemID "
+				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = intelSuperRaw.solarSystemID "
 				      "LEFT JOIN mapRegions ON mapRegions.regionID = intelSuperRaw.regionID "))))
 
 (define (sql-super-create-latest)
@@ -90,7 +90,7 @@
       (query-exec sqlc (string-append "CREATE VIEW intelSuperLatest AS "
 				      "SELECT "
 				      "shipTypeID,characterID,characterName,corporationID,corporationName,allianceID,allianceName,"
-				      "eventType,killID,victimTypeID,systemID,regionID,datetime,COUNT(killID) AS killCount,"
+				      "eventType,killID,victimTypeID,solarSystemID,regionID,datetime,COUNT(killID) AS killCount,"
 				      "SEC_TO_TIME(ROUND(AVG(TIME_TO_SEC(time(datetime))))) AS activityAvg,"
 				      "ROUND((STDDEV_SAMP(TIME_TO_SEC(time(datetime))) / 3600),1) AS activityStd "
 				      "FROM intelSuperRaw "
@@ -109,7 +109,7 @@
 				      "FROM intelSuperLatest as latest "
 				      "LEFT JOIN invTypes AS shipTypes ON shipTypes.typeID = latest.shipTypeID "
 				      "LEFT JOIN invTypes AS victimTypes ON victimTypes.typeID = latest.victimTypeID "
-				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = latest.systemID "
+				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = latest.solarSystemid "
 				      "LEFT JOIN mapRegions ON mapRegions.regionID = latest.regionID "
 				      "LEFT JOIN intelSuperAffiliations AS api ON api.characterID = latest.characterID "
 				      "ORDER BY latest.datetime"))))
