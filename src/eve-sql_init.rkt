@@ -29,8 +29,10 @@
 (sql-super-create-raw)
 (sql-super-create-view)
 (sql-super-create-affiliations)
-(sql-super-create-latest)
+(sql-super-create-latest-pseudomaterialized-view)
 (sql-super-create-watchlist)
+
+(sql-super-latest-create-triggers)
 
 ;; Create moon goo tables
 
@@ -81,6 +83,9 @@
 
 (sql-canary-create-corporations)
 (sql-canary-create-alliances)
+
+(sql-canary-create-watchlist-alliances)
+(sql-canary-create-watchlist-corporations)
 
 ;; Create local auth tables
 
