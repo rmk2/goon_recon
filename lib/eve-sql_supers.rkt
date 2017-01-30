@@ -84,7 +84,7 @@
 				      "LEFT JOIN mapSolarSystems ON mapSolarSystems.solarSystemID = intelSuperRaw.solarSystemID "
 				      "LEFT JOIN mapRegions ON mapRegions.regionID = intelSuperRaw.regionID "))))
 
-(define (sql-super-create-lastest-pseudomaterialized-view)
+(define (sql-super-create-latest-pseudomaterialized-view)
   (if (table-exists? sqlc "intelSuperLatestMV")
       #t
       (query-exec sqlc (string-append
