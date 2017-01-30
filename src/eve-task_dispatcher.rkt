@@ -23,7 +23,7 @@
 
 (define (create-worker [id (gensym)])
   (thread (lambda () (let loop ([th (current-thread)])
-		       (sync/timeout 180
+		       (sync/timeout 120
 				     (wrap-evt character-queue
 					       (lambda (msg) (begin (log-output 'characters #:id id)
 								    (exn-wrapper (characters-api-helper msg))
