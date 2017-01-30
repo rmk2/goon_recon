@@ -52,9 +52,14 @@
 
 ;; Exception handling
 
-(define (exn-wrapper func)
-  (with-handlers ([exn:fail? (lambda (e) 'expn)])
-    func))
+(define-syntax (exn-wrapper stx)
+  (syntax-case stx ()
+    [(_ func)
+     #'(with-handlers ([exn:fail? (lambda (e) (void))])
+	 func)]
+    [(_ func param)
+     #'(with-handlers ([exn:fail? (lambda (e) (void))])
+	 (func param))]))
 
 ;; SQL get last ID for a given table
 
