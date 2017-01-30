@@ -20,7 +20,7 @@
 (define (sql-character-create-raw)
   (if (table-exists? sqlc "customCharacters")
       #t
-      (query-exec sqlc "CREATE TABLE customCharacters ( characterID INT NOT NULL, characterName VARCHAR(255) NOT NULL, corporationID INT, corporationName VARCHAR(255), allianceID INT, allianceName VARCHAR(255), datetime DATETIME, KEY ( characterName ), PRIMARY KEY ( characterID ) )")))
+      (query-exec sqlc "CREATE TABLE customCharacters ( characterID INT NOT NULL, characterName VARCHAR(255) NOT NULL, corporationID INT, corporationName VARCHAR(255), allianceID INT, allianceName VARCHAR(255), datetime DATETIME, KEY ( characterName ), PRIMARY KEY ( characterID ), KEY ( corporationID ), KEY ( allianceID ) )")))
 
 (define (sql-character-update-ids lst)
   (for-each (lambda (x)
