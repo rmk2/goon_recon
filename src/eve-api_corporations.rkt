@@ -80,4 +80,4 @@
 
 (sql-corporation-update-corporations (general-unknown-poll (remove-duplicates (query-kill-unknown-corporations))))
 
-;; (sql-corporation-update-corporations (general-unknown-poll (remove-duplicates (query-input-unknown-corporations))))
+(sql-corporation-update-corporations (general-unknown-poll (remove-duplicates (query-input-unknown-corporations))))

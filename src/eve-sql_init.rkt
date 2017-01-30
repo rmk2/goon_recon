@@ -24,6 +24,8 @@
 
 (sql-character-create-raw)
 
+(sql-character-create-triggers)
+
 ;; Create super tracking/watchlist tables
 
 (sql-super-create-raw)

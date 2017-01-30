@@ -80,6 +80,8 @@
 		    "mv.corporationTicker=NEW.corporationTicker,"
 		    "mv.corporationName=NEW.corporationName "
 		    "WHERE mv.corporationTicker=NEW.corporationTicker; "
+		    "DELETE FROM customCorporationInput "
+		    "WHERE corporationID = NEW.corporationID; "
 		    "END;")))
 
 ;; Update moonScanMV for newly added corporation affiliations (from customCorporationAffiliations)

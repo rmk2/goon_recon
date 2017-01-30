@@ -104,3 +104,30 @@
 		     (count-duplicates (sort lst string-ci>?))))
 	>=
 	#:key second))
+
+;; Make sure currently unknown corporationIDs get resolved eventually
+
+(define (sql-character-resolve-corporations)
+  (query-exec sqlc (string-append
+		    "INSERT IGNORE INTO customCorporationInput ( corporationID ) "
+		    "SELECT DISTINCT corporationID FROM customCharacters "
+		    "WHERE NOT EXISTS "
+		    "( SELECT * FROM customCorporations "
+		    "WHERE customCharacters.corporationID = customCorporations.corporationID )")))
+
+;; Update triggers
+
+(define (sql-character-create-trigger-insert)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER insert_customCharacters AFTER INSERT ON customCharacters "
+		    "FOR EACH ROW BEGIN "
+		    "INSERT INTO customCorporationInput ( corporationID ) "
+		    "SELECT DISTINCT corporationID FROM customCharacters "
+		    "WHERE NOT EXISTS ( SELECT * FROM customCorporations AS corp WHERE NEW.corporationID = corp.corporationID ) "
+		    "AND customCharacters.corporationID = NEW.corporationID; "
+		    "END;")))
+
+(define (sql-character-create-triggers)
+  (begin
+    (query-exec sqlc "DROP TRIGGER IF EXISTS insert_customCharacters")
+    (sql-character-create-trigger-insert)))
