@@ -11,7 +11,15 @@
        (output-xml (doctype 'html) port)
        (output-xml
 	(html
-	 (output:create-html-head #:title "Recon Structure Reporting" #:tablesorter #f #:navigation #t)
+	 (output:create-html-head
+	  #:title "Recon Structure Reporting"
+	  #:tablesorter #f
+	  #:navigation #t
+	  #:forms #t
+	  (list
+	   (style/inline 'type: "text/css" ".form-entry { flex-flow: row wrap; }")
+	   (style/inline 'type: "text/css" ".form-field { margin-left: 0.5em; }")
+	   (style/inline 'type: "text/css" "#content { flex-flow: column nowrap; align-items: flex-start;  margin: 0 0.5em; }")))
 	 (body
 	  (output:create-html-navigation #:active "report"
 					 #:audience (auth:try-authorization-header :subject req)
@@ -20,28 +28,17 @@
 						   ("Timerboard" . "timers")))
 	  (div 'id: "content"
 	       (h1 "Recon Structure Reporting")
+	       (output:create-html-hint "Note: paste citadel dscan, tower dscan or moon probing result")
 	       (form 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
-		     (fieldset
-		      (legend "D-Scan reporting")
-		      (br)
-		      "Corporation Ticker: "
-		      (input 'type: "text" 'name: "corporation" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
-		      "Alliance Ticker: "
-		      (input 'type: "text" 'name: "alliance" 'maxlength: "5" 'size: "5" 'required: #f 'autocomplete: "on")
-		      (br)
-		      (br)
-		      (textarea 'name: "dscan" 'rows: "20" 'cols: "50" 'required: #t)
-		      (br)
-		      (br)
-		      (input 'type: "checkbox" "Checkbox")
-		      (br)
-		      ;; (input 'type: "checkbox" 'name: "empty" 'value: "empty" "Empty moon (no tower)")
-		      ;; (br)
-		      ;; (p "Note: only enter a location if no celestial appears on D-Scan")
-		      ;; "Location: "
-		      ;; (input 'type: "text" 'name: "location" 'required: #f 'autocomplete: "on" 'style: "margin-right:1em;")
-		      ;; (br)
-		      (br)
-		      (input 'type: "submit" 'value: "Submit"))))))
+		     (div 'class: "subtitle" "D-Scan Reporting")
+		     (div 'class: "form-entry"
+			  (div 'class: "form-description" "Corporation Ticker")
+			  (div 'class: "form-field"
+			       (input 'type: "text" 'name: "corporation" 'maxlength: "5" 'size: "5" 'required: #f)))
+		     (div 'class: "form-entry"
+			  (textarea 'name: "dscan" 'rows: "20" 'cols: "50" 'required: #t 'placeholder: "Paste scan data here"))
+		     (div 'class: "form-entry"
+			  (input 'type: "checkbox" "Checkbox"))
+		     (input 'type: "submit" 'value: "Submit")))))
 	port))))
   (send/back response-generator))

@@ -15,25 +15,29 @@
        (output-xml (doctype 'html) port)
        (output-xml
 	(html
-	 (output:create-html-head #:title "Dashboard" #:tablesorter #f #:navigation #t)
+	 (output:create-html-head
+	  #:title "Dashboard"
+	  #:tablesorter #f
+	  #:navigation #t
+	  #:forms #t
+	  (list
+	   (style/inline 'type: "text/css" ".form-entry { flex-flow: row wrap; }")
+	   (style/inline 'type: "text/css" ".form-field { margin-left: 0.5em; }")
+	   (style/inline 'type: "text/css" "#content { flex-flow: column nowrap; align-items: flex-start;  margin: 0 0.5em; }")))
 	 (body
 	  (output:create-html-navigation #:active "dscan"
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Dashboard" . "/dscan")))
 	  (div 'id: "content"
 	       (h1 "Dashboard")
-	       (output:create-html-hint "Note: Local scans with lots of (non-prefetched) characters will take a long while.")
+	       (output:create-html-hint "Note: Local scans with lots of (non-prefetched) characters will take a long while")
 	       (form 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
-		     (fieldset
-		      (legend "D-Scan reporting")
-		      (br)
-		      (textarea 'name: "dscan" 'rows: "20" 'cols: "50" 'required: #t 'placeholder: "Paste D-Scan here")
-		      (br)
-		      (br)
-		      (input 'type: "checkbox" "Checkbox")
-		      (br)
-		      (br)
-		      (input 'type: "submit" 'value: "Submit"))))))
+		     (div 'class: "subtitle" "D-Scan Reporting")
+		     (div 'class: "form-entry"
+			  (textarea 'name: "dscan" 'rows: "20" 'cols: "50" 'required: #t 'placeholder: "Paste scan data here"))
+		     (div 'class: "form-entry"
+			  (input 'type: "checkbox" "Checkbox"))
+		     (input 'type: "submit" 'value: "Submit")))))
 	port))))
   (send/back response-generator))
 
