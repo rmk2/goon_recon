@@ -127,7 +127,9 @@
        (literal (style/inline 'type: "text/css" " input[type='password'], select { width: 100%; }"))
        null)
    (if content-flex?
-       (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
+       (list
+	(style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
+	(literal (style/inline 'type: "text/css" "#content > p:first-of-type { margin-top: -0.25em; }")))
        null)))
 
 (define (create-html-head-check-password)
