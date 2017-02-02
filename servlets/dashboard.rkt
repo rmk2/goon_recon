@@ -137,7 +137,7 @@
 					  #:username (recon-jwt-username auth-struct))])
 	(redirect-to (url->string (request-uri req))
 		     #:headers (list (auth:create-authorization-header new-token)
-				     (cookie->header (make-cookie "access_token" new-token #:max-age 600)))))]
+				     (cookie->header (make-cookie "access_token" new-token #:max-age 600 #:path "/")))))]
      [(cl-group) (group-dispatch (auth-add-header req))]
      [else (admin-dispatch (auth-add-header req))])))
 
