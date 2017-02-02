@@ -28,7 +28,7 @@
 						   ("Timerboard" . "timers")))
 	  (div 'id: "content"
 	       (h1 "Recon Structure Reporting")
-	       (output:create-html-hint "Note: paste citadel dscan, tower dscan or moon probing result")
+	       (output:create-html-hint "Hint: Paste citadel dscan, tower dscan or moon probing result")
 	       (form 'method: "POST" 'target: "_self" 'id: "main" 'novalidate: #f
 		     (div 'class: "subtitle" "D-Scan Reporting")
 		     (div 'class: "form-entry"
