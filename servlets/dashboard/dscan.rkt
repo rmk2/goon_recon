@@ -23,7 +23,7 @@
 	  (list
 	   (style/inline 'type: "text/css" ".form-entry { flex-flow: row wrap; }")
 	   (style/inline 'type: "text/css" ".form-field { margin-left: 0.5em; }")
-	   (style/inline 'type: "text/css" "#content { flex-flow: column nowrap; align-items: flex-start;  margin: 0 0.5em; }")))
+	   (style/inline 'type: "text/css" "#content { align-items: flex-start;  margin: 0 0.5em; }")))
 	 (body
 	  (output:create-html-navigation #:active "dscan"
 					 #:audience (auth:try-authorization-header :subject req)
