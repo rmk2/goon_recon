@@ -121,7 +121,7 @@
   (query-exec sqlc (string-append
 		    "CREATE TRIGGER insert_customCharacters AFTER INSERT ON customCharacters "
 		    "FOR EACH ROW BEGIN "
-		    "INSERT INTO customCorporationInput ( corporationID ) "
+		    "INSERT IGNORE INTO customCorporationInput ( corporationID ) "
 		    "SELECT DISTINCT corporationID FROM customCharacters "
 		    "WHERE NOT EXISTS ( SELECT * FROM customCorporations AS corp WHERE NEW.corporationID = corp.corporationID ) "
 		    "AND customCharacters.corporationID = NEW.corporationID; "
