@@ -126,9 +126,9 @@
 
 (define (corporations-api-helper lst)
   (sql-corporation-update-corporations
-   (exec-limit-api-rate #:function hash-poll-corporations
+   (exec-limit-api-rate #:function esi-hash-poll-corporation
 			#:input lst
-			#:digest hash-parse-corporations
+			#:digest esi-hash-parse-corporation
 			#:delay 1
 			#:limit 30)))
 
