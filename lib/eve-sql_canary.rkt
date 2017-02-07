@@ -43,9 +43,9 @@
 			"killCount,DATE_FORMAT(activityAvg,'%H:%m:%s') AS activityAvg,activityStd "
 			"FROM intelSuperWatchlist AS canary "
 			"LEFT JOIN canaryAlliances AS stat ON canary.allianceID = stat.allianceID "
-			;; "WHERE datetime >= date_sub(curdate(), INTERVAL 60 DAY) "
 			"WHERE killCount >= (killAvg + killStd) "
 			"AND eventType != 'Loss' "
+			"AND datetime >= date_sub(curdate(), INTERVAL 60 DAY) "
 			"ORDER BY canary.allianceName,datetime,regionName,killCount DESC;"))))
 
 (define (sql-canary-create-watchlist-corporations)
@@ -59,7 +59,7 @@
 			"killCount,DATE_FORMAT(activityAvg,'%H:%m:%s') AS activityAvg,activityStd "
 			"FROM intelSuperWatchlist AS canary "
 			"LEFT JOIN canaryCorporations AS stat ON canary.corporationID = stat.corporationID "
-			;; "WHERE datetime >= date_sub(curdate(), INTERVAL 60 DAY) "
 			"WHERE killCount >= (killAvg + killStd) "
 			"AND eventType != 'Loss' "
+			"AND datetime >= date_sub(curdate(), INTERVAL 60 DAY) "
 			"ORDER BY canary.allianceName,canary.corporationName,datetime,regionName,killCount DESC;"))))
