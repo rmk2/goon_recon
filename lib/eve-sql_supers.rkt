@@ -116,15 +116,11 @@
       (query-exec sqlc (string-append
 			"CREATE VIEW intelSuperWatchlist AS "
 			"SELECT "
-			"shipTypeID,shipTypeName,api.characterID,api.characterName,"
-			"corporation.corporationID,corporation.corporationTicker,corporation.corporationName,"
-			"alliance.allianceID,alliance.allianceTicker,alliance.allianceName,eventType,killID,"
+			"shipTypeID,shipTypeName,characterID,characterName,corporationID,corporationTicker,"
+			"corporationName,allianceID,allianceTicker,allianceName,eventType,killID,"
 			"victimTypeID,victimTypeName,solarSystemID,solarSystemName,constellationID,"
 			"constellationName,regionID,regionName,datetime,killCount,activityAvg,activityStd "
-			"FROM intelSuperLatestMV as mv "
-			"INNER JOIN intelSuperAffiliations AS api ON api.characterID = mv.characterID "
-			"LEFT JOIN customAlliances AS alliance ON alliance.allianceID = api.allianceID "
-			"LEFT JOIN customCorporations AS corporation ON corporation.corporationID = api.corporationID "))))
+			"FROM intelSuperLatestMV"))))
 
 ;; Backwards compatibility
 

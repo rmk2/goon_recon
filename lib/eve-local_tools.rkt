@@ -127,7 +127,27 @@
 		    "AND customCharacters.corporationID = NEW.corporationID; "
 		    "END;")))
 
+(define (sql-character-create-trigger-update)
+  (query-exec sqlc (string-append
+		    "CREATE TRIGGER update_customCharacters AFTER UPDATE ON customCharacters "
+		    "FOR EACH ROW BEGIN "
+		    "UPDATE intelSuperLatestMV AS mv "
+		    "LEFT JOIN customAlliances ON customAlliances.allianceID = NEW.allianceID "
+		    "LEFT JOIN customCorporations ON customCorporations.corporationID = NEW.corporationID "
+		    "SET "
+		    "mv.characterName = NEW.characterName,"
+		    "mv.corporationID = NEW.corporationID,"
+		    "mv.corporationID = customCorporations.corporationID,"
+		    "mv.corporationName = NEW.corporationName,"
+		    "mv.allianceID = NEW.allianceID,"
+		    "mv.allianceTicker = customAlliances.allianceTicker,"
+		    "mv.allianceName = NEW.allianceName "
+		    "WHERE mv.characterID = NEW.characterID; "
+		    "END;")))
+
 (define (sql-character-create-triggers)
   (begin
     (query-exec sqlc "DROP TRIGGER IF EXISTS insert_customCharacters")
-    (sql-character-create-trigger-insert)))
+    (sql-character-create-trigger-insert)
+    (query-exec sqlc "DROP TRIGGER IF EXISTS update_customCharacters")
+    (sql-character-create-trigger-update)))
