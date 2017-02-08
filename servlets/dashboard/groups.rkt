@@ -40,7 +40,7 @@
 		(literal (style/inline 'type: "text/css" ".group-entry > div { margin: 0 0 .1em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }"))
 		(style/inline 'type: "text/css" ".group-entry { display: flex; flex-flow: column nowrap; margin: 0 1em .5em 0; padding: .25em; background-color: whitesmoke; border: 1px solid lightgrey; width: 12em; }")))
 	 (body
-	  (output:create-html-navigation #:active "/management/groups"
+	  (output:create-html-navigation #:active (url->string (request-uri req))
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Dashboard" . "/dscan")
 						   ("User Groups" . "/management/groups")

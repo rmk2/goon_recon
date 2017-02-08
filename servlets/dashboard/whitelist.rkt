@@ -29,7 +29,7 @@
 	    (style/inline 'type: "text/css" ".container { margin-right: 2em; }")
 	    (literal (style/inline 'type: "text/css" ".container:last-child { margin-right: 0; }")))))
 	 (body
-	  (output:create-html-navigation #:active "/management/whitelist"
+	  (output:create-html-navigation #:active (url->string (request-uri req))
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Dashboard" . "/dscan")
 						   ("User Groups" . "/management/groups")

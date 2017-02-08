@@ -27,7 +27,7 @@
 		(literal (style/inline 'type: "text/css" "span { margin: 0 .25em; }"))))
 	 (body
 	  (output:create-html-navigation
-	   #:active "goo-database"
+	   #:active (url->string (request-uri req))
 	   #:audience (auth:try-authorization-header :subject req)
 	   #:links '(("Citadel Database" . "citadel-database")
 		     ("Goo Database" . "goo-database")

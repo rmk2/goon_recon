@@ -47,7 +47,7 @@
 		(literal (style/inline 'type: "text/css" "tr.empty.rescan { background-color: gray; color: orange; }"))))
 	 (body
 	  (output:create-html-navigation
-	   #:active "citadel-database"
+	   #:active (url->string (request-uri req))
 	   #:audience (auth:try-authorization-header :subject req)
 	   #:links '(("Citadel Database" . "citadel-database")
 		     ("Goo Database" . "goo-database")

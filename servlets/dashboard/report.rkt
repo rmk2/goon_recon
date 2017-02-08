@@ -21,7 +21,7 @@
 	   (style/inline 'type: "text/css" ".form-field { margin-left: 0.5em; }")
 	   (style/inline 'type: "text/css" "#content { align-items: flex-start;  margin: 0 0.5em; }")))
 	 (body
-	  (output:create-html-navigation #:active "report"
+	  (output:create-html-navigation #:active (url->string (request-uri req))
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Report" . "report")
 						   ("Tasks" . "tasks")

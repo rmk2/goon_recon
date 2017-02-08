@@ -28,7 +28,7 @@
 	   (style/inline 'type: "text/css" "#bar { padding: 0.5em; float: right; }")
 	   (style/inline 'type: "text/css" "select { margin-right: 0.5em; }")))
 	 (body
-	  (output:create-html-navigation #:active "timers"
+	  (output:create-html-navigation #:active (url->string (request-uri req))
 					 #:audience (auth:try-authorization-header :subject req)
 					 #:links '(("Report" . "report")
 						   ("Tasks" . "tasks")
