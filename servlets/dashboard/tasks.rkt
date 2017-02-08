@@ -62,8 +62,9 @@
   (define f-mode (get-filter req #"mode"))
 
   (define user-filter
-    (append filter-region
-	    filter-constellation
-	    filter-system))
+    (filter-not null?
+		(list filter-region
+		      filter-constellation
+		      filter-system)))
 
   (send/back response-generator))

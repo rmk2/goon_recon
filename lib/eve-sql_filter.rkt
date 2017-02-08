@@ -20,6 +20,18 @@
   (-> list? list?)
   (append-map split-user-input lst))
 
+;; Check whether SQL table contains a given column
+
+(define/contract (column? table str)
+  (-> string? string? (or/c string? #f))
+  (query-maybe-value sqlc (string-append "SELECT COLUMN_NAME "
+					 "FROM information_schema.COLUMNS "
+					 "WHERE TABLE_SCHEMA = 'eve_sde' "
+					 "AND TABLE_NAME = ? "
+					 "AND COLUMN_NAME = ?")
+		     table
+		     str))
+
 ;; Macros
 
 (define-syntax (sql-build-query stx)
@@ -105,7 +117,7 @@
 
 ;; Query "columns" in SQL "table" for a list/string
 
-(define (sql-get-by-filter lst #:table table #:columns [columns "*"] #:union? [union? #t])
+(define (sql-get-by-filter lst #:table table #:columns [columns "*"] #:union? [union? #t] #:vector? [vector? #f])
   (define/contract (lookup str)
     (-> string? any)
     (cond
@@ -114,19 +126,18 @@
      [(system? str) (sql-build-query columns : table -> "solarSystemName" = str)]
      [(goo? str) (sql-build-query columns : table -> "moonType" = str)]
      [(structure? str) (sql-build-query columns : table -> "structureType" = str)]
-     [(type? str) (sql-build-query columns : table -> "typeName" = str)]
      [(alliance? str) (sql-build-query columns : table -> "allianceName" + "allianceTicker" = str)]
      [(corporation? str) (sql-build-query columns : table -> "corporationName" + "corporationTicker" = str)]
+     [(type? str) (sql-build-query columns : table -> "typeName" = str)]
      [else null]))
   (let* ([origin lst]
 	 [result
 	  (match origin
-	    ;; [(? string? a (and a (pregexp "^([-+_.A-Za-z0-9 ]+[,]{1})+")))
-	    ;;  (map lookup (remove-duplicates (split-input a)))]
-	    ;; [(? string? a) (lookup a)]
-	    [(list a) (lookup a)]
-	    [(list a ...) (map lookup (remove-duplicates a))])])
-    (map vector->list
+	    [(list (or (? string? a) (list (? string? a)))) (lookup a)]
+	    [(list (or (? string? a) (list (? string? a))) ...) (map lookup (remove-duplicates a))]
+	    [(list (or (list (? string? a) ...) (? string? a)) ...)
+	     (map (lambda (x) (sql-get-by-filter x #:table table #:columns columns #:union? #t #:vector? #t)) a)])])
+    (map (lambda (arg) (if vector? arg (vector->list arg)))
 	 (cond [(and union? (> (length origin) 1))
 	       	(apply set-union result)]
 	       [(and (false? union?) (> (length origin) 1))

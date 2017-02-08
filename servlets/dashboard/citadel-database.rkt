@@ -93,11 +93,12 @@
   (define f-mode (get-filter req #"mode"))
 
   (define user-filter
-    (append filter-region
-	    filter-constellation
-	    filter-system
-	    filter-alliance
-	    filter-corporation
-	    filter-type))
+    (filter-not null?
+		(list filter-region
+		      filter-constellation
+		      filter-system
+		      filter-alliance
+		      filter-corporation
+		      filter-type)))
 
   (send/back response-generator))
