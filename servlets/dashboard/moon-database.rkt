@@ -61,9 +61,9 @@
 			     "Alliance" "CT" "Corporation" "Date" "Tower" "Goo")
 		(output:entry-add-scanid
 		 #:position 10
-		 (cond [(and (not (null? user-filter)) (member "union" f-mode))
+		 (cond [(and (not (null? (flatten user-filter))) (member "union" f-mode))
 			(sql-get-by-filter user-filter #:table "moonScanView" #:union? #t #:columns sql-columns)]
-		       [(not (null? user-filter))
+		       [(not (null? (flatten user-filter)))
 			(sql-get-by-filter user-filter #:table "moonScanView" #:columns sql-columns)]
 		       [else (map vector->list (sql-build-query sql-columns : "moonScanView"))])))
 	       (output:create-html-hint :updated))))

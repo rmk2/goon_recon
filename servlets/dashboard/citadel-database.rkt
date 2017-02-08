@@ -73,9 +73,9 @@
 				   "Alliance" "CT" "Corporation" "Date" "Type" "")
 		      (output:entry-add-scanid
 		       #:position 9
-		       (cond [(and (not (null? user-filter)) (member "union" f-mode))
+		       (cond [(and (not (null? (flatten user-filter))) (member "union" f-mode))
 			      (sql-get-by-filter user-filter #:table "citadelScanView" #:union? #t #:columns sql-columns)]
-			     [(not (null? user-filter))
+			     [(not (null? (flatten user-filter)))
 			      (sql-get-by-filter user-filter #:table "citadelScanView" #:columns sql-columns)]
 			     [else (map vector->list (sql-build-query sql-columns : "citadelScanView"))])))
 		     (input 'type: "submit" 'id: "submit" 'value: "Delete marked entries"))

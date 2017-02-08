@@ -46,9 +46,9 @@
 		#:drop-right 0
 		#:head (list "Region" "Constellation" "System" "Planet" "Moon"
 			     "A-T*" "C-T*" "Date*" "Tower*")
-		(cond [(and (not (null? user-filter)) (member "union" f-mode))
+		(cond [(and (not (null? (flatten user-filter))) (member "union" f-mode))
 		       (sql-get-by-filter user-filter #:table "moonScanTasks" #:union? #t #:columns sql-columns)]
-		      [(not (null? user-filter))
+		      [(not (null? (flatten user-filter)))
 		       (sql-get-by-filter user-filter #:table "moonScanTasks" #:columns sql-columns)]
 		      [else (map vector->list (sql-build-query sql-columns : "moonScanTasks"))]))
 	       (output:create-html-hint :updated))))
