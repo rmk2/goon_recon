@@ -47,8 +47,8 @@
 		#:ticker->class #t
 		#:drop-right 0
 		#:head (list "Region" "Constellation" "System" "Planet" "Moon" "Date" "Goo")
-		(cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-		       (sql-get-by-filter user-filter #:table "moonGooDV" #:union? #f #:columns sql-columns)]
+		(cond [(and (not (null? user-filter)) (member "union" f-mode))
+		       (sql-get-by-filter user-filter #:table "moonGooDV" #:union? #t #:columns sql-columns)]
 		      [(not (null? user-filter))
 		       (sql-get-by-filter user-filter #:table "moonGooDV" #:columns sql-columns)]
 		      [else (map vector->list (sql-build-query sql-columns : "moonGooDV"))]))
@@ -64,10 +64,9 @@
   (define f-mode (get-filter req #"mode"))
 
   (define user-filter
-    (filter-not null?
-		(list filter-region
-		      filter-constellation
-		      filter-system
-		      filter-goo)))
+    (list filter-region
+	  filter-constellation
+	  filter-system
+	  filter-goo))
 
   (send/back response-generator))

@@ -73,8 +73,8 @@
 				   "Alliance" "CT" "Corporation" "Date" "Type" "")
 		      (output:entry-add-scanid
 		       #:position 9
-		       (cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-			      (sql-get-by-filter user-filter #:table "citadelScanView" #:union? #f #:columns sql-columns)]
+		       (cond [(and (not (null? user-filter)) (member "union" f-mode))
+			      (sql-get-by-filter user-filter #:table "citadelScanView" #:union? #t #:columns sql-columns)]
 			     [(not (null? user-filter))
 			      (sql-get-by-filter user-filter #:table "citadelScanView" #:columns sql-columns)]
 			     [else (map vector->list (sql-build-query sql-columns : "citadelScanView"))])))
@@ -93,12 +93,11 @@
   (define f-mode (get-filter req #"mode"))
 
   (define user-filter
-    (filter-not null?
-		(list filter-region
-		      filter-constellation
-		      filter-system
-		      filter-alliance
-		      filter-corporation
-		      filter-type)))
+    (list filter-region
+	  filter-constellation
+	  filter-system
+	  filter-alliance
+	  filter-corporation
+	  filter-type))
 
   (send/back response-generator))

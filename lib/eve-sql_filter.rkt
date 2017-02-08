@@ -117,7 +117,7 @@
 
 ;; Query "columns" in SQL "table" for a list/string
 
-(define (sql-get-by-filter lst #:table table #:columns [columns "*"] #:union? [union? #t] #:vector? [vector->list? #t])
+(define (sql-get-by-filter lst #:table table #:columns [columns "*"] #:union? [union? #f] #:vector? [vector->list? #t])
   (define/contract (lookup str)
     (-> string? any)
     (cond
@@ -130,7 +130,7 @@
      [(corporation? str) (sql-build-query columns : table -> "corporationName" + "corporationTicker" = str)]
      [(type? str) (sql-build-query columns : table -> "typeName" = str)]
      [else null]))
-  (let* ([origin lst]
+  (let* ([origin (filter-not null? lst)]
 	 [result
 	  (match origin
 	    [(list (or (? string? a) (list (? string? a)))) (lookup a)]

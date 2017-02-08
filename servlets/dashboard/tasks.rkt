@@ -46,8 +46,8 @@
 		#:drop-right 0
 		#:head (list "Region" "Constellation" "System" "Planet" "Moon"
 			     "A-T*" "C-T*" "Date*" "Tower*")
-		(cond [(and (not (null? user-filter)) (member "intersect" f-mode))
-		       (sql-get-by-filter user-filter #:table "moonScanTasks" #:union? #f #:columns sql-columns)]
+		(cond [(and (not (null? user-filter)) (member "union" f-mode))
+		       (sql-get-by-filter user-filter #:table "moonScanTasks" #:union? #t #:columns sql-columns)]
 		      [(not (null? user-filter))
 		       (sql-get-by-filter user-filter #:table "moonScanTasks" #:columns sql-columns)]
 		      [else (map vector->list (sql-build-query sql-columns : "moonScanTasks"))]))
@@ -62,9 +62,8 @@
   (define f-mode (get-filter req #"mode"))
 
   (define user-filter
-    (filter-not null?
-		(list filter-region
-		      filter-constellation
-		      filter-system)))
+    (list filter-region
+	  filter-constellation
+	  filter-system))
 
   (send/back response-generator))
