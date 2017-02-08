@@ -117,7 +117,7 @@
 
 ;; Query "columns" in SQL "table" for a list/string
 
-(define (sql-get-by-filter lst #:table table #:columns [columns "*"] #:union? [union? #t] #:vector? [vector? #f])
+(define (sql-get-by-filter lst #:table table #:columns [columns "*"] #:union? [union? #t] #:vector? [vector->list? #t])
   (define/contract (lookup str)
     (-> string? any)
     (cond
@@ -135,9 +135,10 @@
 	  (match origin
 	    [(list (or (? string? a) (list (? string? a)))) (lookup a)]
 	    [(list (or (? string? a) (list (? string? a))) ...) (map lookup (remove-duplicates a))]
+	    [(list (list (? string? a) ...)) (append-map lookup (remove-duplicates a))]
 	    [(list (or (list (? string? a) ...) (? string? a)) ...)
-	     (map (lambda (x) (sql-get-by-filter x #:table table #:columns columns #:union? #t #:vector? #t)) a)])])
-    (map (lambda (arg) (if vector? arg (vector->list arg)))
+	     (map (lambda (x) (sql-get-by-filter x #:table table #:columns columns #:union? #t #:vector? #f)) a)])])
+    (map (lambda (arg) (if vector->list? (vector->list arg) arg))
 	 (cond [(and union? (> (length origin) 1))
 	       	(apply set-union result)]
 	       [(and (false? union?) (> (length origin) 1))
