@@ -126,3 +126,18 @@
 	    (filter (lambda (x) (and (equal? (sql-whitelist-action x) "-")
 				     (equal? (sql-whitelist-type x) make-type)))
 		    lst))))]))
+
+;; Check whether input is a member of any whitelist
+
+(define (whitelist? input)
+  (let ([maybe-alliance (parse-alliance input)]
+	[maybe-corporation (parse-corporation input)])
+    (number?
+     (cond
+      [(not (false? maybe-alliance))
+       (query-maybe-value sqlc
+			  "SELECT 1 FROM authWhitelistAlliances WHERE allianceID = ?" (vector-ref maybe-alliance 0))]
+      [(not (false? maybe-corporation))
+       (query-maybe-value sqlc
+			  "SELECT 1 FROM authWhitelistCorporations WHERE corporationID = ?" (vector-ref maybe-corporation 0))]
+      [else #f]))))
