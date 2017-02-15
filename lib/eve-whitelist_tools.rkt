@@ -9,6 +9,7 @@
 
 (require "eve-sql_main.rkt")
 (require "eve-sql_structs.rkt")
+(require "eve-sql_types.rkt")
 
 (provide (all-defined-out))
 
