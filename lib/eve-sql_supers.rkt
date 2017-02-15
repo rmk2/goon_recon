@@ -48,7 +48,7 @@
 (define (sql-super-create-raw)
   (if (table-exists? sqlc "intelSuperRaw")
       #t
-      (query-exec sqlc "CREATE TABLE intelSuperRaw ( shipTypeID INT NOT NULL, characterID INT NOT NULL, characterName VARCHAR(255) NOT NULL, corporationID INT NOT NULL, corporationName VARCHAR(255) NOT NULL, allianceID INT, allianceName VARCHAR(255), eventType VARCHAR(255), killID INT, victimTypeID INT, moonID INT, solarSystemID INT, regionID INT, datetime DATETIME, UNIQUE KEY (characterID, killID), KEY (datetime), KEY (eventType) )")))
+      (query-exec sqlc "CREATE TABLE intelSuperRaw ( shipTypeID INT NOT NULL, characterID INT NOT NULL, characterName VARCHAR(255) NOT NULL, corporationID INT, corporationName VARCHAR(255), allianceID INT, allianceName VARCHAR(255), eventType VARCHAR(255), killID INT, victimTypeID INT, moonID INT, solarSystemID INT, regionID INT, datetime DATETIME, UNIQUE KEY (characterID, killID), KEY (datetime), KEY (eventType) )")))
 
 (define (sql-super-insert-killmails lst)
   (for-each (lambda (x)
