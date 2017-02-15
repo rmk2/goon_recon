@@ -197,6 +197,7 @@
 	      (cond
 	       [(and (or (false? nav-audience) (null? nav-audience)) (not (null? nav-list))) nav-list]
 	       [(and (string? active-url) (regexp-match? #px"^/management/.*" active-url) (not (null? nav-list))) nav-list]
+	       [(and (string? active-url) (regexp-match? #px"^/supers/.*" active-url) (not (null? nav-list))) nav-list]
 	       [else
 		(match nav-audience
 		  [(? number? nav-audience)
@@ -295,4 +296,15 @@
 						'target: "_blank"
 						'rel: "noopener noreferrer"
 						type)]))))
+       lst))
+
+(define (entry-add-killid lst #:position [position 7] #:url [url "https://zkillboard.com/kill/"])
+  (map (lambda (scan)
+	 (list-update scan position (lambda (type)
+				      (let* ([id (list-ref scan position)]
+					     [killid (if (number? id) (number->string id) "0")])
+					(a 'href: (string-append url killid "/")
+					   'target: "_blank"
+					   'rel: "noopener noreferrer"
+					   killid)))))
        lst))
