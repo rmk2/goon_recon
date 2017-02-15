@@ -29,13 +29,13 @@
        (output-xml
 	(html
 	 (output:create-html-head
-	  #:title "User Registration (SSO)"
+	  #:title "User Identification (SSO)"
 	  #:tablesorter #f
 	  #:navigation #f
 	  #:forms #t)
 	 (body
 	  (div 'id: "content"
-	       (h1 "User Registration (SSO)")
+	       (h1 "User Identification (SSO)")
 	       (div 'class: "info"
 		    (p "Continue to EVE SSO to identify yourself:")
 		    (p (a 'href: (sso-request-auth-token) (img 'src: (login-button)))))
@@ -68,4 +68,4 @@
     (sql-character-update-ids (map-character-hash->struct parsed-affiliation))
 
     (redirect-to "register" #:headers (list (auth:create-authorization-header token)
-					    (cookie->header (make-cookie "registration_token" token #:max-age 600))))))
+					    (cookie->header (make-cookie "registration_token" token #:max-age 600 #:path "/"))))))
