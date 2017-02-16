@@ -30,7 +30,7 @@
 	 "dashboard/whitelist.rkt"
 	 "dashboard/login.rkt"
 	 "dashboard/register.rkt"
-	 "dashboard/sso-register.rkt")
+	 "dashboard/sso-auth.rkt")
 
 ;; Login dispatch
 
