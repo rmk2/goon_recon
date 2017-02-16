@@ -3,8 +3,20 @@
 (require eve)
 
 (require "common.rkt")
+(require "sso-auth.rkt")
 
 (provide (all-defined-out))
+
+;; Handle redirects for SSO identification
+
+(define (exec-login-pre req)
+  (cond [(not (false? (try-auth-cookie req #:type "access_token")))
+	 (redirect-to "dscan")]
+	[(not (null? (request-bindings req)))
+	 (exec-auth-token-response req)]
+	[else (exec-auth-token-request req #:type "login")]))
+
+;; User login (main)
 
 (define (exec-login req [param ""])
   (define response-generator

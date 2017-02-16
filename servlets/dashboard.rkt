@@ -45,7 +45,7 @@
 (define-values (login-dispatch login-url)
   (dispatch-rules
    [("dscan" (string-arg)) exec-parse-archive]
-   [("register") (lambda (req) (if (cl-sso) (exec-auth-token-pre req) (exec-register req)))]
+   [("register") (lambda (req) (if (cl-sso) (exec-register-pre req) (exec-register req)))]
    [("register") #:method "post" exec-register-post]
    [("login") exec-login]
    [((string-arg) ...) #:method "post" exec-login-post]
@@ -116,8 +116,8 @@
    [("dscan" (string-arg)) exec-parse-archive]
    ;; [("register") exec-register]
    ;; [("register") #:method "post" exec-register-post]
-   ;; [("login") exec-login]
-   ;; [("login") #:method "post" exec-login-post]
+   [("login") exec-login]
+   [("login") #:method "post" exec-login-post]
    [("logout") exec-logout]))
 
 ;; Embed valid JSON X-Auth header in every request for local testing or read

@@ -3,8 +3,20 @@
 (require eve)
 
 (require "common.rkt")
+(require "sso-auth.rkt")
 
 (provide (all-defined-out))
+
+;; Handle redirects for SSO identification
+
+(define (exec-register-pre req)
+  (cond [(not (false? (try-auth-cookie req #:type "access_token")))
+	 (redirect-to "login")]
+	[(not (false? (try-auth-cookie req #:type "registration_token")))
+	 (exec-register req)]
+	[(not (null? (request-bindings req)))
+	 (exec-auth-token-response req)]
+	[else (exec-auth-token-request req #:type "register")]))
 
 ;; User registration (main)
 
