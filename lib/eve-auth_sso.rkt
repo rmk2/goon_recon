@@ -116,22 +116,22 @@ j7o9/F12/h8TB8xJk2exoQAAAABJRU5ErkJggg==")
 
 ;; SSO functions
 
-(define (sso-request-auth-code)
+(define (sso-request-auth-code [state "0"])
   (send eve-sso-server
 	get-auth-request-url
 	#:client eve-sso-code-client
 	#:scopes code-request-scopes
 	#:redirect-uri code-redirect-uri
-	#:state "0"
+	#:state state
 	#:extra-parameters '((response_type . "code"))))
 
-(define (sso-request-auth-token)
+(define (sso-request-auth-token [state "0"])
   (send eve-sso-server
 	get-auth-request-url
 	#:client eve-sso-token-client
 	#:scopes '("")
 	#:redirect-uri token-redirect-uri
-	#:state "0"
+	#:state state
 	#:extra-parameters '((response_type . "token"))))
 
 (define (sso-auth-code->tokens code)
