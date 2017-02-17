@@ -6,8 +6,6 @@
 
 (require eve)
 
-(require (prefix-in corp: "eve-api_corporations.rkt"))
-
 ;; Channels
 
 (define control (make-channel))
@@ -120,15 +118,6 @@
 
 ;; Corporation updater
 
-(define (sql-unknown-corporations-union)
-  (remove-duplicates
-   (append
-    (append-map (lambda (alliance) (corp:parse-corporationids (corp:crest-poll-allianceid (parse-alliance :id alliance))))
-		(corp:extract-corporationids (corp:query-scan-unknown-corporations)))
-    (map number->string
-	 (append (corp:query-kill-unknown-corporations)
-		 (corp:query-input-unknown-corporations))))))
-
 (define (corporations-api-helper lst)
   (sql-corporation-update-corporations
    (exec-limit-api-rate #:function esi-hash-poll-corporation
@@ -144,7 +133,7 @@
   (schedule-recurring-task
    (lambda ()
      (for-each (lambda (lst) (async-channel-put corporation-queue lst))
-	       (split-list (sql-unknown-corporations-union) (chunk-size))))
+	       (split-list (query-unknown-corporations-union) (chunk-size))))
    (hours->seconds 4)))
 
 ;; Alliance updater
