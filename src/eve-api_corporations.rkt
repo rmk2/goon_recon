@@ -15,11 +15,12 @@
 ;; Database
 
 (define (query-scan-unknown-corporations)
-  (flatten
-   (filter-not empty?
-	       (list*
-		(query-list sqlc "SELECT allianceTicker FROM moonScanView WHERE corporationName IS NULL")
-		(query-list sqlc "SELECT allianceTicker FROM citadelScanView WHERE corporationName IS NULL")))))
+  (filter-not string-empty?
+	      (flatten
+	       (filter-not empty?
+			   (list*
+			    (query-list sqlc "SELECT allianceTicker FROM moonScanView WHERE corporationName IS NULL")
+			    (query-list sqlc "SELECT allianceTicker FROM citadelScanView WHERE corporationName IS NULL"))))))
 
 (define (query-kill-unknown-corporations)
   (flatten
