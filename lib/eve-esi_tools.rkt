@@ -98,18 +98,20 @@
 ;; This consists of TWO queries to the API and ONE query to SQL
 ;; API = corp ticker -> API = alliance id -> SQL = alliance ticker
 
+(define (esi-try-corporation input)
+  ;; (match (json-api (esi-build-url "search" '((search . input) (categories . "corporation") (strict . "true"))))
+  (match (json-api (esi-search input '("corporation")))
+    [(hash-table ('corporation id)) (car id)]
+    [else #f]))
+
+(define (esi-corporation->alliance id)
+  (match (json-api (esi-build-url "corporations" id))
+    [(hash-table ('alliance_id id)) id]
+    [else #f]))
+
 (define (esi-fill-alliance input)
-  (define (try-corporation input)
-    ;; (match (json-api (esi-build-url "search" '((search . input) (categories . "corporation") (strict . "true"))))
-    (match (json-api (esi-search input '("corporation")))
-      [(hash-table ('corporation id)) (car id)]
-      [else #f]))
-  (define (corporation->alliance id)
-    (match (json-api (esi-build-url "corporations" id))
-      [(hash-table ('alliance_id id)) id]
-      [else #f]))
-  (let* ([maybe-corp (try-corporation input)]
-	 [maybe-id (if maybe-corp (corporation->alliance maybe-corp) #f)])
+  (let* ([maybe-corp (esi-try-corporation input)]
+	 [maybe-id (if maybe-corp (esi-corporation->alliance maybe-corp) #f)])
     (cond [(not (false? maybe-id))
 	   (parse-alliance :ticker maybe-id)]
 	  ;; [(and (string? input) (= (string-length input) 5))
