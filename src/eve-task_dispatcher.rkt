@@ -73,22 +73,27 @@
 
 (define (zkill-poll-helper groupids
 			   #:table table
+			   #:kills [run-kills? #f]
 			   #:losses [run-losses? #t]
 			   #:location [location? #t]
 			   #:moons [moons? #f])
   (let ([data (digest:poll-url #:date null
 			       #:groups groupids
-			       #:kills (if run-losses? #f #t)
+			       #:kills (if (and (false? run-kills?) run-losses?) #f #t)
 			       #:losses (if run-losses? #t #f)
 			       #:id (sql-get-latest-id table))])
-    (if (not (list? data))
-	null
-	(digest:parse-kills #:attackers (if run-losses? #f #t)
-			    #:raw #t
-			    #:location location?
-			    #:moons moons?
-			    #:groups groupids
-			    data))))
+    (cond [(not (list? data))
+	   null]
+	  [(and run-kills? run-losses?)
+	   (list (digest:parse-kills #:attackers #t #:raw #t #:location location? #:moons moons? #:groups groupids data)
+		 (digest:parse-kills #:attackers #f #:raw #t #:location location? #:moons moons? #:groups groupids data))]
+	  [else
+	   (digest:parse-kills #:attackers (if run-losses? #f #t)
+			       #:raw #t
+			       #:location location?
+			       #:moons moons?
+			       #:groups groupids
+			       data)])))
 
 ;; Character updater
 
@@ -185,14 +190,13 @@
 ;; Super updater
 
 (define (supers-api-helper)
-  (begin
-    (sql-super-insert-killmails
-     (append
-      (map (lambda (x) (begin (set-sql-killmail-eventtype! x "Kill") x))
-	   (zkill-poll-helper '("30" "659") #:table "intelSuperRaw" #:losses #f))
-      (map (lambda (x) (begin (set-sql-killmail-eventtype! x "Loss") x))
-	   (zkill-poll-helper '("30" "659") #:table "intelSuperRaw" #:losses #t))))
-    (sql-super-populate-affiliations)))
+  (let ([data (zkill-poll-helper '("30" "659") #:table "intelSuperRaw" #:kills #t #:losses #t)])
+    (begin
+      (sql-super-insert-killmails
+       (append
+	(map (lambda (x) (begin (set-sql-killmail-eventtype! x "Kill") x)) (car data))
+	(map (lambda (x) (begin (set-sql-killmail-eventtype! x "Loss") x)) (cadr data))))
+      (sql-super-populate-affiliations))))
 
 (define poll-supers-auto
   (schedule-recurring-task (lambda () (channel-put control 'supers)) (offset-hours->seconds 1 #:offset 60)))
@@ -231,9 +235,9 @@
 
 ;; Main
 
-(define workers (map create-worker (range 2)))
-
 (log-output "Eve Task Dispatcher initiated" #:id 'main)
+
+(define workers (map create-worker (range 2)))
 
 ;; (displayln (date->string (current-date) "~5"))
 
