@@ -134,6 +134,7 @@
 
 (define (create-html-head-check-password)
   (list
+   (style/inline 'type: "text/css" ".form-error { margin-bottom: 1em; color: indianred; display: none; }")
    (script 'type: "text/javascript" (literal "function checkPW(form,e1,e2,error) { var err = document.getElementById(error); if (form.elements[e1].value == form.elements[e2].value ) { err.style.display = 'none'; form.elements['submit'].disabled = false } else { err.style.display = 'block'; form.elements['submit'].disabled = true } };"))))
 
 (define (create-html-head-colorise-whitelist)
