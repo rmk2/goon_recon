@@ -1,7 +1,5 @@
 #lang racket
 
-(require racket/serialize)
-
 (require eve)
 (require eve/eve-auth_sso)
 (require eve/eve-whitelist_tools)
@@ -64,6 +62,16 @@
 	(redirect-to "register"
 		     #:headers (list (auth:create-authorization-header token)
 				     (cookie->header (make-cookie "registration_token" token #:max-age 600 #:path "/")))))]
+     [(and (recon-jwt? sso-state) (equal? (recon-jwt-subject sso-state) "whitelist"))
+      (cond [(or (whitelist? (sql-character-corporationid affiliation-data))
+		 (whitelist? (sql-character-allianceid affiliation-data)))
+	     (let ([token (auth:create-token #:subject "whitelist"
+					     #:username (sql-character-name affiliation-data)
+					     #:expiration 43200)])
+	       (redirect-to "setup"
+			    #:headers (list (auth:create-authorization-header token)
+					    (cookie->header (make-cookie "whitelist_token" token #:max-age 43200 #:path "/")))))]
+	    [else (redirect-to "error")])]
      [(and (recon-jwt? sso-state) (equal? (recon-jwt-subject sso-state) "login"))
       (let* ([group (cond [(whitelist? (sql-character-corporationid affiliation-data)) "corporation"]
 			  [(whitelist? (sql-character-allianceid affiliation-data)) "alliance"]
