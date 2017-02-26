@@ -20,13 +20,18 @@
 
 (require eve)
 
+(require "dashboard/common.rkt")
+(require "dashboard/sso-auth.rkt")
+
 ;; URL dispatch
 
 (define-values (main-dispatch main-url)
   (dispatch-rules
    [("login" (string-arg)) exec-login]
    [("login" (string-arg)) #:method "post" exec-login-post]
-   [("setup") exec-setup]
+   [("error") exec-error]
+   [("register") exec-setup-pre]
+   [("setup") exec-setup-pre]
    [("setup") #:method "post" exec-setup]
    [("setup" (string-arg)) #:method "post" exec-setup-post]
    [("admin" (string-arg)) (lambda (req session) (exec-login-pre req session "admin"))]
@@ -341,6 +346,36 @@
        lst))
 
 ;; Pages
+
+(define (exec-error req)
+  (define response-generator
+    (response/output
+     (lambda (out)
+       (output-xml (doctype 'html) out)
+       (output-xml
+	(html
+	 (output:create-html-head
+	  #:title "Fuzzysov Node Reporting"
+	  #:tablesorter #f
+	  #:navigation #f
+	  #:forms #t)
+	 (body
+	  (div 'id: "content"
+	       (h1 "Fuzzysov Node Reporting")
+	       (div 'class: "info"
+		    (list
+		     (p 'style: "color:crimson;" "[Error] Not a member of any whitelisted entity")
+		     (p 'style: "text-align:justify;" "This tool has been set up to require that all session creators are members of an explicitly whitelisted entity. The character you authenticated with does not meet this requirement. If you think that you do meet requirements or if you would like to inquire about the whitelisting process, please feel free to contact an administrator!"))))))
+	out))))
+
+  (send/back response-generator))
+
+(define (exec-setup-pre req)
+  (cond [(not (false? (try-auth-cookie req #:type "whitelist_token")))
+	 (exec-setup req)]
+	[(not (null? (request-bindings req)))
+	 (exec-auth-token-response req)]
+	[else (exec-auth-token-request req #:type "whitelist")]))
 
 (define (exec-setup req [constellation ""])
   (define response-generator
