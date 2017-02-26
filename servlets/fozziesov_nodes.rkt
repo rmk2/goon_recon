@@ -384,14 +384,14 @@
        (output-xml (doctype 'html) out)
        (output-xml
 	(html
-	 (head (title "Fuzzysov Node Reporting")
-	       (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
-	       (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column wrap; margin-bottom: 1em; }")
-	       (style/inline 'type: "text/css" ".form-password { margin-bottom: 1em; padding: 1em 1em 0; border: 1px solid lightgrey; }")
-	       (literal (style/inline 'type: "text/css" " input[type='password'], select { width: 100%; }"))
-	       (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
-	       (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column wrap; align-items: flex-start;  margin: 0 2em; }")
-	       (style/inline 'type: "text/css" "#main { border: 1px solid black; background-color: whitesmoke; padding: 1em; }"))
+	 (output:create-html-head
+	  #:title "Fuzzysov Node Reporting"
+	  #:tablesorter #f
+	  #:navigation #f
+	  (list
+	   (output:create-html-head-form #:content-flex? #f #:form-background? #f #:password-stretch? #t)
+	   (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column wrap; align-items: flex-start;  margin: 0 2em; }")
+	   (style/inline 'type: "text/css" "#main { border: 1px solid black; background-color: whitesmoke; padding: 1em; }")))
 	 (body
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Node Reporting")
@@ -436,16 +436,14 @@
        (output-xml (doctype 'html) out)
        (output-xml
 	(html
-	 (head (title "Fuzzysov Node Reporting")
-	       (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
-	       (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column wrap; margin-bottom: 1em; }")
-	       (style/inline 'type: "text/css" ".form-password { margin-bottom: 1em; padding: 1em 1em 0; border: 1px solid lightgrey; }")
-	       (literal (style/inline 'type: "text/css" " input[type='password'], select { width: 100%; }"))
-	       (style/inline 'type: "text/css" ".form-error { margin-bottom: 1em; color: indianred; display: none; }")
-	       (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
-	       (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column wrap; align-items: flex-start;  margin: 0 2em; }")
-	       (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 1em; }")
-	       (script 'type: "text/javascript" (literal "function checkPW(form,e1,e2,error) { var err = document.getElementById(error); if (form.elements[e1].value == form.elements[e2].value ) { err.style.display = 'none'; form.elements['submit'].disabled = false } else { err.style.display = 'block'; form.elements['submit'].disabled = true } };")))
+	 (output:create-html-head
+	  #:title "Fuzzysov Node Reporting"
+	  #:tablesorter #f
+	  #:navigation #f
+	  #:forms #t
+	  (list
+	   (style/inline 'type: "text/css" "#content { align-items: flex-start; }")
+	   (output:create-html-head-check-password)))
 	 (body
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Node Reporting")
@@ -602,12 +600,11 @@
 	     (output-xml (doctype 'html) out)
 	     (output-xml
 	      (html
-	       (head (title "Fuzzysov Node Reporting")
-		     (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
-		     (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column nowrap; margin-bottom: 1em; }")
-		     (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column nowrap; align-items: center;  margin: 0 2em; }")
-		     (style/inline 'type: "text/css" "#links { display:flex; flex-flow: column nowrap; }")
-		     (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 2em;  }"))
+	       (output:create-html-head
+		#:title "Fuzzysov Node Reporting"
+		#:tablesorter #f
+		#:navigation #f
+		#:forms #t)
 	       (body
 		(div 'id: "content"
 		     (h1 "Fuzzysov Node Reporting")
@@ -719,12 +716,13 @@
        (output-xml (doctype 'html) out)
        (output-xml
 	(html
-	 (head (title "Fuzzysov Node Reporting")
-	       (style/inline 'type: "text/css" ".form-description:after { content: ':'; }")
-	       (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: column wrap; margin-bottom: 1em; }")
-	       (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
-	       (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column wrap; align-items: flex-start;  margin: 0 2em; }")
-	       (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 1em; }"))
+	 (output:create-html-head
+	  #:title "Fuzzysov Node Reporting"
+	  #:tablesorter #f
+	  #:navigation #f
+	  #:forms #t
+	  (list
+	   (style/inline 'type: "text/css" "#content { align-items: flex-start; }")))
 	 (body
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Node Reporting")
@@ -769,10 +767,14 @@
        (output-xml (doctype 'html) out)
        (output-xml
 	(html
-	 (head (title "Fuzzysov Node Reporting")
-	       (style/inline 'type: "text/css" ".form-entry { display: flex; flex-flow: row wrap; margin-bottom: 1em; }")
-	       (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column wrap; align-items: flex-start;  margin: 0 2em; }")
-	       (style/inline 'type: "text/css" "form { border: 1px solid black; background-color: whitesmoke; padding: 1em; }"))
+	 (output:create-html-head
+	  #:title "Fuzzysov Node Reporting"
+	  #:tablesorter #f
+	  #:navigation #f
+	  #:forms #t
+	  (list
+	   (style/inline 'type: "text/css" "#content { align-items: flex-start; }")
+	   (style/inline 'type: "text/css" ".form-entry { flex-flow: row nowrap; }")))
 	 (body
 	  (div 'id: "content"
 	       (h1 (format "~a » ~a » ~a" region constellation system))
