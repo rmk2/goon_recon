@@ -11,31 +11,38 @@
 
 (provide (all-defined-out))
 
+;; SQL Encryption
+
+(define sql-oauth2-encryption-key (getenv "MYSQL_KEY"))
+
 ;; SQL
 
 (define (sql-oauth2-create-tokens)
   (if (table-exists? sqlc "authTokens")
       #t
-      (query-exec sqlc "CREATE TABLE authTokens ( characterID INT NOT NULL, characterName VARCHAR(255) NOT NULL, refreshToken VARCHAR(255), datetime DATETIME, PRIMARY KEY ( characterID ) )")))
+      (query-exec sqlc "CREATE TABLE authTokens ( characterID INT NOT NULL, characterName VARCHAR(255) NOT NULL, refreshToken VARBINARY(1024), datetime DATETIME, PRIMARY KEY ( characterID ), UNIQUE KEY ( characterName ) )")))
 
-(define (sql-oauth2-update-tokens lst)
+(define (sql-oauth2-update-tokens lst [encryption-key sql-oauth2-encryption-key])
   (for-each (lambda (x)
-	      (query sqlc "INSERT INTO authTokens VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE refreshToken=?,datetime=?"
+	      (query sqlc "INSERT INTO authTokens VALUES (?, ?, AES_ENCRYPT(?,UNHEX(SHA2(?,512))), ?) ON DUPLICATE KEY UPDATE characterName=?,refreshToken=AES_ENCRYPT(?,UNHEX(SHA2(?,512))),datetime=?"
 		     (sql-sso-auth-characterid x)
 		     (sql-sso-auth-charactername x)
 		     (sql-sso-auth-refresh-token x)
+		     encryption-key
 		     (sql-sso-auth-datetime x)
+		     (sql-sso-auth-charactername x)
 		     (sql-sso-auth-refresh-token x)
+		     encryption-key
 		     (sql-sso-auth-datetime x)))
 	    lst))
 
-(define-syntax sql-oauth2-get-tokens
-  (syntax-rules ()
-    ((_ arg) (cond
-	      [(number? arg)
-	       (query-maybe-row sqlc "SELECT characterID,characterName,refreshToken,datetime FROM authTokens WHERE characterID = ?" arg)]
-	      [(string? arg)
-	       (query-maybe-row sqlc "SELECT characterID,characterName,refreshToken,datetime FROM authTokens WHERE characterName = ?" arg)]))))
+(define (sql-oauth2-get-tokens arg [encryption-key sql-oauth2-encryption-key])
+  (cond
+   [(number? arg)
+    (query-maybe-row sqlc "SELECT characterID,characterName,AES_DECRYPT(refreshToken,UNHEX(SHA2(?,512))),datetime FROM authTokens WHERE characterID = ?" encryption-key arg)]
+   [(string? arg)
+    (query-maybe-row sqlc "SELECT characterID,characterName,AES_DECRYPT(refreshToken,UNHEX(SHA2(?,512))),datetime FROM authTokens WHERE characterName = ?" encryption-key arg)]
+   [else #f]))
 
 ;; SSO login button image (base64 encoded)
 ;; embed via (img (src login-button))
