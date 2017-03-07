@@ -233,7 +233,17 @@
 	     (not (false? moon-empty-result))
 	     (not (false? goo-scan-result))
 	     (not (false? citadel-scan-result))))
-    (dscan-local->string :write dscan)])
+    (begin
+      (dscan-local->string :write dscan)
+      (sql-scan-update-users
+       (list (sql-scan (dscan-local->string :id dscan)
+		       (auth:try-authorization-header :username req)
+		       (cond [(not (false? moon-scan-result)) "moon"]
+			     [(not (false? moon-empty-result)) "moon"]
+			     [(not (false? goo-scan-result)) "goo"]
+			     [(not (false? citadel-scan-result)) "citadel"]
+			     [else "dscan"])
+		       (srfi-date->sql-timestamp (current-date))))))])
 
   (cond
    [(not (false? citadel-scan-result))

@@ -75,6 +75,10 @@
 (sql-citadel-create-triggers)
 (sql-citadel-create-kill-triggers)
 
+;; Create scan username table
+
+(sql-scan-create-users)
+
 ;; Create sovereignty tables
 
 (sov:sql-sov-create-campaigns-raw)

@@ -44,6 +44,9 @@
 ;; sql-goo->struct & sql-goo-update-scan
 (struct sql-goo (region constellation system planet moon datetime type amount) #:transparent)
 
+;; sql-scan-update-users
+(struct sql-scan (id user type datetime))
+
 ;; sql-citadel-update-scan
 (struct sql-citadel (region constellation system location alliance corporation datetime type scanid))
 
