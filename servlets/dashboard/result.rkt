@@ -120,31 +120,48 @@
 	  (output:create-html-navigation #:audience (auth:try-authorization-header :subject req))
 	  (div 'id: "content"
 	       (h1 (pretty-print-location location-guess))
-	       (if (and (null? location-guess) (dscan-proximity (citadel? data)))
-		   (form 'method: "POST" 
-			 "Please enter closest celestial: "
-			 (input 'type: "text"
-				'name: "location"
-				'required: #t
-				'style: "margin-right:0.5em;"
-				'placeholder: "Jita IV - Moon 4")
-			 (map (lambda (name value)
-				(input 'type: "hidden" 'name: name 'value: (if (string-empty? value) "" value)))
-			      (list "dscan" "alliance" "corporation")
-			      (list dscan alliance corporation))
-			 (input 'type: "submit" 'value: "Submit"))
-		   (list
-		    (b "Scan Result: ")
-		    (cond
-		     [(not (false? citadel-scan-result)) (pretty-print-citadel-result data citadel-scan-result)]
-		     [(not (false? moon-scan-result)) (pretty-print-moon-result data moon-scan-result)]
-		     [(not (false? goo-scan-result))
-		      (format "Moon probing results saved for ~a!"
-			      (string-join (map caar (goo-split-probe-results (dscan-raw->list dscan)))
-					   ","
-					   #:before-last " & "
-					   #:after-last ""))]
-		     [else "No structure found in close proximity"])))
+	       (cond [(and (false? corporation-try) (or (dscan-proximity (citadel? data)) (dscan-proximity (tower? data))))
+		      (form 'method: "POST"
+			    "Please enter a valid corporation ticker: "
+			    (input 'type: "text"
+				   'name: "corporation"
+				   'maxlength: "5"
+				   'size: "5"
+				   'style: "margin-right:0.5em;"
+				   'placeholder: "GEWNS"
+				   'required: #t)
+			    (map (lambda (name value)
+				   (input 'type: "hidden" 'name: name 'value: (if (string-empty? value) "" value)))
+				 (list "dscan" "alliance" "location")
+				 (list dscan alliance corporation))
+			    (input 'type: "submit" 'value: "Submit"))]
+		     [(and (null? location-guess) (dscan-proximity (citadel? data)))
+		      (form 'method: "POST"
+			    "Please enter closest celestial: "
+			    (input 'type: "text"
+				   'name: "location"
+				   'required: #t
+				   'style: "margin-right:0.5em;"
+				   'placeholder: "Jita IV - Moon 4"
+				   'required: #t)
+			    (map (lambda (name value)
+				   (input 'type: "hidden" 'name: name 'value: (if (string-empty? value) "" value)))
+				 (list "dscan" "alliance" "corporation")
+				 (list dscan alliance corporation))
+			    (input 'type: "submit" 'value: "Submit"))]
+		     [else
+		      (list
+		       (b "Scan Result: ")
+		       (cond
+			[(not (false? citadel-scan-result)) (pretty-print-citadel-result data citadel-scan-result)]
+			[(not (false? moon-scan-result)) (pretty-print-moon-result data moon-scan-result)]
+			[(not (false? goo-scan-result))
+			 (format "Moon probing results saved for ~a!"
+				 (string-join (map caar (goo-split-probe-results (dscan-raw->list dscan)))
+					      ","
+					      #:before-last " & "
+					      #:after-last ""))]
+			[else "No structure found in close proximity"]))])
 	       (br)
 	       (br)
 	       (hr)
@@ -166,11 +183,20 @@
 
   (define location-try (parse-map location))
 
+  (define corporation-try (esi-try-corporation corporation))
+
+  (when (and (not (false? corporation-try))
+	     (false? (corporation? corporation)))
+    (sql-corporation-update-corporations
+     (esi-hash-parse-corporation
+      (esi-hash-poll-corporation (list corporation-try)))))
+
   (define moon-scan-result
     (cond
      [(or (string-empty? dscan)
 	  (false? (dscan-proximity (tower? data)))
 	  (false? (dscan-proximity (moon? data)))
+	  (false? corporation-try)
 	  (> (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance)))
       #f]
      [else (moon-parse-scan data #:corporation corporation #:alliance alliance #:id (dscan-local->string :id dscan))]))
@@ -197,7 +223,8 @@
 	  (false? (dscan-proximity (citadel? data)))
 	  (> (hash-ref (dscan-proximity (citadel? data)) 'distance) (max_distance))
 	  (and (null? location) (false? (dscan-celestials? data)))
-	  (false? location-try))
+	  (false? location-try)
+	  (false? corporation-try))
       #f]
      [(and (dscan-proximity (tower? data))
 	   (dscan-proximity (citadel? data))

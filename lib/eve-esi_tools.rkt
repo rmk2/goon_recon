@@ -110,7 +110,7 @@
     [else #f]))
 
 (define (esi-fill-alliance input)
-  (let* ([maybe-corp (esi-try-corporation input)]
+  (let* ([maybe-corp (if (number? input) input (esi-try-corporation input))]
 	 [maybe-id (if maybe-corp (esi-corporation->alliance maybe-corp) #f)])
     (cond [(not (false? maybe-id))
 	   (parse-alliance :ticker maybe-id)]
