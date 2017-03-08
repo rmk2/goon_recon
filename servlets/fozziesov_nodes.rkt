@@ -278,16 +278,16 @@
   (let ([maybe-constellation
 	 (match input
 	   [(? number? in)
-	    (query-maybe-value sqlc "SELECT constellationID FROM mapConstellations WHERE constellationID = ?" in)]
+	    (query-maybe-value sqlc "SELECT constellationID FROM mapConstellations WHERE constellationID = ? AND factionID IS NULL" in)]
 	   [(? string? in)
-	    (query-maybe-value sqlc "SELECT constellationID FROM mapConstellations WHERE constellationName = ?" in)]
+	    (query-maybe-value sqlc "SELECT constellationID FROM mapConstellations WHERE constellationName = ? AND factionID IS NULL" in)]
 	   [else #f])])
     (cond [(not (false? maybe-constellation))
 	   (query-list sqlc "SELECT solarSystemName FROM mapSolarSystems WHERE constellationID = ?" maybe-constellation)]
 	  [else null])))
 
 (define (constellation->system-data constellation)
-  (query-rows sqlc "SELECT solarSystemName,solarSystemID FROM mapSolarSystems WHERE constellationID = ?" constellation))
+  (query-rows sqlc "SELECT solarSystemName,solarSystemID FROM mapSolarSystems WHERE constellationID = ? AND factionID IS NULL" constellation))
 
 ;; Get regionName + constellationName for a given constellation
 
@@ -308,9 +308,9 @@
 (define (region->constellations input)
   (match input
     [(? number? in)
-     (query-list sqlc "SELECT constellationName FROM mapConstellations WHERE regionID = ?" in)]
+     (query-list sqlc "SELECT constellationName FROM mapConstellations WHERE regionID = ? AND factionID IS NULL" in)]
     [(? string? in)
-     (query-list sqlc "SELECT constellationName FROM mapConstellations LEFT JOIN mapRegions ON mapConstellations.regionID = mapRegions.regionID WHERE regionName = ?" in)]
+     (query-list sqlc "SELECT constellationName FROM mapConstellations LEFT JOIN mapRegions ON mapConstellations.regionID = mapRegions.regionID WHERE regionName = ? AND mapConstellations.factionID IS NULL" in)]
     [else null]))
 
 ;; Extract POST data from HTTP requests
