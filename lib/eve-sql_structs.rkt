@@ -4,10 +4,13 @@
 
 ;; SQL lookup to appropriate struct
 
-(define (sql-parse->struct query #:struct struct)
-  (call-with-values
-      (lambda () (vector->values query))
-    struct))
+(define/contract (sql-parse->struct query #:struct struct)
+  ((or/c vector? #f) #:struct struct-constructor-procedure? . -> . (or/c struct? #f))
+  (cond [(vector? query)
+	 (call-with-values
+	     (lambda () (vector->values query))
+	   struct)]
+	[else #f]))
 
 ;; Struct definitions
 
