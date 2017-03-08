@@ -8,7 +8,7 @@
 
 ;; d-scan -> scan data (using the sql-moon struct)
 
-(define (moon-parse-scan input #:corporation corporation #:alliance alliance #:id [scan-id 0])
+(define (moon-parse-scan input #:corporation corporation #:alliance-base alliance-base #:id [scan-id 0])
   (let ([moon (hash-ref (dscan-proximity (moon? input)) 'name)]
 	[tower (hash-ref (dscan-proximity (tower? input)) 'type)])
     (call-with-values
@@ -19,7 +19,7 @@
 	   (parse-map :system moon)
 	   (first (cdr (split-moon-display moon)))
 	   (second (cdr (split-moon-display moon)))
-	   (esi-fill-alliance corporation)
+	   (esi-fill-alliance alliance-base)
 	   (if (string-empty? corporation) "" (string-upcase corporation))
 	   (srfi-date->sql-timestamp (current-date))
 	   (parse-tower :id tower)
@@ -50,7 +50,7 @@
 
 (define (citadel-parse-scan input
 			    #:corporation corporation
-			    #:alliance alliance
+			    #:alliance-base alliance-base
 			    #:location location
 			    #:id [scan-id 0])
   (let ([citadel (hash-ref (dscan-proximity (citadel? input)) 'type)]
@@ -62,7 +62,7 @@
 	   (mapDenormalize-constellation location-input)
 	   (mapDenormalize-system location-input)
 	   (mapDenormalize-id location-input)
-	   (esi-fill-alliance corporation)
+	   (esi-fill-alliance alliance-base)
 	   (if (string-empty? corporation) "" (string-upcase corporation))
 	   (srfi-date->sql-timestamp (current-date))
 	   (parse-type :id citadel)
@@ -183,7 +183,9 @@
 
   (define location-try (parse-map location))
 
-  (define corporation-try (esi-try-corporation corporation))
+  (define corporation-try
+    (cond [(corporation? corporation) (parse-corporation :id corporation)]
+	  [else (esi-try-corporation corporation)]))
 
   (when (and (not (false? corporation-try))
 	     (false? (corporation? corporation)))
@@ -199,7 +201,7 @@
 	  (false? corporation-try)
 	  (> (hash-ref (dscan-proximity (moon? data)) 'distance) (max_distance)))
       #f]
-     [else (moon-parse-scan data #:corporation corporation #:alliance alliance #:id (dscan-local->string :id dscan))]))
+     [else (moon-parse-scan data #:corporation corporation #:alliance-base corporation-try #:id (dscan-local->string :id dscan))]))
 
   (define moon-empty-result
     (cond
@@ -235,7 +237,7 @@
       #f]
      [else (citadel-parse-scan data
 			       #:corporation corporation
-			       #:alliance alliance
+			       #:alliance-base corporation-try
 			       #:id (dscan-local->string :id dscan)
 			       #:location (cond [(null? location) (dscan-nearest-celestial data)]
 						[(not (false? location-try)) location]))]))
