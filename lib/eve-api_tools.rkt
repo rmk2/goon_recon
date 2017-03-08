@@ -4,12 +4,17 @@
 (require xml)
 (require xml/path)
 (require net/url)
+(require net/url-connect)
 (require file/gunzip)
 (require xexpr-path)
 
 (require "eve-list_tools.rkt")
 
 (provide (all-defined-out))
+
+;; Set SSL client context to secure (check certificates+hostnames)
+
+(current-https-protocol 'secure)
 
 ;; Generic CREST (json) API polling function; output: jsexpr
 
