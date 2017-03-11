@@ -72,7 +72,7 @@
 (struct scrypt-hash (user input salt) #:prefab)
 
 ;; Basic auth user, email+salt, password+salt
-(struct scrypt-full (user email email-salt password password-salt) #:prefab)
+(struct scrypt-full (user email password salt datetime) #:prefab)
 
 ;; CREST sovereignty campaigns full
 (struct sovCampaign-full (campaignid constellationid constellationname systemid systemname typeid typename attackerscore defenderscore defenderid defendername datetime) #:transparent)

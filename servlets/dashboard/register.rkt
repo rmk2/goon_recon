@@ -108,12 +108,11 @@
 	  [else #t]))
 
   (when (and passwords-match? (false? user-exists?))
-    (begin
-      (auth:sql-auth-insert-user (struct-copy scrypt-hash
-					      (auth:scrypt-input->hash (string->bytes/utf-8 pass) #:length 32)
-					      [user (string-downcase user)]))
-      (auth:sql-auth-insert-mail (struct-copy scrypt-hash
-					      (auth:scrypt-input->hash (string->bytes/utf-8 email) #:length 32)
-					      [user (string-downcase user)]))))
+    (let ([hash-data (auth:scrypt-input->hash (string->bytes/utf-8 pass) #:length 32)])
+      (auth:sql-auth-insert-user (scrypt-full (string-downcase user)
+					      (string-downcase email)
+					      (scrypt-hash-input hash-data)
+					      (scrypt-hash-salt hash-data)
+					      (srfi-date->sql-timestamp (current-date))))))
 
   (send/back response-generator))

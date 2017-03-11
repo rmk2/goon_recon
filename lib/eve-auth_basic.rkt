@@ -20,12 +20,7 @@
 (define (sql-auth-create-user-raw)
   (if (table-exists? sqlc "authBasic")
       #t
-      (query-exec sqlc "CREATE TABLE authBasic ( user VARCHAR(255) NOT NULL, password VARCHAR(64) NOT NULL, salt VARCHAR(64) NOT NULL, datetime DATETIME NOT NULL, PRIMARY KEY (user) )")))
-
-(define (sql-auth-create-mail-raw)
-  (if (table-exists? sqlc "authBasicMail")
-      #t
-      (query-exec sqlc "CREATE TABLE authBasicMail ( user VARCHAR(255) NOT NULL, email VARCHAR(64) NOT NULL, salt VARCHAR(64) NOT NULL, datetime DATETIME NOT NULL, PRIMARY KEY (user) )")))
+      (query-exec sqlc "CREATE TABLE authBasic ( user VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL, password VARCHAR(64) NOT NULL, salt VARCHAR(64) NOT NULL, datetime DATETIME NOT NULL, PRIMARY KEY ( user ), KEY ( email ) )")))
 
 (define (sql-auth-create-user-characters)
   (if (table-exists? sqlc "authBasicCharacters")
@@ -35,18 +30,16 @@
 ;; Insert data into tables
 
 (define (sql-auth-insert-user hash)
-  (query sqlc "INSERT IGNORE INTO authBasic VALUES (?, ?, ?, ?)"
-	 (scrypt-hash-user hash)
-	 (scrypt-hash-input hash)
-	 (scrypt-hash-salt hash)
-	 (srfi-date->sql-timestamp (current-date))))
-
-(define (sql-auth-insert-mail hash)
-  (query sqlc "INSERT IGNORE INTO authBasicMail VALUES (?, ?, ?, ?)"
-	 (scrypt-hash-user hash)
-	 (scrypt-hash-input hash)
-	 (scrypt-hash-salt hash)
-	 (srfi-date->sql-timestamp (current-date))))
+  (query sqlc "INSERT INTO authBasic VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE email=?,password=?,salt=?,datetime=?"
+	 (scrypt-full-user hash)
+	 (scrypt-full-email hash)
+	 (scrypt-full-password hash)
+	 (scrypt-full-salt hash)
+	 (scrypt-full-datetime hash)
+	 (scrypt-full-email hash)
+	 (scrypt-full-password hash)
+	 (scrypt-full-salt hash)
+	 (scrypt-full-datetime hash)))
 
 ;; Query tables
 
@@ -59,17 +52,8 @@
 	  scrypt-hash)
 	#f)))
 
-(define (sql-auth-get-mail user)
-  (let ([data (query-maybe-row sqlc "SELECT user,email,salt FROM authBasicMail WHERE user = ?"  user)])
-    (if (not (false? data))
-	(call-with-values
-	    (lambda ()
-	      (vector->values data))
-	  scrypt-hash)
-	#f)))
-
 (define (sql-auth-get-user-full user)
-  (let ([data (query-maybe-row sqlc "SELECT u.user,m.email,m.salt AS emailSalt,u.password,u.salt AS passwordSalt FROM authBasic AS u LEFT JOIN authBasicMail AS m ON u.user = m.user WHERE u.user = ?" user)])
+  (let ([data (query-maybe-row sqlc "SELECT user,email,password,salt,datetime FROM authBasic WHERE user = ?" user)])
     (if (not (false? data))
 	(call-with-values
 	    (lambda ()
