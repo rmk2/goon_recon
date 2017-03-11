@@ -61,7 +61,7 @@
 	  scrypt-full)
 	#f)))
 
-;; Calculate scrypt hash+salt for input
+;; Calculate scrypt hash+salt for input; N is given as exponent (2^N)
 
 (define (scrypt-input->hash input #:length [length 32] #:N [N 16] #:r [r 8] #:p [p 1])
   (let ([salt (crypto-random-bytes length)])
