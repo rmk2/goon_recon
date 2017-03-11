@@ -66,14 +66,14 @@
 (define (scrypt-input->hash input #:length [length 32] #:N [N 16] #:r [r 8] #:p [p 1])
   (let ([salt (crypto-random-bytes length)])
     (scrypt-hash null
-		 (bytes->hex-string (scrypt input salt N r p length))
+		 (bytes->hex-string (scrypt input salt (expt 2 N) r p length))
 		 (bytes->hex-string salt))))
 
 ;; Check whether scrypt'ed input matches provided scrypt hash+salt
 
 (define (scrypt-check-hash hash input #:length [length 32] #:N [N 16] #:r [r 8] #:p [p 1])
   (equal? (scrypt-hash-input hash)
-	  (bytes->hex-string (scrypt input (hex-string->bytes (scrypt-hash-salt hash)) N r p length))))
+	  (bytes->hex-string (scrypt input (hex-string->bytes (scrypt-hash-salt hash)) (expt 2 N) r p length))))
 
 ;; Group handling
 
