@@ -21,7 +21,7 @@
 (define (sql-canary-get-watchlist #:show-losses [show-losses? #f] #:corporations [corporations? #f])
   (let ([today (srfi-date->sql-date (current-date))])
     (query-rows sqlc (string-append "SELECT shipTypeName,characterName,canary.corporationName,canary.allianceName,"
-				    "solarSystemName,regionName,date(datetime),DATE_FORMAT(activityAvg,'%H:%m:%s'),activityStd "
+				    "solarSystemName,regionName,date(datetime),DATE_FORMAT(activityAvg,'%H:%i:%s'),activityStd "
 				    "FROM intelSuperWatchlist AS canary "
 				    (if corporations?
 					"JOIN canaryCorporations AS stat ON canary.corporationID = stat.corporationID "
@@ -40,7 +40,7 @@
 			"SELECT "
 			"shipTypeName,characterName,corporationTicker,canary.corporationName,allianceTicker,"
 			"canary.allianceName,solarSystemName,constellationName,regionName,date(datetime) AS date,"
-			"killCount,DATE_FORMAT(activityAvg,'%H:%m:%s') AS activityAvg,activityStd "
+			"killCount,DATE_FORMAT(activityAvg,'%H:%i:%s') AS activityAvg,activityStd "
 			"FROM intelSuperWatchlist AS canary "
 			"LEFT JOIN canaryAlliances AS stat ON canary.allianceID = stat.allianceID "
 			"WHERE killCount >= (killAvg + killStd) "
@@ -56,7 +56,7 @@
 			"SELECT "
 			"shipTypeName,characterName,corporationTicker,canary.corporationName,allianceTicker,"
 			"canary.allianceName,solarSystemName,constellationName,regionName,date(datetime) AS date,"
-			"killCount,DATE_FORMAT(activityAvg,'%H:%m:%s') AS activityAvg,activityStd "
+			"killCount,DATE_FORMAT(activityAvg,'%H:%i:%s') AS activityAvg,activityStd "
 			"FROM intelSuperWatchlist AS canary "
 			"LEFT JOIN canaryCorporations AS stat ON canary.corporationID = stat.corporationID "
 			"WHERE killCount >= (killAvg + killStd) "
