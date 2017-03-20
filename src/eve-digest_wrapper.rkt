@@ -45,7 +45,7 @@
   (define (sql-super-latest-killid-mod)
     (query-maybe-value sqlc "SELECT MAX(killID) FROM intelSuperRaw WHERE killID <= ?" end))
   (define (sql-super-latest-datetime-mod)
-    (query-maybe-value sqlc "SELECT DATE_FORMAT(MAX(datetime),'%Y%m%d%H%i') FROM intelSuperRaw WHERE killID <= ?" end))
+    (query-maybe-value sqlc "SELECT DATE_FORMAT(MAX(datetime),'%Y%m%d%H00') FROM intelSuperRaw WHERE killID <= ?" end))
   (if (or (false? (sql-super-latest-killid-mod)) (< (sql-super-latest-killid-mod) end))
       (begin
 	(log-debug "[debug] Polling killmails")

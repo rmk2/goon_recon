@@ -73,7 +73,7 @@
 (define/contract (sql-get-latest-datetime table)
   (-> string? (or/c string? false/c))
   (if (table-exists? sqlc table)
-      (query-maybe-value sqlc (format "SELECT DATE_FORMAT(MAX(datetime),'%Y%m%d%H%i') FROM ~a" table))
+      (query-maybe-value sqlc (format "SELECT DATE_FORMAT(MAX(datetime),'%Y%m%d%H00') FROM ~a" table))
       #f))
 
 ;; zKillboard killmail poll helper
