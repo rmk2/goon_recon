@@ -66,7 +66,7 @@
 		(printf "last killID: ~a | last datetime: ~a~%"
 			(let ([killid (sql-super-latest-killid-mod)])
 			  (if (number? killid) killid 0))
-			(let ([datetime (sql-super-latest-datetime-mod)])
+			(let ([datetime (sql-super-latest-datetime)])
 			  (if (sql-timestamp? datetime)
 			      (date->string (sql-datetime->srfi-date datetime) "~1 ~3")
 			      0)))
