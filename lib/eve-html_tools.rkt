@@ -179,7 +179,8 @@
 (define (create-html-navigation #:title [nav-title "The Reconing"]
 				#:links [nav-list null]
 				#:active [active-url null]
-				#:audience [nav-audience null])
+				#:audience [nav-audience null]
+				#:login? [login? #t])
   (let ([nav-default '(("Dashboard" . "/dscan")
 		       ("Report" . "/report")
 		       ("Tasks" . "/tasks")
@@ -210,9 +211,11 @@
 		  ["recon" (drop-right nav-default 3)]
 		  [(pregexp #px"alliance|corporation") (take nav-default 2)]
 		  [else (take nav-default 1)])]))
-	 (if (or (number? nav-audience) (string? nav-audience))
-	     (div 'class: "nav-element right" (a 'href: "/logout" "Logout"))
-	     (div 'class: "nav-element right" (a 'href: "/login" "Login"))))))
+	 (cond [(and (not (false? login?)) (or (number? nav-audience) (string? nav-audience)))
+		(div 'class: "nav-element right" (a 'href: "/logout" "Logout"))]
+	       [(not (false? login?))
+		(div 'class: "nav-element right" (a 'href: "/login" "Login"))]
+	       [else null]))))
 
 (define (create-html-dscan-rows main info structures starbases #:local-scan [local-scan? #f])
   (define (colorise-div #:picker n #:class [class "dscan-element"] body)
