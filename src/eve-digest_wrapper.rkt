@@ -19,6 +19,8 @@
 (define cl-start (make-parameter null))
 (define cl-end (make-parameter (zkill-get-lastest-id (cl-groups))))
 
+(define cl-date (make-parameter #f))
+
 ;; Command-line argument handling
 
 (define parse-args
@@ -29,7 +31,9 @@
    [("-s" "--start" "-i" "--id") str "Select start killID, default: auto"
     (if (number? (string->number str)) (cl-start str) (cl-start))]
    [("-l" "--limit") str "Limit the amount of killmails per poll, default: 200, max: 200"
-    (if (and (number? (string->number str)) (<= (string->number str) 200)) (cl-limit str) (cl-limit))]))
+    (if (and (number? (string->number str)) (<= (string->number str) 200)) (cl-limit str) (cl-limit))]
+   [("-D" "--date") "Use datetime instead of killID internally, default: false"
+    (cl-date #t)]))
 
 ;; Main
 
@@ -41,12 +45,15 @@
   (define (sql-super-latest-killid-mod)
     (query-maybe-value sqlc "SELECT MAX(killID) FROM intelSuperRaw WHERE killID <= ?" end))
   (define (sql-super-latest-datetime-mod)
-    (query-maybe-value sqlc "SELECT MAX(datetime) FROM intelSuperRaw WHERE killID <= ?" end))
+    (query-maybe-value sqlc "SELECT DATE_FORMAT(MAX(datetime),'%Y%m%d%H%i') FROM intelSuperRaw WHERE killID <= ?" end))
   (if (or (false? (sql-super-latest-killid-mod)) (< (sql-super-latest-killid-mod) end))
       (begin
 	(log-debug "[debug] Polling killmails")
 	(let* ([id (if (null? start) (number->string (sql-super-latest-killid-mod)) start)]
-	       [data-raw (digest:poll-url #:date null #:groups groups #:kills #t #:losses #t #:id id #:limit limit)]
+	       [datetime (if (cl-date) (sql-super-latest-datetime-mod) null)]
+	       [data-raw (if (cl-date)
+			     (digest:poll-url #:date datetime #:groups groups #:kills #t #:losses #t #:id null #:limit limit)
+			     (digest:poll-url #:date null #:groups groups #:kills #t #:losses #t #:id id #:limit limit))]
 	       [kills (map (lambda (km) (begin (set-sql-killmail-eventtype! km "Kill") km))
 			   (digest:parse-kills #:attackers #t #:raw #t #:groups groups data-raw))]
 	       [losses (map (lambda (km) (begin (set-sql-killmail-eventtype! km "Loss") km))
