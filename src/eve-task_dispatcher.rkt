@@ -88,7 +88,8 @@
 			       #:groups groupids
 			       #:kills (if (and (false? run-kills?) run-losses?) #f #t)
 			       #:losses (if run-losses? #t #f)
-			       #:id null)])
+			       #:id null
+			       #:page-limit 3)])
     (cond [(not (list? data))
 	   null]
 	  [(and run-kills? run-losses?)

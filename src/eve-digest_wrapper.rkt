@@ -52,7 +52,7 @@
 	(let* ([id (if (null? start) (number->string (sql-super-latest-killid-mod)) start)]
 	       [datetime (if (cl-date) (sql-super-latest-datetime-mod) null)]
 	       [data-raw (if (cl-date)
-			     (digest:poll-url #:date datetime #:groups groups #:kills #t #:losses #t #:id null #:limit limit)
+			     (digest:poll-url #:date datetime #:groups groups #:kills #t #:losses #t #:limit limit #:page-limit 3)
 			     (digest:poll-url #:date null #:groups groups #:kills #t #:losses #t #:id id #:limit limit))]
 	       [kills (map (lambda (km) (begin (set-sql-killmail-eventtype! km "Kill") km))
 			   (digest:parse-kills #:attackers #t #:raw #t #:groups groups data-raw))]

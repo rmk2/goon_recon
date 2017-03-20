@@ -28,7 +28,8 @@
 		  #:kills [show-kills? #f]
 		  #:losses [show-losses? #f]
 		  #:id [killid null]
-		  #:limit [limit null])
+		  #:limit [limit null]
+		  #:page-limit [page-limit 3])
   (let ([built-url
 	 (string-append
 	  "https://zkillboard.com/api/no-items"
@@ -63,9 +64,14 @@
 	      "")
 	  (if (not (null? limit))
 	      (string-append "/limit/" (id/string->string limit))
-	      "")
-	  "/")])
-    (json-api built-url)))
+	      ""))])
+    (let loop ([page 1] [result null])
+      (let ([data (json-api (format "~a/page/~a/" built-url page))])
+	(cond [(and (= (length data) 200) (< page page-limit))
+	       (loop (+ page 1) (append data result))]
+	      ;; [(and (not (empty? data)) (< (length data) 200))
+	      ;;  (append data result)]
+	      [else (append data result)])))))
 
 (define (groupid->list lst)
   (append-map (lambda (i) (map (lambda (n) (vector-ref n 0)) (parse-type :members (string->number i)))) lst))
