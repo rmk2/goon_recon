@@ -52,7 +52,11 @@
 	  (if (not (null? corporations))
 	      (string-append "/corporationID/" (string-join corporations ","))
 	      "")
-	  (if (not (null? date)) (string-append "/startTime/" (id/string->string date) "0000") "")
+	  (cond [(and (string? date) (= (string-length date) 8))
+		 (string-append "/startTime/" (id/string->string date) "0000")]
+		[(and (string? date) (= (string-length date) 12))
+		 (string-append "/startTime/" (id/string->string date))]
+		[else ""])
 	  (if (not (null? end)) (string-append "/endTime/" end "0000") "")
 	  (if (not (null? killid))
 	      (string-append "/orderDirection/asc/afterKillID/" (id/string->string killid))
