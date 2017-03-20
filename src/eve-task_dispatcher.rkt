@@ -67,6 +67,15 @@
       (query-maybe-value sqlc (format "SELECT MAX(killID) FROM ~a" table))
       #f))
 
+;; SQL get last datetime for a given table
+;; Format: YmdHi
+
+(define/contract (sql-get-latest-datetime table)
+  (-> string? (or/c string? false/c))
+  (if (table-exists? sqlc table)
+      (query-maybe-value sqlc (format "SELECT DATE_FORMAT(MAX(datetime),'%Y%m%d%H%i') FROM ~a" table))
+      #f))
+
 ;; zKillboard killmail poll helper
 
 (define (zkill-poll-helper groupids
@@ -75,11 +84,11 @@
 			   #:losses [run-losses? #t]
 			   #:location [location? #t]
 			   #:moons [moons? #f])
-  (let ([data (digest:poll-url #:date null
+  (let ([data (digest:poll-url #:date (sql-get-latest-datetime table)
 			       #:groups groupids
 			       #:kills (if (and (false? run-kills?) run-losses?) #f #t)
 			       #:losses (if run-losses? #t #f)
-			       #:id (sql-get-latest-id table))])
+			       #:id null)])
     (cond [(not (list? data))
 	   null]
 	  [(and run-kills? run-losses?)
