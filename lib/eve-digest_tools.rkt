@@ -29,7 +29,7 @@
 		  #:losses [show-losses? #f]
 		  #:id [killid null]
 		  #:limit [limit null]
-		  #:page-limit [page-limit 3])
+		  #:page-limit [page-limit 1])
   (let ([built-url
 	 (string-append
 	  "https://zkillboard.com/api/no-items"
