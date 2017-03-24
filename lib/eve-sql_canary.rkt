@@ -27,7 +27,7 @@
 					"JOIN canaryCorporations AS stat ON canary.corporationID = stat.corporationID "
 					"JOIN canaryAlliances AS stat ON canary.allianceID = stat.allianceID ")
 				    "WHERE killCount >= (killAvg + killStd) "
-				    "AND datetime <= date_sub(?, INTERVAL 60 DAY) "
+				    "AND datetime >= date_sub(?, INTERVAL 60 DAY) "
 				    (if show-losses? "" "AND eventType != 'Loss' ")
 				    "ORDER BY canary.allianceName,datetime,regionName,killCount DESC;")
 		today)))
