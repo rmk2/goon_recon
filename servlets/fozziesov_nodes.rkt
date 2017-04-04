@@ -317,9 +317,9 @@
 
 (define (extract-post-data req query)
   (match
-    (bindings-assq
-     query
-     (request-bindings/raw req))
+      (bindings-assq
+       query
+       (request-bindings/raw req))
     [(? binding:form? b)
      (bytes->string/utf-8
       (binding:form-value b))]
@@ -357,9 +357,13 @@
 	 (output:create-html-head
 	  #:title "Fuzzysov Node Reporting"
 	  #:tablesorter #f
-	  #:navigation #f
+	  #:navigation #t
 	  #:forms #t)
 	 (body
+	  (output:create-html-navigation
+	   #:login? #f
+	   #:links '(("New Session" . "/setup")
+		     ("About" . "#about")))
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Node Reporting")
 	       (div 'class: "info"
@@ -387,12 +391,17 @@
 	 (output:create-html-head
 	  #:title "Fuzzysov Node Reporting"
 	  #:tablesorter #f
-	  #:navigation #f
+	  #:navigation #t
 	  (list
 	   (output:create-html-head-form #:content-flex? #f #:form-background? #f #:password-stretch? #t)
 	   (style/inline 'type: "text/css" "#content { display: flex; flex-flow: column wrap; align-items: flex-start;  margin: 0 2em; }")
 	   (style/inline 'type: "text/css" "#main { border: 1px solid black; background-color: whitesmoke; padding: 1em; }")))
 	 (body
+	  (output:create-html-navigation
+	   #:active (url->string (request-uri req))
+	   #:login? #f
+	   #:links '(("New Session" . "/setup")
+		     ("About" . "#about")))
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Node Reporting")
 	       (div 'class: "subtitle" "Scout Reporting Setup")
@@ -439,12 +448,17 @@
 	 (output:create-html-head
 	  #:title "Fuzzysov Node Reporting"
 	  #:tablesorter #f
-	  #:navigation #f
+	  #:navigation #t
 	  #:forms #t
 	  (list
 	   (style/inline 'type: "text/css" "#content { align-items: flex-start; }")
 	   (output:create-html-head-check-password)))
 	 (body
+	  (output:create-html-navigation
+	   #:active (url->string (request-uri req))
+	   #:login? #f
+	   #:links '(("New Session" . "/setup")
+		     ("About" . "#about")))
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Node Reporting")
 	       (let* ([map-data (sql-constellation->names constellation)]
@@ -603,9 +617,14 @@
 	       (output:create-html-head
 		#:title "Fuzzysov Node Reporting"
 		#:tablesorter #f
-		#:navigation #f
+		#:navigation #t
 		#:forms #t)
 	       (body
+		(output:create-html-navigation
+		 #:active (url->string (request-uri req))
+		 #:login? #f
+		 #:links '(("New session" . "/setup")
+			   ("About" . "#about")))
 		(div 'id: "content"
 		     (h1 "Fuzzysov Node Reporting")
 		     (form 'method: "POST"
@@ -658,11 +677,17 @@
 		 (output:create-html-head
 		  #:title "Fuzzysov Node Reporting"
 		  #:tablesorter #t
+		  #:navigation #t
 		  #:sort-column 0
 		  (list
 		   (style/inline 'type: "text/css" ".subtitle { margin-bottom: 1em; font-weight: bold; font-size: large; }")
 		   (meta 'http-equiv: "refresh" 'content: "30")))
 		 (body
+		  (output:create-html-navigation
+		   #:active (url->string (request-uri req))
+		   #:login? #f
+		   #:links '(("New session" . "/setup")
+			     ("About" . "#about")))
 		  (div 'id: "content"
 		       (h1 "Fuzzysov Node Reporting")
 		       (div 'class: "subtitle" (format "~a » ~a" region-name constellation-name))
@@ -719,11 +744,16 @@
 	 (output:create-html-head
 	  #:title "Fuzzysov Node Reporting"
 	  #:tablesorter #f
-	  #:navigation #f
+	  #:navigation #t
 	  #:forms #t
 	  (list
 	   (style/inline 'type: "text/css" "#content { align-items: flex-start; }")))
 	 (body
+	  (output:create-html-navigation
+	   #:active (url->string (request-uri req))
+	   #:login? #f
+	   #:links '(("New Session" . "/setup")
+		     ("About" . "#about")))
 	  (div 'id: "content"
 	       (h1 "Fuzzysov Node Reporting")
 	       (let* ([map-data (sql-constellation->names constellation)]
@@ -770,12 +800,17 @@
 	 (output:create-html-head
 	  #:title "Fuzzysov Node Reporting"
 	  #:tablesorter #f
-	  #:navigation #f
+	  #:navigation #t
 	  #:forms #t
 	  (list
 	   (style/inline 'type: "text/css" "#content { align-items: flex-start; }")
 	   (style/inline 'type: "text/css" ".form-entry { flex-flow: row nowrap; }")))
 	 (body
+	  (output:create-html-navigation
+	   #:active (url->string (request-uri req))
+	   #:login? #f
+	   #:links '(("New Session" . "/setup")
+		     ("About" . "#about")))
 	  (div 'id: "content"
 	       (h1 (format "~a » ~a » ~a" region constellation system))
 	       (form 'method: "POST" 'action: "parse"
@@ -895,6 +930,7 @@
 	 (output:create-html-head
 	  #:title "Fuzzysov Node Reporting"
 	  #:tablesorter #t
+	  #:navigation #t
 	  #:sort-column 3
 	  (list (style/inline 'type: "text/css" ".form-description:after { content: ':'; margin-right: 0.75em; }")
 		(style/inline 'type: "text/css" ".form-field { margin-right: 0.75em; }")
@@ -903,6 +939,11 @@
 	       (list
 		(style/inline 'type: "text/css" ".data { max-width: 42em; }")))
 	 (body
+	  (output:create-html-navigation
+	   #:active (url->string (request-uri req))
+	   #:login? #f
+	   #:links '(("New Session" . "/setup")
+		     ("About" . "#about")))
 	  (div 'id: "content"
 	       (h1 (format "~a » ~a » ~a" region constellation system))
 	       (output:create-html-hint :tablesorter)
