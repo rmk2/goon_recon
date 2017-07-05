@@ -623,7 +623,7 @@
 		(output:create-html-navigation
 		 #:active (url->string (request-uri req))
 		 #:login? #f
-		 #:links '(("New session" . "/setup")
+		 #:links '(("New Session" . "/setup")
 			   ("About" . "#about")))
 		(div 'id: "content"
 		     (h1 "Fuzzysov Node Reporting")
@@ -686,7 +686,7 @@
 		  (output:create-html-navigation
 		   #:active (url->string (request-uri req))
 		   #:login? #f
-		   #:links '(("New session" . "/setup")
+		   #:links '(("New Session" . "/setup")
 			     ("About" . "#about")))
 		  (div 'id: "content"
 		       (h1 "Fuzzysov Node Reporting")
