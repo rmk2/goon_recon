@@ -167,8 +167,8 @@ recognisable character names (or login names, for that matter, if you choose
 to forego this option) is your problem! ;)
 
 In order for this option to work, you will need to register your own SSO app
-credentials with CCP supply your information via environmental variables
-afterwards:
+credentials with CCP and then supply your information via environmental
+variables afterwards:
 
 ```
 # Providing SSO credentials, replace as appropriate
