@@ -12,6 +12,9 @@ raco link --name eve --user lib
 # Install dependencies
 raco pkg install grommet
 raco pkg install net-jwt
+raco pkg install scrypt
+raco pkg install tasks
+raco pkg install webapi
 raco pkg install xexpr-path
 
 # Run webserver
@@ -63,7 +66,51 @@ a stripped-down version of mapDenormalize that removes cartesian coordinates
 in order to save some database space, which does not influence any of the
 scripts listed below.
 
-## Automated intel gathering
+## Automated intel gathering w/ monolithic dispatcher
+
+The easiest way to keep various information in our database up-to-date is to
+use the new-ish task dispatcher `eve-task_dispatcher.rkt`. This script
+provides a convenient way to update alliance/corporation/character data as
+well as super/citadel/tower data in the background. It replaces running
+the individual tools listed below and makes the use of cron obsolete. It
+provides two threads by default and logs its activity to stdout, while the
+script also provides what I think are sensible default scheduling times. The
+script is self-sufficient and does not require any additional configuration.
+
+### Calling the dispatcher as a systemd service
+
+I recommend simply running the dispatcher as a systemd service, by creating a
+new service file. On my system, these go into `/usr/lib/systemd/system/`, and
+this example uses `eve-dispatcher.service` as filename:
+
+```
+# Systemd service file
+
+ExecStart=<PATH-TO-goon-recon>/src/eve-task_dispatcher.rkt
+KillMode=process
+Restart=on-failure
+User=<USER>
+Group=users
+
+[Install]
+WantedBy=multi-user.target
+
+# Activate the service
+
+systemctl enable eve-dispatcher.service
+```
+
+If this route is taken, then the dispatcher's log information can conveniently
+be queried via systemd's `journalctl` (again using the above example
+filename):
+
+```
+# Accessing loggging
+
+journalctl -u eve-dispatcher.service
+```
+
+## Automated intel gathering w/ individual tools
 
 **Hint:** I would suggest adding the whole `src` directory to the executing
   user's PATH to be able to simply call of the utilities directly, since they
