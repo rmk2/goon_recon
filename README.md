@@ -1,6 +1,24 @@
 GoonRecon
 =========
 
+This project explores various ways of streamlining how intelligence is
+gathered in CCP's online game __EVE Online__. It has its root in a single
+player's dissatisfaction with existing processes in his old EVE corporation
+and marks an attempt to come up with a better solution. As such projects go,
+some solutions have turned out to indeed be better, while others do not yet
+live up to their predecessors.
+
+Additionally, said user is by no means a professional developer, and as such
+discovers and learns as development progresses. Most rough edges, u-turns and
+oddities should thus perhaps be attributed to this process of discovery and
+learning. Yet, not all such oddities are simply a product of its creator's at
+times meandering processes. As it turns out, many of these problems are hard,
+and not every single one of these problems can be solved equally well. In
+fact, some problems are systemic insofar, as CCP's own resources do not allow
+for adequate resolutions, which forces awkward workarounds, odd hacks and
+weird solutions to get there at least most of the way thanks to those specific
+idiosyncracies.
+
 ## Quick setup
 
 This is a Racket project. Install Racket and follow these steps to run it:
