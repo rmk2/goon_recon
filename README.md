@@ -124,7 +124,7 @@ As an alternative to the above basic authentication, supplying `--login-auth`,
 that supports some additional options for registration and logging in. For a
 stand-alone multi-user deployment, this is probably what you want. Login
 authentication uses JSON Web Tokens (JWT) in cookies to retain login
-information. As such, these option _can_ be used to supply external
+information. As such, this option _can_ be used to supply external
 authentication info as long as they are signed with the correct and
 corresponding key data.
 
@@ -162,7 +162,7 @@ export SSO_TOKEN_REDIRECT="http://localhost:8000/register"
 ### Group authentication
 
 In addition to authenticating individual users, the webserver includes
-provision for group management. If you enable this feature via `--group-auth`,
+provisions for group management. If you enable this feature via `--group-auth`,
 `--group` or `-g`, different user groups will have access to different subsets
 based on their groups. Group management is included for administrators and
 (only for those) available under `/management/groups`. Group management also
@@ -203,7 +203,7 @@ MariaDB [eve_sde]> SELECT * FROM authGroups;
 
 ### Recommendation
 
-I suggest using `--group-auth --login-auth`, though these require a bit of
+I suggest using `--group-auth --login-auth`, though this requires a bit of
 additional setup as described above. Yet, `--group-auth --login-auth
 --sso-auth` is perhaps the most comprehensive set of option, though SSO auth
 requires to register an app properly with CCP.
@@ -211,12 +211,12 @@ requires to register an app properly with CCP.
 **Hint:** There exist other options which can be seen when calling
 `dashboard.rkt --help`, though these should _not_ be used in production. As
 such, `-j` allows the webserver to create valid JWT headers for _all_
-requests, which means every request gets displayed as fully
+requests, which means every request gets treated as fully
 authenticated. Additionally, `-G` allows to supply one of the above groups
 directly, which treats all requests as having those permissions, which (in
 combination with `-j`) is very useful for testing what individual groups can
 and cannot see, but is obviously pointless for production. If you don't want
-group authentication in production, don't use `--group-auth`! 
+group authentication in production, don't use `--group-auth`!
 
 ## Automated intel gathering w/ monolithic dispatcher
 
