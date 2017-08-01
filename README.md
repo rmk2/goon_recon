@@ -193,7 +193,7 @@ choice after having changed to the eve database:
 ```
 # Set owner in MySQL, replace username as appropriate
 use eve_sde;
-UPDATE authBasicGroups SET groupID = 1024 WHERE user = <USERNAME>
+UPDATE authBasicGroups SET groupID = 1024 WHERE user = <USERNAME>;
 ```
 
 Available groups and their numerical shortcuts can be queried like so:
