@@ -80,12 +80,20 @@ script is self-sufficient and does not require any additional configuration.
 ### Calling the dispatcher as a systemd service
 
 I recommend simply running the dispatcher as a systemd service, by creating a
-new service file. On my system, these go into `/usr/lib/systemd/system/`, and
-this example uses `eve-dispatcher.service` as filename:
+new service file. I supply the MYSQL_PASSWORD used for the generic eve
+database as an environmental variable directly in the service file, though
+systemd also supports separate env data. On my system, these go into
+`/usr/lib/systemd/system/`, and this example uses `eve-dispatcher.service` as
+filename:
 
 ```
 # Systemd service file
 
+[Unit]
+Description=EVE Online dispatcher to continuously update API data
+
+[Service]
+Environment=MYSQL_PASSWORD=<SQL-PASSWORD>
 ExecStart=<PATH-TO-goon-recon>/src/eve-task_dispatcher.rkt
 KillMode=process
 Restart=on-failure
