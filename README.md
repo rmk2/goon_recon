@@ -33,6 +33,28 @@ variable before current directory:
 racket servlets/dashboard.rkt --webroot </path/to/directory> --persist-dscan
 ```
 
+## Database connections
+
+In order for database connectivity to work, the database user's password has
+to be supplied via an environment variable. The second variable is used as an
+encryption key for user refresh tokens, so choose something proper (and
+ideally something that is randomly generated):
+
+```
+# Providing MySQL secrets, replace as appropriate
+export MYSQL_PASSWORD="foo"
+export MYSQL_KEY="bar"
+```
+
+The same password should be set in MySQL like so (you might have to log in as
+the root SQL user, depending on your database setup and permissions). The app
+expects the MySQL username to be `eve`:
+
+```
+# Set MySQL username and password, replace password as appropriate
+GRANT ALL PRIVILEGES ON eve_sde.* TO 'eve'@'localhost' IDENTIFIED BY 'foo'
+```
+
 ## Partial database setup
 
 Running `eve-sql_init.rkt` will create all necessary database tables *that do
@@ -65,6 +87,136 @@ be found here: [fuzzwork.co.uk](https://www.fuzzwork.co.uk/dump/latest/)
 a stripped-down version of mapDenormalize that removes cartesian coordinates
 in order to save some database space, which does not influence any of the
 scripts listed below.
+
+
+## Authentication
+
+Over time, different authentication mechanisms have been added in order to
+assure a maximum of flexibility in deploying the webserver. Depending on the
+overall use-case (single-user, small trusted group, bigger deployment),
+different options can be selected either individually or together.
+
+### User authentication
+
+#### User data and security
+
+Since we are ultimately handling user names, passwords and email addresses, we
+try to keep them as save as possible. Passwords are hashed using scrypt before
+being stored in the database, while CCP refresh tokens are encrypted at-rest
+within the database using AES256. There are provisions to make use of CCP's
+single-sign on, though a module to completely defer all authentication
+handling is currently disabled.
+
+#### Basic authentication
+
+This module can be actived by supplying `--basic-auth`, `--auth` or `-a` to
+`dashboard.rkt`. This uses basic HTTP authentication via browser built-ins,
+which should be robust and easy. Downsides are that passwords are kept in
+clear text in the browser itself (this is by design and holds true for all
+basic HTTP auth) and that logins do not persist across sessions when the
+browser is closed. As an upside, this could be combined with externally
+authenticating users even via a proxy webserver.
+
+#### Login authentication
+
+As an alternative to the above basic authentication, supplying `--login-auth`,
+`--login` or `-l` to `dashboard.rkt` instead enables an internal login page
+that supports some additional options for registration and logging in. For a
+stand-alone multi-user deployment, this is probably what you want. Login
+authentication uses JSON Web Tokens (JWT) in cookies to retain login
+information. As such, these option _can_ be used to supply external
+authentication info as long as they are signed with the correct and
+corresponding key data.
+
+These parameters should be supplied via environmental variables:
+
+```
+# Providing JWT secrets, replace as appropriate
+export JWT_SECRET="foo"
+export JWT_ISSUER="bar"
+export JWT_AUDIENCES="baz"
+```
+
+#### SSO authentication
+
+The options `--sso-auth`, `--sso` or `-s` require users to validate their
+chosen username against CCP's single-sign-on (SSO) system, which means that
+only valid EVE characters can be registered. This is recommended in bigger
+deployments where it might otherwise be difficult to map arbitrary login names
+to specific people. Since there is no way of knowing whether a given character
+is a "main" character or not from the API, getting people to use sensible and
+recognisable character names (or login names, for that matter, if you choose
+to forego this option) is your problem! ;)
+
+In order for this option to work, you will need to register your own SSO app
+credentials with CCP supply your information via environmental variables
+afterwards:
+
+```
+# Providing SSO credentials, replace as appropriate
+export SSO_TOKEN_ID="0123456789"
+export SSO_TOKEN_SECRET="foo"
+export SSO_TOKEN_REDIRECT="http://localhost:8000/register"
+```
+
+### Group authentication
+
+In addition to authenticating individual users, the webserver includes
+provision for group management. If you enable this feature via `--group-auth`,
+`--group` or `-g`, different user groups will have access to different subsets
+based on their groups. Group management is included for administrators and
+(only for those) available under `/management/groups`. Group management also
+actively blocks even administrators from "disowning" the apps owner(s), which
+have to be set manually in SQL (all other groups for registered users apart
+from owners can be set via the above URL). This is best done by registering a
+regular user and by then using the following query inside your SQL client of
+choice after having changed to the eve database:
+
+```
+# Set owner in MySQL, replace username as appropriate
+use eve_sde;
+UPDATE authBasicGroups SET groupID = 1024 WHERE user = <USERNAME>
+```
+
+Available groups and their numerical shortcuts can be queried like so:
+
+```
+# Query all available user groups
+use eve_sde;
+SELECT * FROM authGroups;
+
+# Example user groups
+MariaDB [eve_sde]> SELECT * FROM authGroups;
++---------+-------------+
+| groupID | groupName   |
++---------+-------------+
+|       1 | public      |
+|       4 | alliance    |
+|       8 | corporation |
+|      32 | recon       |
+|      64 | recon-l     |
+|     256 | admin       |
+|    1024 | owner       |
++---------+-------------+
+7 rows in set (0.00 sec)
+```
+
+### Recommendation
+
+I suggest using `--group-auth --login-auth`, though these require a bit of
+additional setup as described above. Yet, `--group-auth --login-auth
+--sso-auth` is perhaps the most comprehensive set of option, though SSO auth
+requires to register an app properly with CCP.
+
+**Hint:** There exist other options which can be seen when calling
+`dashboard.rkt --help`, though these should _not_ be used in production. As
+such, `-j` allows the webserver to create valid JWT headers for _all_
+requests, which means every request gets displayed as fully
+authenticated. Additionally, `-G` allows to supply one of the above groups
+directly, which treats all requests as having those permissions, which (in
+combination with `-j`) is very useful for testing what individual groups can
+and cannot see, but is obviously pointless for production. If you don't want
+group authentication in production, don't use `--group-auth`! 
 
 ## Automated intel gathering w/ monolithic dispatcher
 
