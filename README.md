@@ -119,7 +119,7 @@ different options can be selected either individually or together.
 #### User data and security
 
 Since we are ultimately handling user names, passwords and email addresses, we
-try to keep them as save as possible. Passwords are hashed using scrypt before
+try to keep them as safe as possible. Passwords are hashed using scrypt before
 being stored in the database, while CCP refresh tokens are encrypted at-rest
 within the database using AES256. There are provisions to make use of CCP's
 single-sign on, though a module to completely defer all authentication
