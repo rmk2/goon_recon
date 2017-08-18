@@ -22,11 +22,12 @@
 
 ;; Split a list into members of length n
 
-(define (split-list lst [n 100])
-  (let loop ([query lst] [limit n] [i 1] [result null])
-    (if (<= (* i limit) (length query))
-	(loop query limit (+ i 1) (list* (drop (take query (* i limit)) (* (- i 1) limit)) result))
-	(reverse (filter-not empty? (list* (take-right query (remainder (length query) limit)) result))))))
+(define (split-list lst [limit 100])
+  (let loop ([input lst] [i limit] [result null])
+    (let-values ([(q r) (quotient/remainder (length input) i)])
+      (cond [(> q 0) (loop (drop input i) i (cons (take input i) result))]
+	    [(> r 0) (loop (drop input r) i (cons (take input r) result))]
+	    [else (reverse result)]))))
 
 ;; Count duplicates in a list, shortening the list until we hit length 0
 
